@@ -1,6 +1,6 @@
 # energia-web
 
-Public portal of the **Monitor de Curtailment** (Phase 1): how much wind and solar energy ONS
+Public portal of **Spillway** (Phase 1), the curtailment monitor: how much wind and solar energy ONS
 ordered Brazilian plants not to generate, per month, subsystem, state and plant, with the
 estimated loss in BRL. It includes an admin area to follow the pipeline loads and publish
 monthly reports.
@@ -153,11 +153,27 @@ explicit consent (LGPD), e-mail confirmation (double opt-in) and one-click unsub
 
 ## CI and deployment
 
-`.github/workflows/ci.yml` runs on every PR and push to `main`: `pnpm install
---frozen-lockfile`, lint, `tsc --noEmit`, `prettier --check`, `vitest run` and `next build`
-(without the API).
+`.github/workflows/ci.yml` runs on every push, pull request and manual run (_Actions → pipeline
+→ Run workflow_):
 
-**Deployment is done by Vercel** (GitHub integration): a preview per PR and production on each
-merge to `main`. Set the variables above on Vercel (`API_URL`, `NEXT_PUBLIC_SITE_URL`,
-`NEXT_PUBLIC_CONTACT_EMAIL`, `REVALIDATE_SECRET`, `WEB_API_SECRET`, `AUTH_*`, analytics). CI
-does not deploy.
+| Job                               | What it checks                         |
+| --------------------------------- | -------------------------------------- |
+| Lint                              | ESLint and `prettier --check`          |
+| Type check                        | `tsc --noEmit`                         |
+| Tests                             | Vitest                                 |
+| Build                             | `next build` without the API           |
+| Dependency audit                  | `pnpm audit --prod --audit-level high` |
+| Secrets and misconfiguration scan | Trivy over the repository              |
+
+`package.json` overrides the `postcss` bundled with Next.js (`next>postcss`) with a patched
+release until Next.js ships one.
+
+**Deployment.** Vercel still builds a preview for every pull request through its GitHub
+integration, but `vercel.json` turns off its automatic production deployments from `main`.
+Production goes through the pipeline: on `main`, once `VERCEL_PROJECT_ID` is set,
+**Deploy to production** waits for approval in the `production` environment and then runs
+`vercel pull`, `vercel build --prod` and `vercel deploy --prebuilt --prod`. Required settings:
+secret `VERCEL_TOKEN`; variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`; environment `production`
+with required reviewers. Set the runtime variables above on Vercel (`API_URL`,
+`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, `REVALIDATE_SECRET`, `WEB_API_SECRET`,
+`AUTH_*`, analytics).

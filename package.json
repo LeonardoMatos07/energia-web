@@ -55,6 +55,9 @@
     "onlyBuiltDependencies": [
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "next>postcss": "8.5.29"
+    }
   }
 }
