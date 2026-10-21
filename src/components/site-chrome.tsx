@@ -25,6 +25,7 @@ export function BrandMark({ className = "size-8" }: { className?: string }) {
 const FOOTER_LINKS = [
   { href: "/estados", label: "Estados" },
   { href: "/usinas", label: "Usinas" },
+  { href: "/comparar", label: "Comparar" },
   { href: "/relatorios", label: "Relatórios" },
   { href: "/metodologia", label: "Metodologia" },
   { href: "/privacidade", label: "Privacidade" },

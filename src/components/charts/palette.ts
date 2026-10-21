@@ -3,7 +3,11 @@ export const SERIES = {
   s2: "var(--color-series-2)",
   s3: "var(--color-series-3)",
   s4: "var(--color-series-4)",
+  s5: "var(--color-series-5)",
+  s6: "var(--color-series-6)",
 } as const;
+
+export const ENTITY_COLORS = [SERIES.s1, SERIES.s2, SERIES.s3, SERIES.s4, SERIES.s5, SERIES.s6];
 
 export const SOURCE_COLORS = {
   wind: SERIES.s1,

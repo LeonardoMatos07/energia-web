@@ -7,6 +7,7 @@ const NAV = [
   { href: "/", label: "Painel" },
   { href: "/estados", label: "Estados" },
   { href: "/usinas", label: "Usinas" },
+  { href: "/comparar", label: "Comparar" },
   { href: "/relatorios", label: "Relatórios" },
   { href: "/metodologia", label: "Metodologia" },
 ];
