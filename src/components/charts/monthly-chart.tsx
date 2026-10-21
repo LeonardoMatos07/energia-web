@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { formatShortMonth, formatLongMonth, formatNumber } from "@/lib/format";
-import { fillMonthGaps, filterByMonthRange, monthSpan } from "@/lib/series";
+import { defaultPeriod, fillMonthGaps, filterByMonthRange, monthSpan } from "@/lib/series";
 import { ChartDataTable } from "./data-table";
 import { PeriodFilter } from "./period-filter";
 import { CHART_INK } from "./palette";
@@ -199,7 +199,7 @@ export function MonthlyChart({
   rows,
   series,
   unit,
-  kind: kindProp = "stacked-bar",
+  kind: kindProp = "line",
   digits = 1,
   height = 300,
   periodFilter = true,
@@ -212,7 +212,8 @@ export function MonthlyChart({
   const first = rows[0]?.month ?? "";
   const last = rows[rows.length - 1]?.month ?? "";
   const [range, setRange] = useState<{ start: string; end: string } | null>(null);
-  const start = range ? range.start : first;
+  const fallbackStart = periodFilter ? defaultPeriod(first, last).start : first;
+  const start = range ? range.start : fallbackStart;
   const end = range ? range.end : last;
   const visibleRows = useMemo(() => filterByMonthRange(rows, start, end), [rows, start, end]);
   const plotted = useMemo(() => fillMonthGaps(visibleRows), [visibleRows]);

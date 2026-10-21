@@ -27,7 +27,7 @@ import {
   type ViewState,
 } from "@/lib/compare";
 import { formatPercent } from "@/lib/format";
-import { filterByMonthRange } from "@/lib/series";
+import { defaultPeriod, filterByMonthRange } from "@/lib/series";
 
 const LAYOUTS: { value: Layout; label: string; help: string }[] = [
   {
@@ -152,7 +152,8 @@ export function Comparator({
   );
   const first = months[0] ?? "";
   const last = months[months.length - 1] ?? "";
-  const clampedStart = range && range.start > first ? range.start : first;
+  const wantedStart = range ? range.start : defaultPeriod(first, last).start;
+  const clampedStart = wantedStart > first ? wantedStart : first;
   const clampedEnd = range && range.end < last ? range.end : last;
   const validRange = clampedStart <= clampedEnd;
   const start = validRange ? clampedStart : first;
