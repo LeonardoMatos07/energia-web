@@ -3,8 +3,9 @@ import { subscribeNewsletter } from "@/app/newsletter/actions";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Card, Container, Section, StatGrid, StatTile } from "@/components/ui";
-import { getReports, getSubsystemCurtailment } from "@/lib/api/queries";
+import { getPlants, getReports, getSubsystemCurtailment } from "@/lib/api/queries";
 import type { SubsystemMonthlyCurtailment } from "@/lib/api/types";
+import { parseEntities, serializeEntities } from "@/lib/compare";
 import {
   formatBRLCompact,
   formatGWh,
@@ -13,6 +14,7 @@ import {
   formatPercent,
   formatShortMonth,
 } from "@/lib/format";
+import { STATES } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
 import { latest, normalizeMonth, shiftMonth } from "@/lib/series";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
@@ -26,7 +28,32 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
-const FEATURES = [
+const VALUE_POINTS = [
+  {
+    title: "Veja onde a energia está sendo perdida",
+    text: "Do total nacional até cada usina: histórico mês a mês por estado, subsistema, usina e conjunto eólico ou solar.",
+  },
+  {
+    title: "Saiba quanto isso custa",
+    text: "Cada corte vem com a perda estimada em reais, calculada com o preço de referência do período e com a metodologia aberta.",
+  },
+  {
+    title: "Entenda por que foi cortada",
+    text: "Separamos a energia cortada por motivo: confiabilidade elétrica, indisponibilidade externa e razão energética.",
+  },
+  {
+    title: "Confie nos números",
+    text: "Dados oficiais do ONS, conferidos mês a mês contra os totais publicados. Quando o ONS revisa um mês, nós reprocessamos.",
+  },
+] as const;
+
+const COMPARE_EXAMPLES = [
+  { label: "Bahia × Rio Grande do Norte", refs: "e:BA,e:RN" },
+  { label: "Nordeste × Sul", refs: "s:NE,s:S" },
+  { label: "Rio Grande do Norte × Brasil", refs: "e:RN,s:SIN" },
+] as const;
+
+const EXPLORE = [
   {
     href: "/painel",
     title: "Painel",
@@ -40,17 +67,7 @@ const FEATURES = [
   {
     href: "/usinas",
     title: "Usinas",
-    text: "Uma página para cada usina e conjunto eólico ou solar, com o histórico mês a mês.",
-  },
-  {
-    href: "/comparar",
-    title: "Comparar",
-    text: "Coloque usinas, estados e subsistemas lado a lado, em linhas, barras ou pizza.",
-  },
-  {
-    href: "/relatorios",
-    title: "Relatórios",
-    text: "Um relatório para cada mês: o que mudou, onde os cortes se concentraram e por quê.",
+    text: "Uma página para cada usina e conjunto, com o histórico completo.",
   },
   {
     href: "/metodologia",
@@ -69,12 +86,17 @@ function percentChange(current: number, reference: number | undefined) {
   return `${delta >= 0 ? "+" : "−"}${formatPercent(Math.abs(delta))}`;
 }
 
+function compareHref(refs: string) {
+  return `/comparar?itens=${encodeURIComponent(serializeEntities(parseEntities(refs)))}`;
+}
+
 export default async function LandingPage() {
-  const [total, wind, solar, reports] = await Promise.all([
+  const [total, wind, solar, reports, plants] = await Promise.all([
     getSubsystemCurtailment("total"),
     getSubsystemCurtailment("wind"),
     getSubsystemCurtailment("solar"),
     getReports(),
+    getPlants({ pageSize: 1 }),
   ]);
 
   const sinTotal = total.ok ? onlySin(total.data.items) : [];
@@ -89,9 +111,21 @@ export default async function LandingPage() {
       : null;
   const windRow = wind.ok ? latest(onlySin(wind.data.items)) : undefined;
   const solarRow = solar.ok ? latest(onlySin(solar.data.items)) : undefined;
-  const newestReport = reports.ok
-    ? [...reports.data.items].sort((a, b) => b.month.localeCompare(a.month))[0]
-    : undefined;
+  const sortedReports = reports.ok
+    ? [...reports.data.items].sort((a, b) => b.month.localeCompare(a.month))
+    : [];
+  const newestReport = sortedReports[0];
+  const oldestReport = sortedReports.at(-1);
+  const plantCount = plants.ok ? plants.data.total : null;
+
+  const proof = [
+    sinTotal.length > 0 ? { value: String(sinTotal.length), label: "meses de histórico" } : null,
+    plantCount ? { value: formatNumber(plantCount, 0), label: "usinas e conjuntos" } : null,
+    { value: String(STATES.length), label: "estados" },
+    sortedReports.length > 0
+      ? { value: String(sortedReports.length), label: "relatórios mensais" }
+      : null,
+  ].filter((item) => item !== null);
 
   const highlights = [
     newestReport
@@ -148,7 +182,7 @@ export default async function LandingPage() {
           reduzirem a produção. Esse corte é energia limpa que existia e foi desperdiçada. O{" "}
           {SITE_NAME} mostra, mês a mês, onde e quanto, usina por usina.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
             href="/painel"
             className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
@@ -156,11 +190,12 @@ export default async function LandingPage() {
             Abrir o painel
           </Link>
           <Link
-            href="/relatorios"
+            href="/comparar"
             className="border-line bg-surface hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold"
           >
-            Ler os relatórios
+            Comparar usinas e estados
           </Link>
+          <span className="text-ink-2 text-sm">Gratuito e sem cadastro nesta primeira fase.</span>
         </div>
       </header>
 
@@ -201,6 +236,113 @@ export default async function LandingPage() {
         </Section>
       ) : null}
 
+      <Section
+        id="value"
+        title="O que o Spillway entrega nesta primeira fase"
+        description="Um monitor público do curtailment eólico e solar do Brasil, feito para quem precisa de números e não de opinião: geradores, investidores, consultorias, jornalistas e quem acompanha o setor."
+      >
+        {proof.length > 0 ? (
+          <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {proof.map((item) => (
+              <div key={item.label} className="border-grid bg-surface rounded-2xl border p-4">
+                <dd className="font-display text-accent text-3xl font-bold tracking-tight">
+                  {item.value}
+                </dd>
+                <dt className="text-ink-2 mt-1 text-sm">{item.label}</dt>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {VALUE_POINTS.map((point) => (
+            <li key={point.title}>
+              <Card className="h-full p-5">
+                <h3 className="text-lg font-semibold">{point.title}</h3>
+                <p className="text-ink-2 mt-1 text-sm leading-6">{point.text}</p>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <section
+        aria-label="Comparar e relatórios"
+        className="grid gap-4 py-6 sm:py-8 lg:grid-cols-2"
+      >
+        <div className="bg-accent text-on-accent flex flex-col rounded-2xl p-6 sm:p-8">
+          <p className="text-xs font-semibold tracking-[0.14em] uppercase opacity-85">Comparar</p>
+          <h2 className="mt-2 text-2xl leading-tight font-bold tracking-tight text-balance sm:text-3xl">
+            Qual usina perde mais? Qual estado sofre mais?
+          </h2>
+          <p className="mt-3 leading-7 opacity-90">
+            Coloque até 6 usinas, estados ou subsistemas lado a lado, escolha o que medir (geração,
+            energia cortada, perda em R$ ou % de corte) e veja em linhas, barras ou pizza. O link
+            guarda tudo: é só compartilhar.
+          </p>
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Exemplos de comparação">
+            {COMPARE_EXAMPLES.map((example) => (
+              <li key={example.refs}>
+                <Link
+                  href={compareHref(example.refs)}
+                  className="inline-block rounded-full border border-current/40 px-3 py-1.5 text-sm font-medium hover:bg-white/15"
+                >
+                  {example.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/comparar"
+            className="bg-surface text-accent-strong mt-auto self-start rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
+            style={{ marginTop: "1.5rem" }}
+          >
+            Comparar agora
+          </Link>
+        </div>
+
+        <div className="border-grid bg-surface shadow-card flex flex-col rounded-2xl border p-6 sm:p-8">
+          <p className="text-accent text-xs font-semibold tracking-[0.14em] uppercase">
+            Relatórios
+          </p>
+          <h2 className="mt-2 text-2xl leading-tight font-bold tracking-tight text-balance sm:text-3xl">
+            Um relatório pronto para cada mês
+          </h2>
+          <p className="text-ink-2 mt-3 leading-7">
+            O que mudou, onde os cortes se concentraram e por quê, com o ranking dos estados e das
+            usinas mais afetadas.
+            {oldestReport && newestReport
+              ? ` Já são ${sortedReports.length} relatórios, de ${formatShortMonth(oldestReport.month)} a ${formatShortMonth(newestReport.month)}.`
+              : null}{" "}
+            Leia no portal e receba o próximo por e-mail.
+          </p>
+          {newestReport ? (
+            <Link
+              href={`/relatorios/${newestReport.slug}`}
+              className="border-line hover:border-accent hover:bg-accent-soft mt-4 block rounded-xl border p-4"
+            >
+              <span className="text-accent block text-xs font-semibold tracking-wide uppercase">
+                Mais recente
+              </span>
+              <span className="mt-1 block font-semibold">{newestReport.title}</span>
+            </Link>
+          ) : null}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/relatorios"
+              className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
+            >
+              Ler os relatórios
+            </Link>
+            <Link
+              href="#newsletter"
+              className="border-line hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold"
+            >
+              Receber por e-mail
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {highlights.length > 0 ? (
         <Section
           id="highlights"
@@ -233,14 +375,14 @@ export default async function LandingPage() {
         </Section>
       ) : null}
 
-      <Section id="features" title="O que você encontra aqui">
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => (
-            <li key={feature.href}>
-              <Link href={feature.href} className="block h-full">
+      <Section id="explore" title="Explore o resto do site">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {EXPLORE.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="block h-full">
                 <Card className="hover:border-accent h-full p-5 transition-colors">
-                  <h3 className="text-lg font-semibold">{feature.title}</h3>
-                  <p className="text-ink-2 mt-1 text-sm leading-6">{feature.text}</p>
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="text-ink-2 mt-1 text-sm leading-6">{item.text}</p>
                 </Card>
               </Link>
             </li>
