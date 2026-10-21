@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import { Analytics } from "@/components/analytics";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
@@ -7,6 +7,12 @@ import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  display: "swap",
+  variable: "--font-space-grotesk",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -25,7 +31,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: "/",
   },
-  twitter: { card: "summary" },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
@@ -33,17 +39,21 @@ export const viewport: Viewport = {
   initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#15211e" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1b2c" },
   ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('energia-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('spillway-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}`,
           }}
         />
       </head>

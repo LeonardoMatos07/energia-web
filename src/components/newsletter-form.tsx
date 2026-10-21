@@ -62,9 +62,8 @@ export function NewsletterForm({
             className="mt-0.5 size-4 shrink-0 accent-[var(--color-accent)]"
           />
           <label htmlFor={`${id}-consent`} className="text-ink-2 leading-5">
-            Concordo em receber e-mails do Monitor de Curtailment e com o uso do meu e-mail apenas
-            para esse fim, conforme a LGPD. Posso cancelar a qualquer momento pelo link em cada
-            e-mail.{" "}
+            Concordo em receber e-mails do Spillway e com o uso do meu e-mail apenas para esse fim,
+            conforme a LGPD. Posso cancelar a qualquer momento pelo link em cada e-mail.{" "}
             <Link href="/privacidade" className="text-accent underline">
               Como tratamos seus dados
             </Link>

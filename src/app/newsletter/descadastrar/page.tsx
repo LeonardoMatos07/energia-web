@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Cancelar newsletter",
-  description: "Cancelamento da inscrição na newsletter do Monitor de Curtailment.",
+  description: "Cancelamento da inscrição na newsletter do Spillway.",
   path: "/newsletter/descadastrar",
   noIndex: true,
 });

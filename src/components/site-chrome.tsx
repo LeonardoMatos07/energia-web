@@ -1,21 +1,23 @@
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 import { Container } from "./ui";
 
-function BrandMark() {
+export function BrandMark({ className = "size-8" }: { className?: string }) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 32 32" className="size-8 shrink-0">
-      <rect width="32" height="32" rx="9" className="fill-accent" />
-      <circle cx="21.5" cy="11" r="4" className="fill-[#f6c453]" />
+    <svg aria-hidden="true" viewBox="0 0 112 112" className={`${className} shrink-0`}>
+      <rect width="112" height="112" rx="28" className="fill-brand-tile" />
       <path
-        d="M10 26V15m0 0-5.5-4M10 15l6.5-1.5M10 15l-.8-7"
-        className="stroke-on-accent"
-        strokeWidth="2"
+        d="M22 34h30v16h18v16h20"
+        className="stroke-brand-flow"
+        strokeWidth="10"
         strokeLinecap="round"
+        strokeLinejoin="round"
         fill="none"
       />
+      <path d="M90 68v10" className="stroke-brand-drop" strokeWidth="10" strokeLinecap="round" />
+      <circle cx="90" cy="90" r="5" className="fill-brand-drop" />
     </svg>
   );
 }
@@ -39,7 +41,10 @@ export function SiteHeader() {
         Pular para o conteúdo
       </a>
       <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3">
-        <Link href="/" className="text-ink flex items-center gap-2.5 font-bold tracking-tight">
+        <Link
+          href="/"
+          className="text-ink font-display flex items-center gap-2.5 text-lg font-bold tracking-tight"
+        >
           <BrandMark />
           <span>{SITE_NAME}</span>
         </Link>
@@ -59,10 +64,11 @@ export function SiteFooter() {
     <footer className="border-grid bg-surface text-ink-2 mt-20 border-t text-sm">
       <Container className="grid gap-8 py-10 sm:grid-cols-[1.4fr_1fr]">
         <div className="space-y-3">
-          <p className="text-ink flex items-center gap-2 font-semibold">
-            <BrandMark />
+          <p className="text-ink font-display flex items-center gap-2 text-base font-bold">
+            <BrandMark className="size-7" />
             {SITE_NAME}
           </p>
+          <p className="text-ink-2">{SITE_TAGLINE}.</p>
           <p className="max-w-md leading-6">
             Dados abertos do Operador Nacional do Sistema Elétrico (ONS), processados todo mês.
             Valores em R$ são estimativas pelo PLD —{" "}

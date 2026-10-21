@@ -12,7 +12,7 @@ export function ThemeToggle() {
   function toggleTheme() {
     const nextIsDark = !isDark;
     document.documentElement.dataset.theme = nextIsDark ? "dark" : "light";
-    localStorage.setItem("energia-theme", nextIsDark ? "dark" : "light");
+    localStorage.setItem("spillway-theme", nextIsDark ? "dark" : "light");
     setIsDark(nextIsDark);
   }
 

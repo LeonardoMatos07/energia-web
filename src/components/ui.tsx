@@ -104,7 +104,7 @@ export function StatTile({
       }`}
     >
       <dt className={`text-sm ${highlight ? "opacity-85" : "text-ink-2"}`}>{label}</dt>
-      <dd className="tabular mt-1 text-xl font-semibold tracking-tight whitespace-nowrap sm:text-2xl xl:text-[1.75rem]">
+      <dd className="tabular font-display mt-1 text-xl font-bold tracking-tight whitespace-nowrap sm:text-2xl xl:text-[1.75rem]">
         {value}
       </dd>
       {note ? (

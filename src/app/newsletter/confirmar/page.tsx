@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Confirmar inscrição na newsletter",
-  description: "Confirmação de inscrição na newsletter do Monitor de Curtailment.",
+  description: "Confirmação de inscrição na newsletter do Spillway.",
   path: "/newsletter/confirmar",
   noIndex: true,
 });
