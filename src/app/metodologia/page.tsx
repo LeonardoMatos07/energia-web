@@ -28,12 +28,12 @@ export default function MetodologiaPage() {
         </p>
       </PageHeader>
 
-      <div className="prose prose-neutral max-w-3xl prose-a:text-[var(--color-accent)]">
+      <div className="prose prose-neutral prose-a:text-[var(--color-accent)] max-w-3xl">
         <H2 id="o-que-e">O que é curtailment</H2>
         <p>
-          <em>Curtailment</em> (ou <em>constrained-off</em>) é quando o Operador Nacional do
-          Sistema Elétrico (ONS) manda uma usina produzir menos do que ela poderia. A usina tem
-          vento ou sol, está disponível, mas a energia não é aproveitada. Medimos esse corte em
+          <em>Curtailment</em> (ou <em>constrained-off</em>) é quando o Operador Nacional do Sistema
+          Elétrico (ONS) manda uma usina produzir menos do que ela poderia. A usina tem vento ou
+          sol, está disponível, mas a energia não é aproveitada. Medimos esse corte em
           megawatts-hora (MWh) ou gigawatts-hora (GWh; 1 GWh = 1.000 MWh).
         </p>
         <p>
@@ -97,17 +97,23 @@ export default function MetodologiaPage() {
 
         <H2 id="perda">Como estimamos a perda em R$</H2>
         <p>
-          A perda estimada multiplica a energia cortada em cada período por um preço de referência
-          do submercado da usina: o <strong>PLD</strong> (Preço de Liquidação das Diferenças, da
-          CCEE) ou o <strong>CMO</strong> (Custo Marginal de Operação, do ONS). A página de cada
-          usina mostra qual base predominou no mês; quando faltavam preços em parte do mês e as
-          lacunas precisaram ser preenchidas, isso também é indicado.
+          A perda estimada multiplica a energia cortada em cada meia hora pelo <strong>PLD</strong>{" "}
+          (Preço de Liquidação das Diferenças) do submercado da usina naquele momento. Como a CCEE
+          não oferece o PLD para download automatizado, reconstruímos o PLD horário pela mesma regra
+          oficial: o <strong>CMO</strong> (Custo Marginal de Operação) publicado pelo ONS, limitado
+          ao piso e ao teto horário que a ANEEL fixa para cada ano.
+        </p>
+        <p>
+          O piso importa: o corte acontece quando sobra energia, e nessas horas o CMO costuma ficar
+          perto de zero. Sem o piso, a perda pareceria nula. A página de cada usina mostra a base de
+          preço usada no mês; quando faltavam valores de CMO em parte do mês e as lacunas precisaram
+          ser preenchidas com o dia anterior, isso também é indicado.
         </p>
         <Notice>
-          <strong>Premissa em validação.</strong> Esse valor é uma ordem de grandeza, não o prejuízo
-          contábil de cada empresa. A receita real depende de contratos, do mercado em que a usina
+          <strong>Ordem de grandeza, não prejuízo contábil.</strong> O PLD é o preço do mercado de
+          curto prazo. A receita real de cada usina depende de contratos, do mercado em que ela
           vende a energia e de eventuais ressarcimentos regulatórios, que não estão nos dados
-          públicos. Ainda estamos validando a premissa de preço; os valores podem ser recalculados.
+          públicos.
         </Notice>
 
         <H2 id="limitacoes">Limitações dos dados</H2>
@@ -119,8 +125,7 @@ export default function MetodologiaPage() {
           </li>
           <li>
             <strong>Meses recentes podem mudar.</strong> O ONS revisa os dados depois de
-            publicá-los. Reprocessamos os meses recentes a cada carga, então os números podem
-            mudar.
+            publicá-los. Reprocessamos os meses recentes a cada carga, então os números podem mudar.
           </li>
           <li>
             <strong>Valores por usina em conjuntos são estimados.</strong> Veja o rateio acima.
@@ -140,11 +145,9 @@ export default function MetodologiaPage() {
 
         <H2 id="privacidade">Privacidade</H2>
         <p>
-          Não há login público nem cookies de rastreamento. Se você assinar a newsletter, guardamos
-          apenas seu e-mail e a data do seu consentimento, para o único fim de enviar os resumos
-          (LGPD, art. 7º, I). A inscrição só vale depois que você confirma pelo link enviado por
-          e-mail, e todo e-mail tem um link para cancelar em um clique. As estatísticas de visitas,
-          quando ativas, são agregadas e não usam cookies.
+          Não há login público nem cookies de rastreamento. O único dado pessoal que guardamos é o
+          e-mail de quem assina a newsletter. Veja os detalhes na{" "}
+          <Link href="/privacidade">política de privacidade</Link>.
         </p>
       </div>
     </Container>

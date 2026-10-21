@@ -1,41 +1,55 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/site";
-import { Container } from "./ui";
+import { NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
+import { Container } from "./ui";
 
-const NAV = [
-  { href: "/", label: "Painel" },
+function BrandMark() {
+  // A wind turbine blade over a clipped sun: wind and solar, the two sources tracked.
+  return (
+    <svg aria-hidden="true" viewBox="0 0 32 32" className="size-8 shrink-0">
+      <rect width="32" height="32" rx="9" className="fill-accent" />
+      <circle cx="21.5" cy="11" r="4" className="fill-[#f6c453]" />
+      <path
+        d="M10 26V15m0 0-5.5-4M10 15l6.5-1.5M10 15l-.8-7"
+        className="stroke-on-accent"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+const FOOTER_LINKS = [
   { href: "/estados", label: "Estados" },
   { href: "/usinas", label: "Usinas" },
   { href: "/relatorios", label: "Relatórios" },
   { href: "/metodologia", label: "Metodologia" },
+  { href: "/privacidade", label: "Privacidade" },
+  { href: "/newsletter/descadastrar", label: "Cancelar newsletter" },
 ];
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--color-grid)]/80 bg-[var(--color-surface)]/95 shadow-[0_1px_3px_rgba(25,55,43,0.04)] backdrop-blur">
+    <header className="border-grid bg-surface/90 sticky top-0 z-30 border-b backdrop-blur-md">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2"
+        className="focus:bg-surface sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:px-3 focus:py-2"
       >
         Pular para o conteúdo
       </a>
-      <Container className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 py-3.5">
-        <Link href="/" className="text-lg font-extrabold tracking-tight text-[var(--color-ink)]">
-          {SITE_NAME}
+      <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3">
+        <Link href="/" className="text-ink flex items-center gap-2.5 font-bold tracking-tight">
+          <BrandMark />
+          <span>{SITE_NAME}</span>
         </Link>
-        <nav aria-label="Principal" className="mr-auto sm:mr-0">
-          <ul className="flex flex-wrap gap-x-1 gap-y-1 text-sm font-semibold">
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="rounded-full px-3 py-2 text-[var(--color-ink-2)] hover:bg-[#edf5f0] hover:text-[var(--color-accent-strong)]">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <ThemeToggle />
+        <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+          <NavLinks />
+        </div>
+        <div className="ml-auto sm:ml-0">
+          <ThemeToggle />
+        </div>
       </Container>
     </header>
   );
@@ -43,25 +57,31 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-[var(--color-grid)] bg-[var(--color-surface)] py-9 text-sm leading-6 text-[var(--color-ink-2)]">
-      <Container className="space-y-2">
-        <p>
-          Fonte primária: dados abertos do Operador Nacional do Sistema Elétrico (ONS). Valores de
-          perda em R$ são estimativas —{" "}
-          <Link href="/metodologia" className="text-[var(--color-accent)] underline">
-            veja a metodologia
-          </Link>
-          .
-        </p>
-        <p>
-          <Link href="/newsletter/descadastrar" className="underline">
-            Cancelar newsletter
-          </Link>{" "}
-          ·{" "}
-          <Link href="/metodologia#privacidade" className="underline">
-            Privacidade
-          </Link>
-        </p>
+    <footer className="border-grid bg-surface text-ink-2 mt-20 border-t text-sm">
+      <Container className="grid gap-8 py-10 sm:grid-cols-[1.4fr_1fr]">
+        <div className="space-y-3">
+          <p className="text-ink flex items-center gap-2 font-semibold">
+            <BrandMark />
+            {SITE_NAME}
+          </p>
+          <p className="max-w-md leading-6">
+            Dados abertos do Operador Nacional do Sistema Elétrico (ONS), processados todo mês.
+            Valores em R$ são estimativas pelo PLD —{" "}
+            <Link href="/metodologia" className="text-accent underline">
+              veja a metodologia
+            </Link>
+            .
+          </p>
+        </div>
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-2 self-start">
+          {FOOTER_LINKS.map(({ href, label }) => (
+            <li key={href}>
+              <Link href={href} className="hover:text-accent hover:underline">
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </Container>
     </footer>
   );

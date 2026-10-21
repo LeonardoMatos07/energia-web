@@ -15,9 +15,7 @@ export const metadata = pageMetadata({
 
 export default async function RelatoriosPage() {
   const result = await getRelatorios();
-  const itens = result.ok
-    ? [...result.data.itens].sort((a, b) => b.mes.localeCompare(a.mes))
-    : [];
+  const itens = result.ok ? [...result.data.itens].sort((a, b) => b.mes.localeCompare(a.mes)) : [];
 
   return (
     <Container>
@@ -41,7 +39,10 @@ export default async function RelatoriosPage() {
                   {r.publicado_em ? ` · publicado em ${formatData(r.publicado_em)}` : null}
                 </p>
                 <h2 className="mt-1 text-lg font-semibold">
-                  <Link href={`/relatorios/${r.slug}`} className="text-[var(--color-accent)] underline">
+                  <Link
+                    href={`/relatorios/${r.slug}`}
+                    className="text-[var(--color-accent)] underline"
+                  >
                     {r.titulo}
                   </Link>
                 </h2>

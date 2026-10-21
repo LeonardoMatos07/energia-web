@@ -41,3 +41,26 @@ export function pivotByMonth<T extends { mes: string }>(
   }
   return [...byMonth.values()].sort((a, b) => a.mes.localeCompare(b.mes));
 }
+
+/**
+ * Inserts the months missing between the first and last row (with no values), so a
+ * chart's time axis is continuous and gaps in the data show as gaps.
+ */
+export function fillMonthGaps(rows: readonly ChartRow[]): ChartRow[] {
+  const first = rows[0];
+  const last = rows[rows.length - 1];
+  if (!first || !last) return [];
+  const byMonth = new Map(rows.map((row) => [row.mes, row]));
+  const filled: ChartRow[] = [];
+  let [year, month] = first.mes.split("-").map(Number) as [number, number];
+  for (let mes = first.mes; mes <= last.mes;) {
+    filled.push(byMonth.get(mes) ?? { mes });
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+    mes = `${year}-${String(month).padStart(2, "0")}`;
+  }
+  return filled;
+}

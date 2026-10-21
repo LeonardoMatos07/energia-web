@@ -9,7 +9,15 @@ export interface TabPanel {
 }
 
 /** Accessible tabs (WAI-ARIA pattern). All panels are server-rendered; only visibility changes. */
-export function Tabs({ panels, label, initial }: { panels: TabPanel[]; label: string; initial?: string }) {
+export function Tabs({
+  panels,
+  label,
+  initial,
+}: {
+  panels: TabPanel[];
+  label: string;
+  initial?: string;
+}) {
   const [active, setActive] = useState(initial ?? panels[0]?.key);
   const id = useId();
 
@@ -26,7 +34,11 @@ export function Tabs({ panels, label, initial }: { panels: TabPanel[]; label: st
 
   return (
     <div>
-      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-lg border border-[var(--color-line)] bg-white p-1">
+      <div
+        role="tablist"
+        aria-label={label}
+        className="border-line bg-surface inline-flex flex-wrap gap-1 rounded-lg border p-1"
+      >
         {panels.map((p, i) => {
           const selected = p.key === active;
           return (
@@ -42,7 +54,7 @@ export function Tabs({ panels, label, initial }: { panels: TabPanel[]; label: st
               onKeyDown={(e) => onKeyDown(e, i)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                 selected
-                  ? "bg-[var(--color-accent)] text-white"
+                  ? "bg-accent text-on-accent"
                   : "text-[var(--color-ink-2)] hover:bg-[var(--color-page)]"
               }`}
             >

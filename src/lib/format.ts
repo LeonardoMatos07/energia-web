@@ -2,7 +2,20 @@
 
 export const EMPTY = "—";
 
-const MESES_CURTOS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const MESES_CURTOS = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+];
 const MESES_LONGOS = [
   "janeiro",
   "fevereiro",
@@ -58,8 +71,9 @@ export function formatEnergy(mwh: number | null | undefined) {
 }
 
 /** Percentages come from the API on a 0–100 scale. */
-export function formatPercent(value: number | null | undefined, maxDigits = 1) {
-  return isNumber(value) ? `${formatNumber(value, maxDigits)}%` : EMPTY;
+/** Pass `minDigits` in table columns so `70%` lines up as `70,0%` next to `70,2%`. */
+export function formatPercent(value: number | null | undefined, maxDigits = 1, minDigits = 0) {
+  return isNumber(value) ? `${formatNumber(value, maxDigits, minDigits)}%` : EMPTY;
 }
 
 const brl = new Intl.NumberFormat("pt-BR", {
@@ -73,13 +87,16 @@ export function formatBRL(value: number | null | undefined) {
   return isNumber(value) ? brl.format(value) : EMPTY;
 }
 
-/** `12345678` → `R$ 12,3 milhões`; small values fall back to `formatBRL`. */
+/**
+ * `12345678` → `R$ 12,3 milhões`, `7712` → `R$ 7,7 mil`; values under R$ 1.000 fall back
+ * to `formatBRL`. One scale per magnitude keeps columns of values comparable at a glance.
+ */
 export function formatBRLCompact(value: number | null | undefined) {
   if (!isNumber(value)) return EMPTY;
   const abs = Math.abs(value);
   if (abs >= 1e9) return `R$ ${formatNumber(value / 1e9, 1)} ${abs >= 2e9 ? "bilhões" : "bilhão"}`;
   if (abs >= 1e6) return `R$ ${formatNumber(value / 1e6, 1)} ${abs >= 2e6 ? "milhões" : "milhão"}`;
-  if (abs >= 1e4) return `R$ ${formatNumber(value / 1e3, 0)} mil`;
+  if (abs >= 1e3) return `R$ ${formatNumber(value / 1e3, abs >= 1e5 ? 0 : 1)} mil`;
   return formatBRL(value);
 }
 

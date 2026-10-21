@@ -40,7 +40,8 @@ export interface CurtailmentMensalUf extends CurtailmentAgregadoBase {
 }
 
 export interface CurtailmentMensalSin extends CurtailmentAgregadoBase {
-  subsistema: SubsistemaOuSin;
+  /** `N`, `NE`, `S`, `SE` or `SIN` (typed as plain string in the OpenAPI schema). */
+  subsistema: SubsistemaOuSin | (string & {});
 }
 
 export interface CurtailmentMensalUsina {
@@ -54,7 +55,7 @@ export interface CurtailmentMensalUsina {
   corte_ene_mwh: number;
   corte_outros_mwh: number;
   perda_estimada_brl: number | null;
-  base_preco: BasePreco | null;
+  base_preco: BasePreco | (string & {}) | null;
   horas_restritas: number;
   percentual_corte_medio_uf: number | null;
   posicao_nacional: number | null;
@@ -69,7 +70,7 @@ export interface UsinaResumo {
   slug: string;
   fonte: Fonte;
   uf: string;
-  subsistema: Subsistema;
+  subsistema: Subsistema | (string & {});
   potencia_mw: number | null;
 }
 
@@ -103,7 +104,8 @@ export interface Relatorio extends RelatorioResumo {
 export interface CargaExecucao {
   id: number;
   dataset: string;
-  periodo: string | null;
+  /** Month processed (`YYYY-MM`). */
+  periodo: Mes | null;
   arquivo: string | null;
   hash: string | null;
   linhas: number | null;
@@ -145,7 +147,7 @@ export interface UsinaDetalheResposta {
 
 /** GET /v1/ranking */
 export interface RankingResposta {
-  mes: Mes;
+  mes: Mes | null;
   itens: UsinaRanking[];
 }
 
@@ -185,18 +187,22 @@ export interface CargasResposta {
   itens: CargaExecucao[];
 }
 
-/**
- * GET /v1/admin/relatorios — the contract says "todos, inclusive rascunhos" without an
- * envelope; assumed to follow the `{"itens": [...]}` pattern of the public listing.
- */
+export interface RelatorioAdmin extends Relatorio {
+  criado_em: Timestamp;
+  atualizado_em: Timestamp;
+}
+
+/** GET /v1/admin/relatorios (all reports, drafts included) */
 export interface AdminRelatoriosResposta {
-  itens: Relatorio[];
+  itens: RelatorioAdmin[];
 }
 
 /** POST /v1/admin/relatorios body */
 export interface RelatorioEntrada {
   mes: Mes;
   titulo: string;
+  /** Optional (energia-api extension to the contract); generated from `titulo` when absent. */
+  slug?: string;
   resumo?: string | null;
   conteudo: string;
   publicar: boolean;
@@ -205,6 +211,15 @@ export interface RelatorioEntrada {
 /** POST /v1/admin/revalidar body */
 export interface RevalidarEntrada {
   tags?: CacheTag[];
+}
+
+/** POST /v1/admin/revalidar response */
+export interface RevalidarResposta {
+  tags: CacheTag[];
+  cache_limpo: boolean;
+  entradas_removidas: number;
+  web_revalidado: boolean;
+  detalhe: string | null;
 }
 
 /** Error body for every non-2xx response. */

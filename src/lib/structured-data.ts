@@ -28,7 +28,14 @@ export function datasetJsonLd(opts: {
     isAccessibleForFree: true,
     creator: publisher(),
     isBasedOn: ONS_SOURCE,
-    keywords: ["curtailment", "constrained-off", "energia eólica", "energia solar", "ONS", ...(opts.keywords ?? [])],
+    keywords: [
+      "curtailment",
+      "constrained-off",
+      "energia eólica",
+      "energia solar",
+      "ONS",
+      ...(opts.keywords ?? []),
+    ],
     variableMeasured: [
       { "@type": "PropertyValue", name: "Energia cortada", unitText: "MWh" },
       { "@type": "PropertyValue", name: "Geração verificada", unitText: "MWh" },

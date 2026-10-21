@@ -1,38 +1,60 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/*
+ * Design tokens. Every color is a variable, so the dark theme only redefines the
+ * variables below and components never need theme-specific classes. Tailwind turns
+ * each token into utilities (`bg-surface`, `text-ink-2`, `border-line`, ...).
+ */
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --color-page: #f4f7f5;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-page: #f5f7f6;
   --color-surface: #ffffff;
-  --color-ink: #172b27;
-  --color-ink-2: #415852;
-  --color-muted: #687a74;
-  --color-grid: #e0e9e4;
-  --color-line: #c7d6ce;
+  --color-surface-2: #f0f4f2;
+  --color-ink: #13261f;
+  --color-ink-2: #3f554d;
+  --color-muted: #66796f;
+  --color-grid: #e3eae6;
+  --color-line: #cfdbd5;
   --color-accent: #087f5b;
-  --color-accent-strong: #066548;
+  --color-accent-strong: #06654a;
+  --color-accent-soft: #e5f3ec;
+  --color-on-accent: #ffffff;
+  --color-focus: #e5a23b;
+  --color-danger: #b42318;
+  --color-success: #067647;
+  --color-success-soft: #e7f6ec;
   --color-series-1: #14845b;
   --color-series-2: #e08b2f;
   --color-series-3: #2878a7;
   --color-series-4: #a65d9b;
+
+  --shadow-card: 0 1px 2px rgb(19 38 31 / 0.04), 0 4px 16px rgb(19 38 31 / 0.04);
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --color-page: #101a18;
-  --color-surface: #172421;
-  --color-ink: #e8f1ed;
-  --color-ink-2: #bacbc4;
-  --color-muted: #91a69d;
-  --color-grid: #2b3b36;
-  --color-line: #40564c;
+  --color-page: #0e1715;
+  --color-surface: #15211e;
+  --color-surface-2: #1b2a26;
+  --color-ink: #e6efeb;
+  --color-ink-2: #b4c6bf;
+  --color-muted: #8ea39a;
+  --color-grid: #263631;
+  --color-line: #3a4f47;
   --color-accent: #55c99a;
-  --color-accent-strong: #80deb4;
+  --color-accent-strong: #84dcb6;
+  --color-accent-soft: #1b3a2f;
+  --color-on-accent: #0b1f17;
+  --color-danger: #f97066;
+  --color-success: #47cd89;
+  --color-success-soft: #173a29;
   --color-series-1: #53c996;
   --color-series-2: #f0a64e;
   --color-series-3: #67b8e4;
   --color-series-4: #d38bc5;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
 }
 
 html {
@@ -50,17 +72,38 @@ body {
   color: var(--color-ink);
 }
 
-a { text-underline-offset: 3px; }
-a, button { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
-:focus-visible { outline: 3px solid #e5a23b; outline-offset: 3px; }
-.tabular { font-variant-numeric: tabular-nums; }
-::selection { background: #ccebdd; color: #123a2d; }
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+a,
+button {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
 
-html[data-theme="dark"] ::selection { background: #275743; color: #f2fff8; }
-html[data-theme="dark"] .bg-white,
-html[data-theme="dark"] .bg-white\/95 { background-color: var(--color-surface); }
-html[data-theme="dark"] .bg-\[\#edf5f0\] { background-color: #20372e; }
-html[data-theme="dark"] .bg-\[\#eef4fc\] { background-color: #1b2d35; }
-html[data-theme="dark"] .group:hover .group-hover\:bg-\[var\(--color-accent\)\] { background-color: var(--color-accent); }
-html[data-theme="dark"] .group:hover .group-hover\:text-white { color: #10211a; }
-html[data-theme="dark"] .text-\[var\(--color-accent\)\] { color: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}

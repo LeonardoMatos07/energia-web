@@ -28,8 +28,18 @@ export default function EstadosPage() {
                   href={`/estados/${e.uf.toLowerCase()}`}
                   className="group flex items-center justify-between rounded-xl border border-[var(--color-grid)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_1px_3px_rgba(25,55,43,0.03)] hover:-translate-y-0.5 hover:border-[var(--color-accent)] hover:shadow-md"
                 >
-                  <span><span className="mr-2 inline-flex h-8 w-9 items-center justify-center rounded-lg bg-[#edf5f0] text-sm font-bold text-[var(--color-accent-strong)] group-hover:bg-[var(--color-accent)] group-hover:text-white">{e.uf}</span><span className="text-sm font-medium text-[var(--color-ink-2)]">{e.nome}</span></span>
-                  <span aria-hidden="true" className="text-lg text-[var(--color-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]">›</span>
+                  <span>
+                    <span className="bg-accent-soft group-hover:bg-accent group-hover:text-on-accent mr-2 inline-flex h-8 w-9 items-center justify-center rounded-lg text-sm font-bold text-[var(--color-accent-strong)]">
+                      {e.uf}
+                    </span>
+                    <span className="text-sm font-medium text-[var(--color-ink-2)]">{e.nome}</span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="text-lg text-[var(--color-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-accent)]"
+                  >
+                    ›
+                  </span>
                 </Link>
               </li>
             ))}

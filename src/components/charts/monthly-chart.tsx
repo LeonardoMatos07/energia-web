@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -14,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { formatMesCurto, formatMesLongo, formatNumber } from "@/lib/format";
+import { fillMonthGaps } from "@/lib/series";
 import { ChartDataTable } from "./data-table";
 import { CHART_INK } from "./palette";
 import type { ChartRow, ChartSeries } from "./types";
@@ -56,7 +56,7 @@ function ChartTooltip({
   const numeric = payload.filter((p) => typeof p.value === "number");
   const total = numeric.reduce((sum, p) => sum + (p.value as number), 0);
   return (
-    <div className="rounded-xl border border-[var(--color-grid)] bg-white px-4 py-3 text-sm shadow-lg shadow-[#18372b]/10">
+    <div className="border-grid bg-surface min-w-44 rounded-xl border px-4 py-3 text-sm shadow-lg">
       <p className="mb-1 font-semibold">{formatMesLongo(String(label))}</p>
       <ul className="tabular space-y-0.5">
         {payload.map((p) => (
@@ -66,21 +66,37 @@ function ChartTooltip({
               className="inline-block h-2.5 w-2.5 rounded-sm"
               style={{ background: p.color }}
             />
-            <span className="text-[var(--color-ink-2)]">{p.name}:</span>
+            <span className="text-ink-2">{p.name}</span>
             <span className="ml-auto pl-3 font-medium">
               {typeof p.value === "number" ? `${formatNumber(p.value, digits)} ${unit}` : "—"}
             </span>
           </li>
         ))}
         {showTotal && numeric.length > 1 ? (
-          <li className="mt-1 flex border-t border-[var(--color-grid)] pt-1">
-            <span className="text-[var(--color-ink-2)]">Total:</span>
+          <li className="border-grid mt-1 flex border-t pt-1">
+            <span className="text-ink-2">Total</span>
             <span className="ml-auto pl-3 font-semibold">
               {formatNumber(total, digits)} {unit}
             </span>
           </li>
         ) : null}
       </ul>
+    </div>
+  );
+}
+
+function ChartLegend({ series, unit }: { series: ChartSeries[]; unit: string }) {
+  return (
+    <div className="text-ink-2 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+      {series.length > 1
+        ? series.map((s) => (
+            <span key={s.key} className="inline-flex items-center gap-1.5">
+              <span aria-hidden className="size-2.5 rounded-sm" style={{ background: s.color }} />
+              {s.label}
+            </span>
+          ))
+        : null}
+      <span className="text-muted ml-auto text-xs">em {unit}</span>
     </div>
   );
 }
@@ -99,6 +115,8 @@ export function MonthlyChart({
   // Recharts measures the DOM; render the plot only after mount to avoid SSR size warnings.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // Missing months stay on the axis as gaps; the table lists only months with data.
+  const plotted = useMemo(() => fillMonthGaps(rows), [rows]);
 
   const tickFormatter = (v: number) => formatNumber(v, v !== 0 && Math.abs(v) < 10 ? 1 : 0);
   const axisProps = {
@@ -112,23 +130,17 @@ export function MonthlyChart({
       <XAxis
         dataKey="mes"
         tickFormatter={(m: string) => formatMesCurto(m)}
-        minTickGap={16}
+        interval="preserveStartEnd"
+        minTickGap={24}
         tickLine={false}
+        tickMargin={8}
         {...axisProps}
       />
       <YAxis
-        width={56}
+        width={48}
         tickFormatter={tickFormatter}
         tickLine={false}
         axisLine={false}
-        label={{
-          value: unit,
-          position: "insideTopLeft",
-          offset: -2,
-          dy: -14,
-          fill: CHART_INK.axis,
-          fontSize: 12,
-        }}
         {...axisProps}
       />
       <Tooltip
@@ -142,49 +154,50 @@ export function MonthlyChart({
             showTotal={kind === "stacked-bar"}
           />
         )}
-        cursor={kind === "stacked-bar" ? { fill: "rgba(11,11,11,0.05)" } : { stroke: CHART_INK.baseline }}
+        cursor={
+          kind === "stacked-bar"
+            ? { fill: "var(--color-surface-2)" }
+            : { stroke: CHART_INK.baseline }
+        }
       />
-      {series.length > 1 ? (
-        <Legend
-          verticalAlign="top"
-          align="left"
-          height={32}
-          iconType="square"
-          wrapperStyle={{ fontSize: 13, color: "var(--color-ink-2)" }}
-        />
-      ) : null}
     </>
   );
 
   return (
-    <figure className="rounded-2xl border border-[var(--color-grid)] bg-[var(--color-surface)] p-4 shadow-[0_2px_8px_rgba(25,55,43,0.04)] sm:p-6">
+    <figure className="border-grid bg-surface shadow-card rounded-2xl border p-4 sm:p-6">
       <figcaption>
-        <h3 className="text-lg font-bold tracking-tight">{title}</h3>
-        {description ? <p className="mt-1 text-sm text-[var(--color-ink-2)]">{description}</p> : null}
+        <h3 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h3>
+        {description ? <p className="text-ink-2 mt-1 text-sm">{description}</p> : null}
       </figcaption>
-      <div className="mt-4" style={{ height }} role="img" aria-label={`${title}. Valores em ${unit}. Os dados completos estão na tabela abaixo.`}>
-        {mounted && rows.length > 0 ? (
+      <ChartLegend series={series} unit={unit} />
+      <div
+        className="mt-3"
+        style={{ height }}
+        role="img"
+        aria-label={`${title}. Valores em ${unit}. Os dados completos estão na tabela abaixo.`}
+      >
+        {mounted && plotted.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             {kind === "line" ? (
-              <LineChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+              <LineChart data={plotted} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 {common}
                 {series.map((s) => (
                   <Line
                     key={s.key}
-                    type="monotone"
+                    type="linear"
                     dataKey={s.key}
                     name={s.label}
                     stroke={s.color}
                     strokeWidth={2}
-                    dot={false}
+                    // Small dots so a month with no neighbours still shows up between gaps.
+                    dot={{ r: 2, strokeWidth: 0, fill: s.color }}
                     activeDot={{ r: 4, strokeWidth: 2, stroke: CHART_INK.surface }}
-                    connectNulls
                     isAnimationActive={false}
                   />
                 ))}
               </LineChart>
             ) : (
-              <BarChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+              <BarChart data={plotted} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
                 {common}
                 {series.map((s, i) => (
                   <Bar

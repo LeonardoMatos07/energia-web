@@ -3,7 +3,16 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { FONTE_COLORS, SUBSISTEMA_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { Container, DataUnavailable, Notice, PageHeader, Section, StatGrid, StatTile } from "@/components/ui";
+import { Tabs } from "@/components/tabs";
+import {
+  Container,
+  DataUnavailable,
+  Notice,
+  PageHeader,
+  Section,
+  StatGrid,
+  StatTile,
+} from "@/components/ui";
 import { getCurtailmentSin } from "@/lib/api/queries";
 import type { CurtailmentMensalSin } from "@/lib/api/types";
 import {
@@ -76,7 +85,10 @@ export default async function HomePage() {
           spatialCoverage: "Brasil",
         })}
       />
-      <PageHeader eyebrow="Monitor de curtailment" title="Quanta energia limpa o Brasil deixa de gerar">
+      <PageHeader
+        eyebrow="Monitor de curtailment"
+        title="Quanta energia limpa o Brasil deixa de gerar"
+      >
         <p>
           Quando a rede não consegue receber toda a energia, o ONS manda usinas eólicas e solares
           reduzirem a produção. Esse corte — o <em>curtailment</em> — é energia que existia e foi
@@ -94,7 +106,12 @@ export default async function HomePage() {
             description="Total nacional (SIN), eólica + solar."
           >
             <StatGrid>
-              <StatTile label="Energia cortada" value={formatGWh(ultimo?.energia_cortada_mwh)} />
+              <StatTile
+                highlight
+                label="Energia cortada"
+                value={formatGWh(ultimo?.energia_cortada_mwh)}
+                note="eólica + solar"
+              />
               <StatTile
                 label="% de corte"
                 value={formatPercent(ultimo?.percentual_corte)}
@@ -103,7 +120,11 @@ export default async function HomePage() {
               <StatTile
                 label="Perda estimada"
                 value={formatBRLCompact(ultimo?.perda_estimada_brl)}
-                note={<Link href="/metodologia#perda" className="underline">estimativa — premissa em validação</Link>}
+                note={
+                  <Link href="/metodologia#perda" className="hover:text-accent underline">
+                    estimativa pelo PLD
+                  </Link>
+                }
               />
               <StatTile
                 label="Usinas afetadas"
@@ -113,61 +134,88 @@ export default async function HomePage() {
             </StatGrid>
           </Section>
 
-          <Section id="por-fonte" title="Energia cortada por fonte">
-            <div className="space-y-6">
-              {porFonte.length > 0 ? (
-                <MonthlyChart
-                  title="Energia cortada por mês, eólica e solar (GWh)"
-                  description="Total nacional. Dados de usinas solares só existem a partir de abril de 2024."
-                  rows={porFonte}
-                  unit="GWh"
-                  series={[
-                    { key: "eolica", label: "Eólica", color: FONTE_COLORS.eolica },
-                    { key: "solar", label: "Solar", color: FONTE_COLORS.solar },
-                  ]}
-                />
-              ) : (
-                <DataUnavailable title="Série por fonte indisponível" />
-              )}
+          <Section
+            id="evolucao"
+            title="Evolução mensal"
+            description="Energia que deixou de ser gerada por ordem do ONS, mês a mês."
+          >
+            <Tabs
+              label="Detalhar por"
+              panels={[
+                {
+                  key: "fonte",
+                  label: "Por fonte",
+                  content:
+                    porFonte.length > 0 ? (
+                      <MonthlyChart
+                        title="Energia cortada por mês, eólica e solar"
+                        description="Total nacional. Dados de usinas solares só existem a partir de abril de 2024."
+                        rows={porFonte}
+                        unit="GWh"
+                        series={[
+                          { key: "eolica", label: "Eólica", color: FONTE_COLORS.eolica },
+                          { key: "solar", label: "Solar", color: FONTE_COLORS.solar },
+                        ]}
+                      />
+                    ) : (
+                      <DataUnavailable title="Série por fonte indisponível" />
+                    ),
+                },
+                {
+                  key: "subsistema",
+                  label: "Por subsistema",
+                  content:
+                    porSubsistema.length > 0 ? (
+                      <MonthlyChart
+                        title="Energia cortada por mês e subsistema"
+                        description="Eólica + solar. O Nordeste concentra a maior parte dos parques."
+                        rows={porSubsistema}
+                        unit="GWh"
+                        series={SUBSISTEMAS.map((s) => ({
+                          key: s.id,
+                          label: s.nome,
+                          color: SUBSISTEMA_COLORS[s.id],
+                        }))}
+                      />
+                    ) : (
+                      <DataUnavailable title="Série por subsistema indisponível" />
+                    ),
+                },
+              ]}
+            />
+            <div className="mt-4">
+              <Notice>
+                Os números dos meses mais recentes podem mudar: o ONS revisa os dados após a
+                publicação. Valores em R$ são estimativas.{" "}
+                <Link href="/metodologia" className="font-medium underline">
+                  Entenda a metodologia
+                </Link>
+                .
+              </Notice>
             </div>
-          </Section>
-
-          <Section id="por-subsistema" title="Energia cortada por subsistema">
-            {porSubsistema.length > 0 ? (
-              <MonthlyChart
-                title="Energia cortada por mês e subsistema (GWh)"
-                description="Eólica + solar. O Nordeste concentra a maior parte dos parques."
-                rows={porSubsistema}
-                unit="GWh"
-                series={SUBSISTEMAS.map((s) => ({
-                  key: s.id,
-                  label: s.nome,
-                  color: SUBSISTEMA_COLORS[s.id],
-                }))}
-              />
-            ) : (
-              <DataUnavailable title="Série por subsistema indisponível" />
-            )}
           </Section>
         </>
       )}
 
-      <Notice>
-        Os números dos meses mais recentes podem mudar: o ONS revisa os dados após a publicação.
-        Valores em R$ são estimativas. <Link href="/metodologia" className="underline">Entenda a metodologia</Link>.
-      </Notice>
-
-      <Section id="estados" title="Veja por estado">
-        <div className="space-y-4">
+      <Section
+        id="estados"
+        title="Veja por estado"
+        action={
+          <Link href="/estados" className="text-accent font-medium hover:underline">
+            Todos os estados →
+          </Link>
+        }
+      >
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           {REGIOES.map((regiao) => (
             <div key={regiao}>
-              <h3 className="text-sm font-semibold text-[var(--color-ink-2)]">{regiao}</h3>
-              <ul className="mt-2 flex flex-wrap gap-2">
+              <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">{regiao}</h3>
+              <ul className="mt-2 flex flex-wrap gap-1.5">
                 {ESTADOS.filter((e) => e.regiao === regiao).map((e) => (
                   <li key={e.uf}>
                     <Link
                       href={`/estados/${e.uf.toLowerCase()}`}
-                      className="inline-block rounded-md border border-[var(--color-line)] bg-white px-3 py-1.5 text-sm hover:border-[var(--color-accent)]"
+                      className="border-line bg-surface hover:border-accent hover:bg-accent-soft hover:text-accent-strong inline-flex min-w-11 justify-center rounded-lg border px-2.5 py-1.5 text-sm font-medium"
                       title={e.nome}
                     >
                       {e.uf} <span className="sr-only">— {e.nome}</span>
@@ -180,9 +228,9 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section id="newsletter" title="Newsletter">
+      <div id="newsletter" className="py-6 sm:py-8">
         <NewsletterForm action={subscribeNewsletter} origem="home" />
-      </Section>
+      </div>
     </Container>
   );
 }

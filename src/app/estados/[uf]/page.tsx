@@ -8,7 +8,15 @@ import { JsonLd } from "@/components/json-ld";
 import { RankingTable } from "@/components/ranking-table";
 import { ReasonBreakdown, sumMotivos } from "@/components/reason-breakdown";
 import { Tabs } from "@/components/tabs";
-import { Container, DataUnavailable, Notice, PageHeader, Section, StatGrid, StatTile } from "@/components/ui";
+import {
+  Container,
+  DataUnavailable,
+  Notice,
+  PageHeader,
+  Section,
+  StatGrid,
+  StatTile,
+} from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
 import { getCurtailmentUf } from "@/lib/api/queries";
 import type { CurtailmentMensalUf, CurtailmentUfResposta, FonteAgregada } from "@/lib/api/types";
@@ -52,8 +60,10 @@ function FontePanel({
   result,
   stacked,
   nomeEstado,
+  uf,
 }: {
   fonte: FonteAgregada;
+  uf: string;
   result: ApiResult<CurtailmentUfResposta>;
   stacked?: { eolica: CurtailmentMensalUf[]; solar: CurtailmentMensalUf[] };
   nomeEstado: string;
@@ -61,8 +71,9 @@ function FontePanel({
   if (!result.ok) {
     return result.error.isNotFound ? (
       <DataUnavailable title="Sem dados para este estado">
-        Não há usinas {fonte === "total" ? "eólicas ou solares" : fonte === "eolica" ? "eólicas" : "solares"}{" "}
-        com restrições registradas pelo ONS em {nomeEstado}.
+        Não há usinas{" "}
+        {fonte === "total" ? "eólicas ou solares" : fonte === "eolica" ? "eólicas" : "solares"} com
+        restrições registradas pelo ONS em {nomeEstado}.
       </DataUnavailable>
     ) : (
       <DataUnavailable />
@@ -102,11 +113,21 @@ function FontePanel({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 font-semibold">{formatMesLongo(ultimo?.mes)}</h3>
+        <h3 className="text-ink-2 mb-3 text-sm font-medium">
+          Último mês com dados: {formatMesLongo(ultimo?.mes)}
+        </h3>
         <StatGrid>
-          <StatTile label="Energia cortada" value={formatEnergy(ultimo?.energia_cortada_mwh)} />
+          <StatTile
+            highlight
+            label="Energia cortada"
+            value={formatEnergy(ultimo?.energia_cortada_mwh)}
+          />
           <StatTile label="% de corte" value={formatPercent(ultimo?.percentual_corte)} />
-          <StatTile label="Perda estimada" value={formatBRLCompact(ultimo?.perda_estimada_brl)} note="estimativa" />
+          <StatTile
+            label="Perda estimada"
+            value={formatBRLCompact(ultimo?.perda_estimada_brl)}
+            note="estimativa pelo PLD"
+          />
           <StatTile label="Usinas afetadas" value={formatNumber(ultimo?.usinas_afetadas, 0)} />
         </StatGrid>
       </div>
@@ -120,24 +141,37 @@ function FontePanel({
       />
 
       <div>
-        <h3 className="mb-1 font-semibold">
-          Usinas mais afetadas em {formatMesLongo(mes_ranking)}
-        </h3>
-        <p className="mb-3 text-sm text-[var(--color-ink-2)]">
-          Ranking por energia cortada no mês (até 20 usinas).
-        </p>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight">
+              Usinas mais afetadas em {formatMesLongo(mes_ranking)}
+            </h3>
+            <p className="text-ink-2 text-sm">
+              Ranking por energia cortada no mês (até 20 usinas).
+            </p>
+          </div>
+          <Link
+            href={`/usinas?uf=${uf}`}
+            className="text-accent text-sm font-medium hover:underline"
+          >
+            Todas as usinas de {nomeEstado} →
+          </Link>
+        </div>
         {ranking.length > 0 ? (
           <RankingTable
             itens={ranking}
             caption={`Usinas com mais energia cortada em ${nomeEstado}, ${formatMesCurto(mes_ranking)}`}
           />
         ) : (
-          <p className="text-sm text-[var(--color-ink-2)]">Nenhuma usina com corte neste mês.</p>
+          <p className="text-ink-2 text-sm">Nenhuma usina com corte neste mês.</p>
         )}
       </div>
 
       <div>
-        <h3 className="mb-3 font-semibold">Por que a energia foi cortada (todo o período)</h3>
+        <h3 className="mb-3 text-lg font-semibold tracking-tight">
+          Por que a energia foi cortada{" "}
+          <span className="text-ink-2 font-normal">(todo o período)</span>
+        </h3>
         <ReasonBreakdown
           periodo={sumMotivos(serie)}
           ultimoMes={ultimo ? sumMotivos([ultimo]) : undefined}
@@ -192,6 +226,7 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
               label: "Total",
               content: (
                 <FontePanel
+                  uf={estado.uf}
                   fonte="total"
                   result={total}
                   nomeEstado={estado.nome}
@@ -209,12 +244,21 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
             {
               key: "eolica",
               label: "Eólica",
-              content: <FontePanel fonte="eolica" result={eolica} nomeEstado={estado.nome} />,
+              content: (
+                <FontePanel
+                  fonte="eolica"
+                  result={eolica}
+                  nomeEstado={estado.nome}
+                  uf={estado.uf}
+                />
+              ),
             },
             {
               key: "solar",
               label: "Solar",
-              content: <FontePanel fonte="solar" result={solar} nomeEstado={estado.nome} />,
+              content: (
+                <FontePanel fonte="solar" result={solar} nomeEstado={estado.nome} uf={estado.uf} />
+              ),
             },
           ]}
         />
@@ -222,14 +266,12 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
 
       <Notice>
         Dados de usinas solares só existem a partir de abril de 2024. Os meses mais recentes podem
-        ser revisados pelo ONS. <Link href="/metodologia" className="underline">Metodologia</Link>.
-      </Notice>
-
-      <p className="mt-6 text-sm">
-        <Link href={`/usinas?uf=${estado.uf}`} className="text-[var(--color-accent)] underline">
-          Ver todas as usinas de {estado.nome}
+        ser revisados pelo ONS.{" "}
+        <Link href="/metodologia" className="underline">
+          Metodologia
         </Link>
-      </p>
+        .
+      </Notice>
     </Container>
   );
 }

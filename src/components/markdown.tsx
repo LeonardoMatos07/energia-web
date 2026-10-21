@@ -8,7 +8,7 @@ import remarkGfm from "remark-gfm";
  */
 export function Markdown({ children }: { children: string }) {
   return (
-    <div className="prose prose-neutral max-w-none prose-a:text-[var(--color-accent)] prose-table:text-sm">
+    <div className="prose prose-neutral prose-a:text-[var(--color-accent)] prose-table:text-sm max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
         {children}
       </ReactMarkdown>

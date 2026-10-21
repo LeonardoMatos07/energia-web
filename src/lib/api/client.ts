@@ -1,8 +1,12 @@
 import "server-only";
 import type { CacheTag } from "./types";
 
-/** Data cache lifetime for public API responses (one day); tag revalidation refreshes sooner. */
-export const DEFAULT_REVALIDATE_SECONDS = 86_400;
+/**
+ * Data cache lifetime for public API responses. Tag revalidation refreshes sooner; the
+ * hourly expiry is the fallback when that call fails, so an empty response cached before
+ * a load does not linger for a day.
+ */
+export const DEFAULT_REVALIDATE_SECONDS = 3_600;
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 export class ApiError extends Error {

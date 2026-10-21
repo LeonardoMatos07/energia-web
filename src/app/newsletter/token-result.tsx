@@ -33,7 +33,7 @@ export function TokenResultPage({
         role="status"
         className={`max-w-2xl rounded-lg border p-6 ${
           outcome === "success"
-            ? "border-[#0ca30c] bg-[#f0faf0]"
+            ? "border-success bg-success-soft"
             : "border-[var(--color-line)] bg-[var(--color-surface)]"
         }`}
       >

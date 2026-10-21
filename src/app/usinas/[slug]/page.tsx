@@ -70,8 +70,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 function Dado({ termo, children }: { termo: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:gap-4">
-      <dt className="text-sm text-[var(--color-ink-2)] sm:w-48 sm:shrink-0">{termo}</dt>
+    <div className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:gap-4">
+      <dt className="text-ink-2 text-sm sm:w-48 sm:shrink-0">{termo}</dt>
       <dd className="text-sm font-medium break-words">{children ?? EMPTY}</dd>
     </div>
   );
@@ -84,11 +84,18 @@ function UsinaLinkList({ usinas }: { usinas: UsinaResumo[] }) {
         <li key={u.id}>
           <Link
             href={`/usinas/${u.slug}`}
-            className="block rounded-md border border-[var(--color-grid)] bg-[var(--color-surface)] px-3 py-2 hover:border-[var(--color-accent)]"
+            className="group border-grid bg-surface hover:border-accent flex items-center justify-between gap-3 rounded-xl border px-4 py-3"
           >
-            <span className="font-medium text-[var(--color-accent)] underline">{u.nome}</span>
-            <span className="block text-xs text-[var(--color-muted)]">
-              {u.potencia_mw !== null ? `${formatNumber(u.potencia_mw, 1)} MW` : "Potência não informada"}
+            <span>
+              <span className="group-hover:text-accent font-medium">{u.nome}</span>
+              <span className="text-muted block text-xs">
+                {u.potencia_mw !== null
+                  ? `${formatNumber(u.potencia_mw, 1)} MW`
+                  : "Potência não informada"}
+              </span>
+            </span>
+            <span aria-hidden className="text-muted group-hover:text-accent">
+              →
             </span>
           </Link>
         </li>
@@ -116,10 +123,15 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
     if (result.error.isNotFound) notFound();
     return (
       <Container>
-        <PageHeader eyebrow={<Link href="/usinas" className="underline">Usinas</Link>} title="Usina">
-          <p>
-            Não foi possível carregar os dados desta usina agora.
-          </p>
+        <PageHeader
+          eyebrow={
+            <Link href="/usinas" className="underline">
+              Usinas
+            </Link>
+          }
+          title="Usina"
+        >
+          <p>Não foi possível carregar os dados desta usina agora.</p>
         </PageHeader>
         <DataUnavailable />
       </Container>
@@ -164,11 +176,11 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
       <PageHeader
         eyebrow={
           <>
-            <Link href="/usinas" className="underline">
+            <Link href="/usinas" className="hover:underline">
               Usinas
             </Link>{" "}
             /{" "}
-            <Link href={`/estados/${usina.uf.toLowerCase()}`} className="underline">
+            <Link href={`/estados/${usina.uf.toLowerCase()}`} className="hover:underline">
               {estado?.nome ?? usina.uf}
             </Link>
           </>
@@ -182,9 +194,12 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
           <Badge>Subsistema {nomeSubsistema(usina.subsistema)}</Badge>
         </div>
         {conjunto ? (
-          <p className="mt-3 text-sm">
+          <p className="text-ink-2 mt-3 text-sm">
             Faz parte do conjunto{" "}
-            <Link href={`/usinas/${conjunto.slug}`} className="text-[var(--color-accent)] underline">
+            <Link
+              href={`/usinas/${conjunto.slug}`}
+              className="text-[var(--color-accent)] underline"
+            >
               {conjunto.nome}
             </Link>
             . O corte desta usina é uma parte do corte oficial do conjunto.
@@ -194,13 +209,18 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
 
       {!ultimo ? (
         <DataUnavailable title="Sem histórico de corte">
-          Ainda não há registros mensais de restrição para {isConjunto ? "este conjunto" : "esta usina"}.
+          Ainda não há registros mensais de restrição para{" "}
+          {isConjunto ? "este conjunto" : "esta usina"}.
         </DataUnavailable>
       ) : (
         <>
-          <Section id="ultimo-mes" title={formatMesLongo(ultimo.mes)}>
+          <Section id="ultimo-mes" title={`Último mês com dados: ${formatMesLongo(ultimo.mes)}`}>
             <StatGrid>
-              <StatTile label="Energia cortada" value={formatEnergy(ultimo.energia_cortada_mwh)} />
+              <StatTile
+                highlight
+                label="Energia cortada"
+                value={formatEnergy(ultimo.energia_cortada_mwh)}
+              />
               <StatTile
                 label="% de corte"
                 value={formatPercent(ultimo.percentual_corte)}
@@ -225,7 +245,7 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
                 }
               />
             </StatGrid>
-            <p className="mt-3 text-sm text-[var(--color-ink-2)]">
+            <p className="text-ink-2 mt-3 text-sm">
               No período todo: {formatEnergy(totalCortado)} cortados
               {temPerda ? `, perda estimada de ${formatBRLCompact(totalPerda)}` : ""}.
             </p>
@@ -242,7 +262,11 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
               unit={energy.unit}
               digits={energy.digits}
               series={[
-                { key: "verificada", label: "Geração verificada", color: GERACAO_COLORS.verificada },
+                {
+                  key: "verificada",
+                  label: "Geração verificada",
+                  color: GERACAO_COLORS.verificada,
+                },
                 { key: "cortada", label: "Energia cortada", color: GERACAO_COLORS.cortada },
               ]}
             />
@@ -262,7 +286,11 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
               digits={1}
               height={260}
               series={[
-                { key: "usina", label: isConjunto ? "Este conjunto" : "Esta usina", color: SERIES.s1 },
+                {
+                  key: "usina",
+                  label: isConjunto ? "Este conjunto" : "Esta usina",
+                  color: SERIES.s1,
+                },
                 { key: "media_uf", label: `Média ${usina.uf}`, color: SERIES.s2 },
               ]}
             />
@@ -295,7 +323,7 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
       ) : null}
 
       <Section id="cadastro" title="Dados cadastrais">
-        <dl className="divide-y divide-[var(--color-grid)] rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)] px-4">
+        <dl className="divide-grid border-grid bg-surface shadow-card divide-y rounded-2xl border px-5">
           <Dado termo="Código ONS">{usina.id}</Dado>
           <Dado termo="Tipo">{isConjunto ? "Conjunto de usinas" : "Usina"}</Dado>
           <Dado termo="Fonte">{formatFonte(usina.fonte)}</Dado>
@@ -317,7 +345,7 @@ export default async function UsinaPage({ params }: { params: Promise<Params> })
           : isConjunto
             ? "Os números do conjunto são os oficiais do ONS."
             : "Esta usina é despachada individualmente pelo ONS; os números são os oficiais."}{" "}
-        A perda em R$ é uma estimativa com premissa ainda em validação.{" "}
+        A perda em R$ é uma estimativa pelo PLD, não o prejuízo contábil da usina.{" "}
         <Link href="/metodologia" className="underline">
           Veja a metodologia
         </Link>

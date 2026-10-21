@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
 import { auth, isAuthConfigured, shouldUseSecureCookies } from "@/auth";

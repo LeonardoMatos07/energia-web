@@ -14,74 +14,80 @@ export function NewsletterForm({ action, origem = "portal" }: { action: Action; 
   return (
     <form
       action={formAction}
-      className="relative rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)] p-4 sm:p-6"
+      className="border-grid bg-accent-soft relative grid gap-x-10 gap-y-4 rounded-2xl border p-5 sm:p-8 lg:grid-cols-[1fr_1.1fr]"
       noValidate
     >
-      <h2 className="text-lg font-semibold">Receba o resumo mensal</h2>
-      <p className="mt-1 text-sm text-[var(--color-ink-2)]">
-        Um e-mail por mês quando os dados do ONS são atualizados. Sem propaganda.
-      </p>
+      <div>
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Receba o resumo mensal</h2>
+        <p className="text-ink-2 mt-1 text-sm leading-6 sm:text-base">
+          Um e-mail por mês, quando os dados do ONS são atualizados: quanto foi cortado, onde e por
+          quê. Sem propaganda.
+        </p>
+      </div>
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <label htmlFor={`${id}-email`} className="sr-only">
-          Seu e-mail
-        </label>
-        <input
-          id={`${id}-email`}
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          placeholder="seu@email.com.br"
-          className="min-w-0 flex-1 rounded-md border border-[var(--color-line)] bg-white px-3 py-2 text-base"
-        />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-[var(--color-accent)] px-4 py-2 font-semibold text-white hover:bg-[var(--color-accent-strong)] disabled:opacity-60"
+      <div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label htmlFor={`${id}-email`} className="sr-only">
+            Seu e-mail
+          </label>
+          <input
+            id={`${id}-email`}
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            placeholder="seu@email.com.br"
+            className="border-line bg-surface placeholder:text-muted min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-base"
+          />
+          <button
+            type="submit"
+            disabled={pending}
+            className="bg-accent text-on-accent hover:bg-accent-strong rounded-lg px-5 py-2.5 font-semibold disabled:opacity-60"
+          >
+            {pending ? "Enviando…" : "Inscrever"}
+          </button>
+        </div>
+
+        <div className="mt-3 flex items-start gap-2 text-sm">
+          <input
+            id={`${id}-consent`}
+            name="consentimento"
+            type="checkbox"
+            required
+            className="mt-0.5 size-4 shrink-0 accent-[var(--color-accent)]"
+          />
+          <label htmlFor={`${id}-consent`} className="text-ink-2 leading-5">
+            Concordo em receber e-mails do Monitor de Curtailment e com o uso do meu e-mail apenas
+            para esse fim, conforme a LGPD. Posso cancelar a qualquer momento pelo link em cada
+            e-mail.{" "}
+            <Link href="/privacidade" className="text-accent underline">
+              Como tratamos seus dados
+            </Link>
+            .
+          </label>
+        </div>
+
+        {/* Honeypot field, hidden from people and assistive tech. */}
+        <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+          <label htmlFor={`${id}-website`}>Não preencha</label>
+          <input id={`${id}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </div>
+        <input type="hidden" name="origem" value={origem} />
+
+        <p
+          role="status"
+          aria-live="polite"
+          className={`mt-3 text-sm ${
+            state.status === "error"
+              ? "text-danger"
+              : state.status === "success"
+                ? "text-success"
+                : "sr-only"
+          }`}
         >
-          {pending ? "Enviando…" : "Inscrever"}
-        </button>
+          {state.message}
+        </p>
       </div>
-
-      <div className="mt-3 flex items-start gap-2 text-sm">
-        <input
-          id={`${id}-consent`}
-          name="consentimento"
-          type="checkbox"
-          required
-          className="mt-1 h-4 w-4 shrink-0"
-        />
-        <label htmlFor={`${id}-consent`} className="text-[var(--color-ink-2)]">
-          Concordo em receber e-mails do Monitor de Curtailment e com o uso do meu e-mail apenas
-          para esse fim, conforme a LGPD. Posso cancelar a qualquer momento pelo link em cada e-mail.{" "}
-          <Link href="/metodologia#privacidade" className="text-[var(--color-accent)] underline">
-            Como tratamos seus dados
-          </Link>
-          .
-        </label>
-      </div>
-
-      {/* Honeypot field, hidden from people and assistive tech. */}
-      <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
-        <label htmlFor={`${id}-website`}>Não preencha</label>
-        <input id={`${id}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
-      </div>
-      <input type="hidden" name="origem" value={origem} />
-
-      <p
-        role="status"
-        aria-live="polite"
-        className={`mt-3 text-sm ${
-          state.status === "error"
-            ? "text-[#a3281f]"
-            : state.status === "success"
-              ? "text-[#006300]"
-              : "sr-only"
-        }`}
-      >
-        {state.message}
-      </p>
     </form>
   );
 }

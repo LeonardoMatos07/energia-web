@@ -3,7 +3,11 @@
 import { headers } from "next/headers";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import type { NewsletterInscricao, NewsletterResposta } from "@/lib/api/types";
-import { validateNewsletterInput, type NewsletterFormState } from "@/lib/newsletter";
+import {
+  validateNewsletterInput,
+  visitorIpHeaders,
+  type NewsletterFormState,
+} from "@/lib/newsletter";
 
 export async function subscribeNewsletter(
   _prev: NewsletterFormState,
@@ -20,15 +24,14 @@ export async function subscribeNewsletter(
   const origem = String(formData.get("origem") ?? "portal").slice(0, 64);
   const body: NewsletterInscricao = { email: validation.email, consentimento: true, origem };
 
-  // The API rate-limits per IP; forward the visitor's IP so all visitors don't share ours.
-  const h = await headers();
-  const forwardedFor = h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? "";
+  // The API rate-limits per IP; identify the visitor so all visitors don't share ours.
+  const ipHeaders = visitorIpHeaders(await headers(), process.env.WEB_API_SECRET);
 
   try {
     const res = await apiFetch<NewsletterResposta>("/v1/newsletter", {
       method: "POST",
       body,
-      headers: forwardedFor ? { "X-Forwarded-For": forwardedFor } : undefined,
+      headers: ipHeaders,
     });
     return {
       status: "success",

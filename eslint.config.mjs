@@ -7,12 +7,22 @@ const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const eslintConfig = [
   {
-    ignores: [".next/**", "node_modules/**", "coverage/**", "next-env.d.ts", "src/lib/api/schema.d.ts"],
+    ignores: [
+      ".next/**",
+      ".next-*/**",
+      "node_modules/**",
+      "coverage/**",
+      "next-env.d.ts",
+      "src/lib/api/schema.d.ts",
+    ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
     },
   },
 ];

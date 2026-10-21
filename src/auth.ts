@@ -1,4 +1,4 @@
-﻿import NextAuth, { type NextAuthConfig } from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Cognito from "next-auth/providers/cognito";
 
 /**
@@ -11,9 +11,9 @@ import Cognito from "next-auth/providers/cognito";
 export function isAuthConfigured(): boolean {
   return Boolean(
     process.env.AUTH_SECRET &&
-      process.env.AUTH_COGNITO_ID &&
-      process.env.AUTH_COGNITO_SECRET &&
-      process.env.AUTH_COGNITO_ISSUER,
+    process.env.AUTH_COGNITO_ID &&
+    process.env.AUTH_COGNITO_SECRET &&
+    process.env.AUTH_COGNITO_ISSUER,
   );
 }
 

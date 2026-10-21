@@ -25,7 +25,8 @@ function parseFiltro(sp: SearchParams): Required<Pick<UsinasFiltro, "pagina">> &
   const busca = first(sp.busca)?.trim().slice(0, 100) || undefined;
   const uf = findEstado(first(sp.uf))?.uf;
   const fonteRaw = first(sp.fonte);
-  const fonte: Fonte | undefined = fonteRaw === "eolica" || fonteRaw === "solar" ? fonteRaw : undefined;
+  const fonte: Fonte | undefined =
+    fonteRaw === "eolica" || fonteRaw === "solar" ? fonteRaw : undefined;
   const pagina = Math.max(1, Math.min(10_000, Number.parseInt(first(sp.pagina) ?? "1", 10) || 1));
   return { busca, uf, fonte, pagina };
 }
@@ -40,12 +41,15 @@ function pageHref(filtro: UsinasFiltro, pagina: number) {
   return qs ? `/usinas?${qs}` : "/usinas";
 }
 
-export default async function UsinasPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function UsinasPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const filtro = parseFiltro(await searchParams);
   const result = await getUsinas({ ...filtro, tamanho: TAMANHO });
 
-  const inputClass =
-    "w-full rounded-md border border-[var(--color-line)] bg-white px-3 py-2 text-base";
+  const inputClass = "w-full rounded-md border border-line bg-surface px-3 py-2 text-base";
 
   return (
     <Container>
@@ -100,7 +104,7 @@ export default async function UsinasPage({ searchParams }: { searchParams: Promi
         </div>
         <button
           type="submit"
-          className="rounded-md bg-[var(--color-accent)] px-4 py-2 font-semibold text-white hover:bg-[var(--color-accent-strong)]"
+          className="bg-accent text-on-accent hover:bg-accent-strong rounded-md px-4 py-2 font-semibold"
         >
           Buscar
         </button>
@@ -148,7 +152,10 @@ export default async function UsinasPage({ searchParams }: { searchParams: Promi
             <Pagination
               filtro={filtro}
               pagina={result.data.pagina}
-              totalPaginas={Math.max(1, Math.ceil(result.data.total / (result.data.tamanho || TAMANHO)))}
+              totalPaginas={Math.max(
+                1,
+                Math.ceil(result.data.total / (result.data.tamanho || TAMANHO)),
+              )}
             />
           </>
         )}
@@ -168,7 +175,7 @@ function Pagination({
 }) {
   if (totalPaginas <= 1) return null;
   const linkClass =
-    "rounded-md border border-[var(--color-line)] bg-white px-3 py-1.5 text-sm hover:border-[var(--color-accent)]";
+    "rounded-md border border-line bg-surface px-3 py-1.5 text-sm hover:border-[var(--color-accent)]";
   return (
     <nav aria-label="Paginação" className="mt-4 flex items-center justify-between gap-3">
       {pagina > 1 ? (
