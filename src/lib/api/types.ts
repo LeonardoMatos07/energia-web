@@ -24,6 +24,19 @@ export interface CurtailmentAggregateBase {
   updated_at: Timestamp;
 }
 
+export interface CurtailmentSummary {
+  scope: string;
+  source: AggregateSource;
+  start: Month | null;
+  end: Month | null;
+  months: number;
+  verified_generation_mwh: number;
+  curtailed_mwh: number;
+  curtailment_pct: number | null;
+  estimated_loss_brl: number | null;
+  affected_plants: number;
+}
+
 export interface StateMonthlyCurtailment extends CurtailmentAggregateBase {
   state: string;
 }

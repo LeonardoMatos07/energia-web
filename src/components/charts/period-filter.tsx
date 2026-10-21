@@ -8,21 +8,31 @@ const PRESETS = [
   { label: "2 anos", months: 24 },
 ] as const;
 
+const LATEST_PRESET = { label: "Último mês", months: 1 } as const;
+
 export function PeriodFilter({
   first,
   last,
   start,
   end,
   onChange,
+  includeLatest = false,
+  label = "Período do gráfico",
+  className = "mt-4",
 }: {
   first: string;
   last: string;
   start: string;
   end: string;
   onChange: (start: string, end: string) => void;
+  includeLatest?: boolean;
+  label?: string;
+  className?: string;
 }) {
   const span = monthSpan(first, last);
-  const presets = PRESETS.filter((preset) => span > preset.months);
+  const presets = [...(includeLatest ? [LATEST_PRESET] : []), ...PRESETS].filter(
+    (preset) => span > preset.months,
+  );
   const isActive = (months: number | null) =>
     end === last && start === (months === null ? first : shiftMonth(last, -(months - 1)));
   const chip = (active: boolean) =>
@@ -33,8 +43,8 @@ export function PeriodFilter({
   return (
     <div
       role="group"
-      aria-label="Período do gráfico"
-      className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2"
+      aria-label={label}
+      className={`flex flex-wrap items-center gap-x-4 gap-y-2 ${className}`}
     >
       <div className="border-line bg-surface inline-flex gap-1 rounded-lg border p-1">
         {presets.map((preset) => (

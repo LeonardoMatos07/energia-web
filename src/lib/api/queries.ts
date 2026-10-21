@@ -2,6 +2,7 @@ import "server-only";
 import { apiTry, withQuery } from "./client";
 import type {
   AggregateSource,
+  CurtailmentSummary,
   MonthsResponse,
   PlantDetailResponse,
   PlantKind,
@@ -21,6 +22,18 @@ export function getSubsystemCurtailment(
   return apiTry<SubsystemCurtailmentResponse>(
     withQuery("/v1/curtailment/subsystems", { source, start, end }),
     { tags: ["curtailment"] },
+  );
+}
+
+export function getCurtailmentSummary(
+  scope: string,
+  start?: string,
+  end?: string,
+  source: AggregateSource = "total",
+) {
+  return apiTry<CurtailmentSummary>(
+    withQuery("/v1/curtailment/summary", { scope, source, start, end }),
+    { tags: ["curtailment", "plants"] },
   );
 }
 

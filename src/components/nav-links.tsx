@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/", label: "Painel" },
+  { href: "/painel", label: "Painel" },
   { href: "/estados", label: "Estados" },
   { href: "/usinas", label: "Usinas" },
   { href: "/comparar", label: "Comparar" },
@@ -13,7 +13,7 @@ const NAV = [
 ];
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function NavLinks() {
