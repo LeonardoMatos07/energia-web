@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { RankedPlant } from "@/lib/api/types";
+import { MonthPicker } from "./charts/month-picker";
 import { RankingTable } from "./ranking-table";
 import { ReasonBreakdown } from "./reason-breakdown";
 import { Tabs } from "./tabs";
@@ -70,5 +71,34 @@ describe("Tabs", () => {
     expect(screen.getByText("solar panel")).toBeVisible();
     fireEvent.keyDown(screen.getByRole("tab", { name: "Solar" }), { key: "ArrowRight" });
     expect(screen.getByRole("tab", { name: "Total" })).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("MonthPicker", () => {
+  it("jumps years with the arrows and picks a month", () => {
+    const onChange = vi.fn();
+    render(
+      <MonthPicker label="De" value="2024-05" min="2021-10" max="2026-09" onChange={onChange} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /De: mai\/2024/ }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ano anterior" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ano anterior" }));
+    expect(screen.getByText("2022")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "jan" }));
+    expect(onChange).toHaveBeenCalledWith("2022-01");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("disables months and years outside the allowed range", () => {
+    render(
+      <MonthPicker label="Até" value="2021-12" min="2021-10" max="2026-09" onChange={() => {}} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Até: dez\/2021/ }));
+    expect(screen.getByRole("button", { name: "Ano anterior" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "set" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "out" })).toBeEnabled();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

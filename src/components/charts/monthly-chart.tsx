@@ -5,16 +5,20 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { formatShortMonth, formatLongMonth, formatNumber } from "@/lib/format";
-import { fillMonthGaps } from "@/lib/series";
+import { fillMonthGaps, filterByMonthRange, monthSpan } from "@/lib/series";
 import { ChartDataTable } from "./data-table";
+import { PeriodFilter } from "./period-filter";
 import { CHART_INK } from "./palette";
 import type { ChartRow, ChartSeries } from "./types";
 
@@ -24,9 +28,19 @@ export interface MonthlyChartProps {
   rows: ChartRow[];
   series: ChartSeries[];
   unit: string;
-  kind?: "stacked-bar" | "line";
+  kind?: ChartKind;
   digits?: number;
   height?: number;
+  periodFilter?: boolean;
+}
+
+export type ChartKind = "stacked-bar" | "bar" | "line" | "pie";
+
+interface Slice {
+  key: string;
+  name: string;
+  color: string;
+  value: number;
 }
 
 interface TooltipEntry {
@@ -84,6 +98,79 @@ function ChartTooltip({
   );
 }
 
+function PieView({ slices, unit, digits }: { slices: Slice[]; unit: string; digits: number }) {
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0);
+  if (total <= 0) {
+    return (
+      <p className="text-ink-2 flex h-full items-center justify-center text-sm">
+        Sem valores para somar no período selecionado.
+      </p>
+    );
+  }
+  return (
+    <div className="grid h-full items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="h-full min-h-48">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={slices}
+              dataKey="value"
+              nameKey="name"
+              innerRadius="52%"
+              outerRadius="90%"
+              paddingAngle={slices.length > 1 ? 2 : 0}
+              stroke={CHART_INK.surface}
+              strokeWidth={2}
+              isAnimationActive={false}
+            >
+              {slices.map((slice) => (
+                <Cell key={slice.key} fill={slice.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              content={(props) => {
+                const entry = props.payload?.[0];
+                if (!props.active || !entry) return null;
+                const value = Number(entry.value);
+                return (
+                  <div className="border-grid bg-surface rounded-xl border px-4 py-3 text-sm shadow-lg">
+                    <p className="font-semibold">{String(entry.name)}</p>
+                    <p className="tabular text-ink-2">
+                      {formatNumber(value, digits)} {unit} ·{" "}
+                      {formatNumber((value / total) * 100, 1)}%
+                    </p>
+                  </div>
+                );
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <ul className="tabular space-y-2.5 text-sm">
+        {slices.map((slice) => (
+          <li key={slice.key} className="flex items-start gap-2">
+            <span
+              aria-hidden
+              className="mt-1 size-2.5 shrink-0 rounded-sm"
+              style={{ background: slice.color }}
+            />
+            <div className="min-w-0">
+              <p className="text-ink-2 break-words">{slice.name}</p>
+              <p className="font-medium">
+                {formatNumber(slice.value, digits)} {unit}
+                <span className="text-muted font-normal">
+                  {" "}
+                  · {formatNumber((slice.value / total) * 100, 1)}%
+                </span>
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ChartLegend({ series, unit }: { series: ChartSeries[]; unit: string }) {
   return (
     <div className="text-ink-2 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -109,10 +196,34 @@ export function MonthlyChart({
   kind = "stacked-bar",
   digits = 1,
   height = 300,
+  periodFilter = true,
 }: MonthlyChartProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const plotted = useMemo(() => fillMonthGaps(rows), [rows]);
+  const first = rows[0]?.month ?? "";
+  const last = rows[rows.length - 1]?.month ?? "";
+  const [range, setRange] = useState<{ start: string; end: string } | null>(null);
+  const start = range ? range.start : first;
+  const end = range ? range.end : last;
+  const visibleRows = useMemo(() => filterByMonthRange(rows, start, end), [rows, start, end]);
+  const plotted = useMemo(() => fillMonthGaps(visibleRows), [visibleRows]);
+  const filterable = periodFilter && monthSpan(first || "0000-01", last || "0000-01") > 3;
+  const slices = useMemo<Slice[]>(
+    () =>
+      series
+        .map((s) => ({
+          key: s.key,
+          name: s.label,
+          color: s.color,
+          value: visibleRows.reduce((sum, row) => {
+            const value = row[s.key];
+            return sum + (typeof value === "number" ? value : 0);
+          }, 0),
+        }))
+        .filter((slice) => slice.value > 0),
+    [series, visibleRows],
+  );
+  const stacked = kind === "stacked-bar";
 
   const tickFormatter = (v: number) => formatNumber(v, v !== 0 && Math.abs(v) < 10 ? 1 : 0);
   const axisProps = {
@@ -147,13 +258,11 @@ export function MonthlyChart({
             label={props.label}
             unit={unit}
             digits={digits}
-            showTotal={kind === "stacked-bar"}
+            showTotal={stacked}
           />
         )}
         cursor={
-          kind === "stacked-bar"
-            ? { fill: "var(--color-surface-2)" }
-            : { stroke: CHART_INK.baseline }
+          kind === "line" ? { stroke: CHART_INK.baseline } : { fill: "var(--color-surface-2)" }
         }
       />
     </>
@@ -165,14 +274,37 @@ export function MonthlyChart({
         <h3 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h3>
         {description ? <p className="text-ink-2 mt-1 text-sm">{description}</p> : null}
       </figcaption>
-      <ChartLegend series={series} unit={unit} />
+      {filterable ? (
+        <PeriodFilter
+          first={first}
+          last={last}
+          start={start}
+          end={end}
+          onChange={(nextStart, nextEnd) =>
+            setRange(
+              nextStart > nextEnd
+                ? { start: nextStart, end: nextStart }
+                : { start: nextStart, end: nextEnd },
+            )
+          }
+        />
+      ) : null}
+      {kind === "pie" ? null : <ChartLegend series={series} unit={unit} />}
       <div
         className="mt-3"
         style={{ height }}
         role="img"
         aria-label={`${title}. Valores em ${unit}. Os dados completos estão na tabela abaixo.`}
       >
-        {mounted && plotted.length > 0 ? (
+        {plotted.length === 0 ? (
+          <p className="text-ink-2 flex h-full items-center justify-center text-sm">
+            Sem dados no período selecionado.
+          </p>
+        ) : kind === "pie" ? (
+          mounted ? (
+            <PieView slices={slices} unit={unit} digits={digits} />
+          ) : null
+        ) : mounted ? (
           <ResponsiveContainer width="100%" height="100%">
             {kind === "line" ? (
               <LineChart data={plotted} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -199,12 +331,12 @@ export function MonthlyChart({
                     key={s.key}
                     dataKey={s.key}
                     name={s.label}
-                    stackId="total"
+                    stackId={stacked ? "total" : undefined}
                     fill={s.color}
                     stroke={CHART_INK.surface}
-                    strokeWidth={1}
-                    radius={i === series.length - 1 ? [3, 3, 0, 0] : 0}
-                    maxBarSize={28}
+                    strokeWidth={stacked ? 1 : 0}
+                    radius={!stacked || i === series.length - 1 ? [3, 3, 0, 0] : 0}
+                    maxBarSize={stacked ? 28 : 18}
                     isAnimationActive={false}
                   />
                 ))}
@@ -213,7 +345,13 @@ export function MonthlyChart({
           </ResponsiveContainer>
         ) : null}
       </div>
-      <ChartDataTable caption={title} rows={rows} series={series} unit={unit} digits={digits} />
+      <ChartDataTable
+        caption={title}
+        rows={visibleRows}
+        series={series}
+        unit={unit}
+        digits={digits}
+      />
     </figure>
   );
 }

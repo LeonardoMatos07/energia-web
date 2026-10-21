@@ -1,6 +1,6 @@
 export const EMPTY = "—";
 
-const SHORT_MONTHS = [
+export const SHORT_MONTHS = [
   "jan",
   "fev",
   "mar",

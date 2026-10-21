@@ -53,3 +53,23 @@ export function fillMonthGaps(rows: readonly ChartRow[]): ChartRow[] {
   }
   return filled;
 }
+
+export function shiftMonth(month: string, delta: number): string {
+  const [year, monthNumber] = month.split("-").map(Number) as [number, number];
+  const index = year * 12 + (monthNumber - 1) + delta;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+export function monthSpan(first: string, last: string): number {
+  const [firstYear, firstMonth] = first.split("-").map(Number) as [number, number];
+  const [lastYear, lastMonth] = last.split("-").map(Number) as [number, number];
+  return (lastYear - firstYear) * 12 + (lastMonth - firstMonth) + 1;
+}
+
+export function filterByMonthRange<T extends { month: string }>(
+  rows: readonly T[],
+  start?: string | null,
+  end?: string | null,
+): T[] {
+  return rows.filter((row) => (!start || row.month >= start) && (!end || row.month <= end));
+}

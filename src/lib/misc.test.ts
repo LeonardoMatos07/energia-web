@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { validateNewsletterInput, visitorIpHeaders } from "./newsletter";
 import { parseTags, safeCompare } from "./revalidate";
-import { fillMonthGaps, pickEnergyUnit, pivotByMonth } from "./series";
+import {
+  fillMonthGaps,
+  filterByMonthRange,
+  monthSpan,
+  pickEnergyUnit,
+  pivotByMonth,
+  shiftMonth,
+} from "./series";
 
 describe("safeCompare", () => {
   it("compares strings of any length without throwing", () => {
@@ -67,6 +74,25 @@ describe("series helpers", () => {
       { month: "2026-02", solar: 2, wind: 3 },
     ]);
   });
+  it("shifts months across year boundaries and counts the span", () => {
+    expect(shiftMonth("2026-03", -11)).toBe("2025-04");
+    expect(shiftMonth("2026-01", -1)).toBe("2025-12");
+    expect(shiftMonth("2025-12", 1)).toBe("2026-01");
+    expect(monthSpan("2021-10", "2026-09")).toBe(60);
+    expect(monthSpan("2026-09", "2026-09")).toBe(1);
+  });
+
+  it("filters rows by an inclusive month range", () => {
+    const rows = [{ month: "2026-01" }, { month: "2026-02" }, { month: "2026-03" }];
+    expect(filterByMonthRange(rows, "2026-02", "2026-03")).toEqual([
+      { month: "2026-02" },
+      { month: "2026-03" },
+    ]);
+    expect(filterByMonthRange(rows, null, "2026-01")).toEqual([{ month: "2026-01" }]);
+    expect(filterByMonthRange(rows)).toEqual(rows);
+    expect(filterByMonthRange(rows, "2027-01", null)).toEqual([]);
+  });
+
   it("picks GWh only for large values", () => {
     expect(pickEnergyUnit(50_000).unit).toBe("GWh");
     expect(pickEnergyUnit(500).unit).toBe("MWh");
