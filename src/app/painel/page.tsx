@@ -3,7 +3,7 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { KpiFilters } from "@/components/kpi-filters";
+import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import {
   Container,
@@ -25,9 +25,9 @@ import {
   formatShortMonth,
   mwhToGwh,
 } from "@/lib/format";
-import { DEFAULT_SCOPE, STATES, REGIONS, SUBSYSTEMS, findState, subsystemName } from "@/lib/geo";
+import { STATES, REGIONS, SUBSYSTEMS } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
-import { normalizeMonth, pivotByMonth } from "@/lib/series";
+import { defaultPeriod, filterByMonthRange, normalizeMonth, pivotByMonth } from "@/lib/series";
 import { SITE_DESCRIPTION } from "@/lib/site";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 import { subscribeNewsletter } from "@/app/newsletter/actions";
@@ -43,8 +43,8 @@ export const metadata = pageMetadata({
 const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
 
+const NATIONAL_SCOPE = "SIN";
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-const SUBSYSTEM_IDS: readonly string[] = SUBSYSTEMS.map((s) => s.id);
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -54,12 +54,6 @@ function onlySin(rows: SubsystemMonthlyCurtailment[]) {
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function parseScope(value: string | undefined) {
-  const upper = value?.toUpperCase();
-  if (upper && (SUBSYSTEM_IDS.includes(upper) || findState(upper))) return upper;
-  return DEFAULT_SCOPE;
 }
 
 function parsePeriod(params: SearchParams, firstMonth: string, lastMonth: string) {
@@ -73,12 +67,7 @@ function parsePeriod(params: SearchParams, firstMonth: string, lastMonth: string
     from >= firstMonth &&
     to <= lastMonth &&
     from <= to;
-  return valid ? { start: from, end: to } : { start: lastMonth, end: lastMonth };
-}
-
-function scopeName(scope: string) {
-  if (scope === DEFAULT_SCOPE) return "Brasil (SIN)";
-  return findState(scope)?.name ?? subsystemName(scope);
+  return valid ? { start: from, end: to } : defaultPeriod(firstMonth, lastMonth);
 }
 
 export default async function DashboardPage({
@@ -111,11 +100,11 @@ export default async function DashboardPage({
   const months = sinTotal.map((r) => normalizeMonth(r.month));
   const firstMonth = months[0] ?? "";
   const lastMonth = months.at(-1) ?? "";
-  const scope = parseScope(first(params.unidade));
   const { start, end } = parsePeriod(params, firstMonth, lastMonth);
-  const summary = hasData ? await getCurtailmentSummary(scope, start, end) : null;
+  const sourceRows = filterByMonthRange(bySource, start, end);
+  const subsystemRows = filterByMonthRange(bySubsystem, start, end);
+  const summary = hasData ? await getCurtailmentSummary(NATIONAL_SCOPE, start, end) : null;
   const kpi = summary?.ok ? summary.data : null;
-  const isLatestNational = scope === DEFAULT_SCOPE && start === lastMonth && end === lastMonth;
   const periodLabel =
     start === end
       ? formatLongMonth(start)
@@ -150,16 +139,10 @@ export default async function DashboardPage({
         <>
           <Section
             id="resumo"
-            title={
-              isLatestNational ? `Último mês com dados: ${periodLabel}` : `${scopeName(scope)}`
-            }
-            description={
-              isLatestNational
-                ? "Total nacional (SIN), eólica + solar."
-                : `${periodLabel} · eólica + solar. Escolha outro período ou unidade abaixo.`
-            }
+            title={`Brasil: ${periodLabel}`}
+            description="Total nacional (SIN), eólica + solar. O período escolhido vale para os indicadores e para os gráficos."
           >
-            <KpiFilters first={firstMonth} last={lastMonth} start={start} end={end} scope={scope} />
+            <DashboardFilters first={firstMonth} last={lastMonth} start={start} end={end} />
             {kpi ? (
               <StatGrid>
                 <StatTile
@@ -205,12 +188,13 @@ export default async function DashboardPage({
                   key: "source",
                   label: "Por fonte",
                   content:
-                    bySource.length > 0 ? (
+                    sourceRows.length > 0 ? (
                       <MonthlyChart
                         title="Energia cortada por mês, eólica e solar"
                         description="Total nacional. Dados de usinas solares só existem a partir de abril de 2024."
-                        rows={bySource}
+                        rows={sourceRows}
                         kindOptions={KIND_OPTIONS}
+                        periodFilter={false}
                         unit="GWh"
                         series={[
                           { key: "wind", label: "Eólica", color: SOURCE_COLORS.wind },
@@ -225,12 +209,13 @@ export default async function DashboardPage({
                   key: "subsystem",
                   label: "Por subsistema",
                   content:
-                    bySubsystem.length > 0 ? (
+                    subsystemRows.length > 0 ? (
                       <MonthlyChart
                         title="Energia cortada por mês e subsistema"
                         description="Eólica + solar. O Nordeste concentra a maior parte dos parques."
-                        rows={bySubsystem}
+                        rows={subsystemRows}
                         unit="GWh"
+                        periodFilter={false}
                         series={STACK_ORDER.map((id) => ({
                           key: id,
                           label: SUBSYSTEMS.find((s) => s.id === id)?.name ?? id,

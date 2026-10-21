@@ -1,84 +1,54 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useId, useTransition } from "react";
+import { useTransition } from "react";
 import { PeriodFilter } from "@/components/charts/period-filter";
-import { DEFAULT_SCOPE, REGIONS, STATES, SUBSYSTEMS } from "@/lib/geo";
+import { defaultPeriod } from "@/lib/series";
 
-export function KpiFilters({
+export function DashboardFilters({
   first,
   last,
   start,
   end,
-  scope,
 }: {
   first: string;
   last: string;
   start: string;
   end: string;
-  scope: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const id = useId();
+  const fallback = defaultPeriod(first, last);
 
-  function navigate(next: { start: string; end: string; scope: string }) {
+  function navigate(nextStart: string, nextEnd: string) {
     const params = new URLSearchParams();
-    if (next.start !== last || next.end !== last) {
-      params.set("de", next.start);
-      params.set("ate", next.end);
+    if (nextStart !== fallback.start || nextEnd !== fallback.end) {
+      params.set("de", nextStart);
+      params.set("ate", nextEnd);
     }
-    if (next.scope !== DEFAULT_SCOPE) params.set("unidade", next.scope);
     const query = params.toString();
     startTransition(() =>
-      router.replace(query ? `${pathname}?${query}#resumo` : `${pathname}#resumo`, {
-        scroll: false,
-      }),
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }),
     );
   }
 
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-3" aria-busy={pending}>
+    <div
+      className="border-grid bg-surface mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border p-4"
+      aria-busy={pending}
+    >
+      <p className="text-sm font-semibold">Período</p>
       <PeriodFilter
         includeLatest
-        label="Período dos indicadores"
+        label="Período do painel"
         className=""
         first={first}
         last={last}
         start={start}
         end={end}
-        onChange={(nextStart, nextEnd) => navigate({ start: nextStart, end: nextEnd, scope })}
+        onChange={navigate}
       />
-      <div className="flex items-center gap-2">
-        <label htmlFor={`${id}-scope`} className="text-ink-2 text-sm">
-          Unidade
-        </label>
-        <select
-          id={`${id}-scope`}
-          value={scope}
-          onChange={(event) => navigate({ start, end, scope: event.target.value })}
-          className="border-line bg-surface text-ink focus-visible:border-accent rounded-lg border px-3 py-1.5 text-sm font-medium"
-        >
-          <option value={DEFAULT_SCOPE}>Brasil (SIN)</option>
-          <optgroup label="Subsistemas">
-            {SUBSYSTEMS.map((subsystem) => (
-              <option key={subsystem.id} value={subsystem.id}>
-                {subsystem.name}
-              </option>
-            ))}
-          </optgroup>
-          {REGIONS.map((region) => (
-            <optgroup key={region} label={`Estados — ${region}`}>
-              {STATES.filter((state) => state.region === region).map((state) => (
-                <option key={state.state} value={state.state}>
-                  {state.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </div>
       {pending ? <span className="text-muted text-sm">Atualizando…</span> : null}
     </div>
   );

@@ -30,7 +30,7 @@ const FEATURES = [
   {
     href: "/painel",
     title: "Painel",
-    text: "Energia cortada, % de corte, perda estimada e usinas afetadas, com filtro por período e por unidade.",
+    text: "Energia cortada, % de corte, perda estimada e usinas afetadas, com filtro de período e gráficos em barras ou linhas.",
   },
   {
     href: "/estados",

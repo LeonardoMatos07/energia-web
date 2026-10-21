@@ -60,6 +60,13 @@ export function shiftMonth(month: string, delta: number): string {
   return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
 }
 
+export const DEFAULT_PERIOD_MONTHS = 12;
+
+export function defaultPeriod(first: string, last: string): { start: string; end: string } {
+  const start = shiftMonth(last, -(DEFAULT_PERIOD_MONTHS - 1));
+  return { start: start < first ? first : start, end: last };
+}
+
 export function monthSpan(first: string, last: string): number {
   const [firstYear, firstMonth] = first.split("-").map(Number) as [number, number];
   const [lastYear, lastMonth] = last.split("-").map(Number) as [number, number];
