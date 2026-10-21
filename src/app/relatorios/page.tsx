@@ -44,8 +44,8 @@ export default async function ReportsPage({
     <Container>
       <PageHeader title="Relatórios mensais">
         <p>
-          O que mudou no mês, onde os cortes se concentraram e por quê. Escolha o ano e o mês que
-          quer ler.
+          O que mudou no mês, onde os cortes se concentraram e por quê. Escolha o ano para ver os
+          relatórios.
         </p>
       </PageHeader>
 
