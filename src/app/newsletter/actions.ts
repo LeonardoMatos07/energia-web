@@ -1,0 +1,51 @@
+"use server";
+
+import { headers } from "next/headers";
+import { apiFetch, ApiError } from "@/lib/api/client";
+import type { NewsletterInscricao, NewsletterResposta } from "@/lib/api/types";
+import { validateNewsletterInput, type NewsletterFormState } from "@/lib/newsletter";
+
+export async function subscribeNewsletter(
+  _prev: NewsletterFormState,
+  formData: FormData,
+): Promise<NewsletterFormState> {
+  // Honeypot: bots fill every field; humans never see this one.
+  if (formData.get("website")) {
+    return { status: "success", message: "Pronto! Confira seu e-mail para confirmar a inscrição." };
+  }
+
+  const validation = validateNewsletterInput(formData.get("email"), formData.get("consentimento"));
+  if (!validation.ok) return { status: "error", message: validation.message };
+
+  const origem = String(formData.get("origem") ?? "portal").slice(0, 64);
+  const body: NewsletterInscricao = { email: validation.email, consentimento: true, origem };
+
+  // The API rate-limits per IP; forward the visitor's IP so all visitors don't share ours.
+  const h = await headers();
+  const forwardedFor = h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? "";
+
+  try {
+    const res = await apiFetch<NewsletterResposta>("/v1/newsletter", {
+      method: "POST",
+      body,
+      headers: forwardedFor ? { "X-Forwarded-For": forwardedFor } : undefined,
+    });
+    return {
+      status: "success",
+      message:
+        res?.mensagem ||
+        "Pronto! Enviamos um e-mail de confirmação. A inscrição só vale depois que você confirmar.",
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 429) {
+      return { status: "error", message: "Muitas tentativas. Aguarde um minuto e tente de novo." };
+    }
+    if (error instanceof ApiError && error.status === 422) {
+      return { status: "error", message: "Não foi possível validar o e-mail informado." };
+    }
+    return {
+      status: "error",
+      message: "Não conseguimos registrar sua inscrição agora. Tente novamente mais tarde.",
+    };
+  }
+}

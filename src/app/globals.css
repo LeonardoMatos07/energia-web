@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-page: #f4f7f5;
+  --color-surface: #ffffff;
+  --color-ink: #172b27;
+  --color-ink-2: #415852;
+  --color-muted: #687a74;
+  --color-grid: #e0e9e4;
+  --color-line: #c7d6ce;
+  --color-accent: #087f5b;
+  --color-accent-strong: #066548;
+  --color-series-1: #14845b;
+  --color-series-2: #e08b2f;
+  --color-series-3: #2878a7;
+  --color-series-4: #a65d9b;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-page: #101a18;
+  --color-surface: #172421;
+  --color-ink: #e8f1ed;
+  --color-ink-2: #bacbc4;
+  --color-muted: #91a69d;
+  --color-grid: #2b3b36;
+  --color-line: #40564c;
+  --color-accent: #55c99a;
+  --color-accent-strong: #80deb4;
+  --color-series-1: #53c996;
+  --color-series-2: #f0a64e;
+  --color-series-3: #67b8e4;
+  --color-series-4: #d38bc5;
+}
+
+html {
+  background: var(--color-page);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--color-page);
+  color: var(--color-ink);
+}
+
+a { text-underline-offset: 3px; }
+a, button { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+:focus-visible { outline: 3px solid #e5a23b; outline-offset: 3px; }
+.tabular { font-variant-numeric: tabular-nums; }
+::selection { background: #ccebdd; color: #123a2d; }
+
+html[data-theme="dark"] ::selection { background: #275743; color: #f2fff8; }
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/95 { background-color: var(--color-surface); }
+html[data-theme="dark"] .bg-\[\#edf5f0\] { background-color: #20372e; }
+html[data-theme="dark"] .bg-\[\#eef4fc\] { background-color: #1b2d35; }
+html[data-theme="dark"] .group:hover .group-hover\:bg-\[var\(--color-accent\)\] { background-color: var(--color-accent); }
+html[data-theme="dark"] .group:hover .group-hover\:text-white { color: #10211a; }
+html[data-theme="dark"] .text-\[var\(--color-accent\)\] { color: var(--color-accent); }
