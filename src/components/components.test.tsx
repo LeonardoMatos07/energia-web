@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { UsinaRanking } from "@/lib/api/types";
+import type { RankedPlant } from "@/lib/api/types";
 import { RankingTable } from "./ranking-table";
 import { ReasonBreakdown } from "./reason-breakdown";
 import { Tabs } from "./tabs";
@@ -9,11 +9,11 @@ describe("ReasonBreakdown", () => {
   it("shows every reason with its share and a plain-language explanation", () => {
     render(
       <ReasonBreakdown
-        periodo={{
-          corte_rel_mwh: 3000,
-          corte_cnf_mwh: 1000,
-          corte_ene_mwh: 0,
-          corte_outros_mwh: 0,
+        period={{
+          curtailed_rel_mwh: 3000,
+          curtailed_cnf_mwh: 1000,
+          curtailed_ene_mwh: 0,
+          curtailed_other_mwh: 0,
         }}
       />,
     );
@@ -28,23 +28,23 @@ describe("ReasonBreakdown", () => {
 
 describe("RankingTable", () => {
   it("links each plant to its page with formatted values", () => {
-    const itens: UsinaRanking[] = [
+    const items: RankedPlant[] = [
       {
         id: "RNESF4",
-        tipo: "usina",
-        nome: "São Fernando 4",
+        kind: "plant",
+        name: "São Fernando 4",
         slug: "sao-fernando-4-rnesf4",
-        fonte: "eolica",
-        uf: "RN",
-        subsistema: "NE",
-        potencia_mw: 30,
-        posicao: 1,
-        energia_cortada_mwh: 12_345.6,
-        percentual_corte: 18.25,
-        perda_estimada_brl: 2_500_000,
+        source: "wind",
+        state: "RN",
+        subsystem: "NE",
+        capacity_mw: 30,
+        rank: 1,
+        curtailed_mwh: 12_345.6,
+        curtailment_pct: 18.25,
+        estimated_loss_brl: 2_500_000,
       },
     ];
-    render(<RankingTable itens={itens} caption="Ranking" />);
+    render(<RankingTable items={items} caption="Ranking" />);
     const link = screen.getByRole("link", { name: "São Fernando 4" });
     expect(link).toHaveAttribute("href", "/usinas/sao-fernando-4-rnesf4");
     expect(screen.getByText("12,3 GWh")).toBeInTheDocument();
@@ -59,15 +59,15 @@ describe("Tabs", () => {
       <Tabs
         label="Fonte"
         panels={[
-          { key: "total", label: "Total", content: <p>painel total</p> },
-          { key: "solar", label: "Solar", content: <p>painel solar</p> },
+          { key: "total", label: "Total", content: <p>total panel</p> },
+          { key: "solar", label: "Solar", content: <p>solar panel</p> },
         ]}
       />,
     );
-    expect(screen.getByText("painel total")).toBeVisible();
-    expect(screen.getByText("painel solar")).not.toBeVisible();
+    expect(screen.getByText("total panel")).toBeVisible();
+    expect(screen.getByText("solar panel")).not.toBeVisible();
     fireEvent.click(screen.getByRole("tab", { name: "Solar" }));
-    expect(screen.getByText("painel solar")).toBeVisible();
+    expect(screen.getByText("solar panel")).toBeVisible();
     fireEvent.keyDown(screen.getByRole("tab", { name: "Solar" }), { key: "ArrowRight" });
     expect(screen.getByRole("tab", { name: "Total" })).toHaveAttribute("aria-selected", "true");
   });

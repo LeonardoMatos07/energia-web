@@ -18,13 +18,12 @@ jobs:
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      # The build must succeed without the API: pages render an empty state.
       API_URL: http://127.0.0.1:9
       NEXT_PUBLIC_SITE_URL: https://example.invalid
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4 # version comes from "packageManager" in package.json
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container, Notice, PageHeader } from "@/components/ui";
 import { pageMetadata } from "@/lib/metadata";
-import { MOTIVOS } from "@/lib/motivos";
+import { REASONS } from "@/lib/reasons";
 
 export const metadata = pageMetadata({
   title: "Metodologia",
@@ -18,7 +18,7 @@ function H2({ id, children }: { id: string; children: React.ReactNode }) {
   );
 }
 
-export default function MetodologiaPage() {
+export default function MethodologyPage() {
   return (
     <Container>
       <PageHeader title="Metodologia">
@@ -28,7 +28,7 @@ export default function MetodologiaPage() {
         </p>
       </PageHeader>
 
-      <div className="prose prose-neutral prose-a:text-[var(--color-accent)] max-w-3xl">
+      <div className="prose prose-site max-w-3xl">
         <H2 id="o-que-e">O que é curtailment</H2>
         <p>
           <em>Curtailment</em> (ou <em>constrained-off</em>) é quando o Operador Nacional do Sistema
@@ -61,12 +61,12 @@ export default function MetodologiaPage() {
         <H2 id="motivos">Motivos de restrição</H2>
         <p>O ONS classifica cada restrição em um motivo. Agrupamos assim:</p>
         <ul>
-          {MOTIVOS.map((m) => (
+          {REASONS.map((m) => (
             <li key={m.key}>
               <strong>
-                {m.nome} ({m.sigla})
+                {m.name} ({m.abbreviation})
               </strong>
-              : {m.explicacao}
+              : {m.explanation}
             </li>
           ))}
         </ul>

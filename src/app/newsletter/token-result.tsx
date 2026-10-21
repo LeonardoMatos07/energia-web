@@ -4,7 +4,6 @@ import { apiTry, withQuery } from "@/lib/api/client";
 
 export type TokenOutcome = "missing" | "success" | "invalid" | "unavailable";
 
-/** Calls a newsletter token endpoint (no cache: it changes state). */
 export async function callTokenEndpoint<T>(
   path: string,
   token: string | undefined,

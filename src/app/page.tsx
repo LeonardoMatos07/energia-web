@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
-import { FONTE_COLORS, SUBSISTEMA_COLORS } from "@/components/charts/palette";
+import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Tabs } from "@/components/tabs";
@@ -13,26 +13,23 @@ import {
   StatGrid,
   StatTile,
 } from "@/components/ui";
-import { getCurtailmentSin } from "@/lib/api/queries";
-import type { CurtailmentMensalSin } from "@/lib/api/types";
+import { getSubsystemCurtailment } from "@/lib/api/queries";
+import type { SubsystemMonthlyCurtailment } from "@/lib/api/types";
 import {
   formatBRLCompact,
   formatGWh,
-  formatMesLongo,
+  formatLongMonth,
   formatNumber,
   formatPercent,
   mwhToGwh,
 } from "@/lib/format";
-import { ESTADOS, REGIOES, SUBSISTEMAS } from "@/lib/geo";
+import { STATES, REGIONS, SUBSYSTEMS } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
-import { latest, normalizeMes, pivotByMonth } from "@/lib/series";
+import { latest, normalizeMonth, pivotByMonth } from "@/lib/series";
 import { SITE_DESCRIPTION } from "@/lib/site";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 import { subscribeNewsletter } from "./newsletter/actions";
 
-// Pages regenerate hourly at most; API responses stay in the data cache for a day
-// (or until `/api/revalidar` is called), so an hourly render is cheap and lets a page
-// built while the API was down recover on its own.
 export const revalidate = 3600;
 
 export const metadata = pageMetadata({
@@ -41,37 +38,34 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
-function onlySin(rows: CurtailmentMensalSin[]) {
-  return rows.filter((r) => r.subsistema === "SIN");
+function onlySin(rows: SubsystemMonthlyCurtailment[]) {
+  return rows.filter((r) => r.subsystem === "SIN");
 }
 
 export default async function HomePage() {
-  const [total, eolica, solar] = await Promise.all([
-    getCurtailmentSin("total"),
-    getCurtailmentSin("eolica"),
-    getCurtailmentSin("solar"),
+  const [total, wind, solar] = await Promise.all([
+    getSubsystemCurtailment("total"),
+    getSubsystemCurtailment("wind"),
+    getSubsystemCurtailment("solar"),
   ]);
 
-  const totalRows = total.ok ? total.data.itens : [];
+  const totalRows = total.ok ? total.data.items : [];
   const sinTotal = onlySin(totalRows);
-  const ultimo = latest(sinTotal);
+  const latestRow = latest(sinTotal);
 
-  const porFonte = pivotByMonth(
-    [
-      ...(eolica.ok ? onlySin(eolica.data.itens) : []),
-      ...(solar.ok ? onlySin(solar.data.itens) : []),
-    ],
-    (r) => r.fonte,
-    (r) => mwhToGwh(r.energia_cortada_mwh),
+  const bySource = pivotByMonth(
+    [...(wind.ok ? onlySin(wind.data.items) : []), ...(solar.ok ? onlySin(solar.data.items) : [])],
+    (r) => r.source,
+    (r) => mwhToGwh(r.curtailed_mwh),
   );
-  const porSubsistema = pivotByMonth(
-    totalRows.filter((r) => r.subsistema !== "SIN"),
-    (r) => r.subsistema,
-    (r) => mwhToGwh(r.energia_cortada_mwh),
+  const bySubsystem = pivotByMonth(
+    totalRows.filter((r) => r.subsystem !== "SIN"),
+    (r) => r.subsystem,
+    (r) => mwhToGwh(r.curtailed_mwh),
   );
 
   const hasData = sinTotal.length > 0;
-  const meses = sinTotal.map((r) => normalizeMes(r.mes));
+  const months = sinTotal.map((r) => normalizeMonth(r.month));
 
   return (
     <Container>
@@ -81,7 +75,7 @@ export default async function HomePage() {
           description:
             "Energia eólica e solar cortada por restrições de operação do ONS, por mês, fonte e subsistema, com perda estimada em R$.",
           path: "/",
-          temporalCoverage: temporalCoverage(meses),
+          temporalCoverage: temporalCoverage(months),
           spatialCoverage: "Brasil",
         })}
       />
@@ -101,25 +95,25 @@ export default async function HomePage() {
       ) : (
         <>
           <Section
-            id="ultimo-mes"
-            title={`Último mês com dados: ${formatMesLongo(ultimo?.mes)}`}
+            id="latest-month"
+            title={`Último mês com dados: ${formatLongMonth(latestRow?.month)}`}
             description="Total nacional (SIN), eólica + solar."
           >
             <StatGrid>
               <StatTile
                 highlight
                 label="Energia cortada"
-                value={formatGWh(ultimo?.energia_cortada_mwh)}
+                value={formatGWh(latestRow?.curtailed_mwh)}
                 note="eólica + solar"
               />
               <StatTile
                 label="% de corte"
-                value={formatPercent(ultimo?.percentual_corte)}
+                value={formatPercent(latestRow?.curtailment_pct)}
                 note="cortada ÷ (gerada + cortada)"
               />
               <StatTile
                 label="Perda estimada"
-                value={formatBRLCompact(ultimo?.perda_estimada_brl)}
+                value={formatBRLCompact(latestRow?.estimated_loss_brl)}
                 note={
                   <Link href="/metodologia#perda" className="hover:text-accent underline">
                     estimativa pelo PLD
@@ -128,14 +122,14 @@ export default async function HomePage() {
               />
               <StatTile
                 label="Usinas afetadas"
-                value={formatNumber(ultimo?.usinas_afetadas, 0)}
+                value={formatNumber(latestRow?.affected_plants, 0)}
                 note="com algum corte no mês"
               />
             </StatGrid>
           </Section>
 
           <Section
-            id="evolucao"
+            id="evolution"
             title="Evolução mensal"
             description="Energia que deixou de ser gerada por ordem do ONS, mês a mês."
           >
@@ -143,18 +137,18 @@ export default async function HomePage() {
               label="Detalhar por"
               panels={[
                 {
-                  key: "fonte",
+                  key: "source",
                   label: "Por fonte",
                   content:
-                    porFonte.length > 0 ? (
+                    bySource.length > 0 ? (
                       <MonthlyChart
                         title="Energia cortada por mês, eólica e solar"
                         description="Total nacional. Dados de usinas solares só existem a partir de abril de 2024."
-                        rows={porFonte}
+                        rows={bySource}
                         unit="GWh"
                         series={[
-                          { key: "eolica", label: "Eólica", color: FONTE_COLORS.eolica },
-                          { key: "solar", label: "Solar", color: FONTE_COLORS.solar },
+                          { key: "wind", label: "Eólica", color: SOURCE_COLORS.wind },
+                          { key: "solar", label: "Solar", color: SOURCE_COLORS.solar },
                         ]}
                       />
                     ) : (
@@ -162,19 +156,19 @@ export default async function HomePage() {
                     ),
                 },
                 {
-                  key: "subsistema",
+                  key: "subsystem",
                   label: "Por subsistema",
                   content:
-                    porSubsistema.length > 0 ? (
+                    bySubsystem.length > 0 ? (
                       <MonthlyChart
                         title="Energia cortada por mês e subsistema"
                         description="Eólica + solar. O Nordeste concentra a maior parte dos parques."
-                        rows={porSubsistema}
+                        rows={bySubsystem}
                         unit="GWh"
-                        series={SUBSISTEMAS.map((s) => ({
+                        series={SUBSYSTEMS.map((s) => ({
                           key: s.id,
-                          label: s.nome,
-                          color: SUBSISTEMA_COLORS[s.id],
+                          label: s.name,
+                          color: SUBSYSTEM_COLORS[s.id],
                         }))}
                       />
                     ) : (
@@ -198,7 +192,7 @@ export default async function HomePage() {
       )}
 
       <Section
-        id="estados"
+        id="states"
         title="Veja por estado"
         action={
           <Link href="/estados" className="text-accent font-medium hover:underline">
@@ -207,18 +201,18 @@ export default async function HomePage() {
         }
       >
         <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          {REGIOES.map((regiao) => (
-            <div key={regiao}>
-              <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">{regiao}</h3>
+          {REGIONS.map((region) => (
+            <div key={region}>
+              <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">{region}</h3>
               <ul className="mt-2 flex flex-wrap gap-1.5">
-                {ESTADOS.filter((e) => e.regiao === regiao).map((e) => (
-                  <li key={e.uf}>
+                {STATES.filter((e) => e.region === region).map((e) => (
+                  <li key={e.state}>
                     <Link
-                      href={`/estados/${e.uf.toLowerCase()}`}
+                      href={`/estados/${e.state.toLowerCase()}`}
                       className="border-line bg-surface hover:border-accent hover:bg-accent-soft hover:text-accent-strong inline-flex min-w-11 justify-center rounded-lg border px-2.5 py-1.5 text-sm font-medium"
-                      title={e.nome}
+                      title={e.name}
                     >
-                      {e.uf} <span className="sr-only">— {e.nome}</span>
+                      {e.state} <span className="sr-only">— {e.name}</span>
                     </Link>
                   </li>
                 ))}
@@ -229,7 +223,7 @@ export default async function HomePage() {
       </Section>
 
       <div id="newsletter" className="py-6 sm:py-8">
-        <NewsletterForm action={subscribeNewsletter} origem="home" />
+        <NewsletterForm action={subscribeNewsletter} signupSource="home" />
       </div>
     </Container>
   );

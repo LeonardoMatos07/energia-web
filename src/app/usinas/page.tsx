@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Badge, Container, DataUnavailable, PageHeader } from "@/components/ui";
-import { getUsinas, type UsinasFiltro } from "@/lib/api/queries";
-import type { Fonte } from "@/lib/api/types";
-import { formatFonte, formatNumber } from "@/lib/format";
-import { ESTADOS, findEstado, nomeSubsistema } from "@/lib/geo";
+import { getPlants, type PlantFilters } from "@/lib/api/queries";
+import type { Source } from "@/lib/api/types";
+import { formatSource, formatNumber } from "@/lib/format";
+import { STATES, findState, subsystemName } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
@@ -13,7 +13,10 @@ export const metadata = pageMetadata({
   path: "/usinas",
 });
 
-const TAMANHO = 20;
+const PAGE_SIZE = 20;
+
+const URL_SOURCE: Record<string, Source> = { eolica: "wind", solar: "solar" };
+const SOURCE_IN_URL: Record<Source, string> = { wind: "eolica", solar: "solar" };
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -21,33 +24,31 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function parseFiltro(sp: SearchParams): Required<Pick<UsinasFiltro, "pagina">> & UsinasFiltro {
-  const busca = first(sp.busca)?.trim().slice(0, 100) || undefined;
-  const uf = findEstado(first(sp.uf))?.uf;
-  const fonteRaw = first(sp.fonte);
-  const fonte: Fonte | undefined =
-    fonteRaw === "eolica" || fonteRaw === "solar" ? fonteRaw : undefined;
-  const pagina = Math.max(1, Math.min(10_000, Number.parseInt(first(sp.pagina) ?? "1", 10) || 1));
-  return { busca, uf, fonte, pagina };
+function parseFilters(sp: SearchParams): Required<Pick<PlantFilters, "page">> & PlantFilters {
+  const search = first(sp.busca)?.trim().slice(0, 100) || undefined;
+  const state = findState(first(sp.uf))?.state;
+  const source = URL_SOURCE[first(sp.fonte) ?? ""];
+  const page = Math.max(1, Math.min(10_000, Number.parseInt(first(sp.pagina) ?? "1", 10) || 1));
+  return { search, state, source, page };
 }
 
-function pageHref(filtro: UsinasFiltro, pagina: number) {
+function pageHref(filters: PlantFilters, page: number) {
   const params = new URLSearchParams();
-  if (filtro.busca) params.set("busca", filtro.busca);
-  if (filtro.uf) params.set("uf", filtro.uf);
-  if (filtro.fonte) params.set("fonte", filtro.fonte);
-  if (pagina > 1) params.set("pagina", String(pagina));
+  if (filters.search) params.set("busca", filters.search);
+  if (filters.state) params.set("uf", filters.state);
+  if (filters.source) params.set("fonte", SOURCE_IN_URL[filters.source]);
+  if (page > 1) params.set("pagina", String(page));
   const qs = params.toString();
   return qs ? `/usinas?${qs}` : "/usinas";
 }
 
-export default async function UsinasPage({
+export default async function PlantsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const filtro = parseFiltro(await searchParams);
-  const result = await getUsinas({ ...filtro, tamanho: TAMANHO });
+  const filters = parseFilters(await searchParams);
+  const result = await getPlants({ ...filters, pageSize: PAGE_SIZE });
 
   const inputClass = "w-full rounded-md border border-line bg-surface px-3 py-2 text-base";
 
@@ -67,36 +68,41 @@ export default async function UsinasPage({
         className="grid grid-cols-1 gap-3 rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)] p-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
       >
         <div>
-          <label htmlFor="busca" className="mb-1 block text-sm font-medium">
+          <label htmlFor="search" className="mb-1 block text-sm font-medium">
             Nome da usina
           </label>
           <input
-            id="busca"
+            id="search"
             name="busca"
             type="search"
-            defaultValue={filtro.busca}
+            defaultValue={filters.search}
             placeholder="Ex.: São Fernando"
             className={inputClass}
           />
         </div>
         <div>
-          <label htmlFor="uf" className="mb-1 block text-sm font-medium">
+          <label htmlFor="state" className="mb-1 block text-sm font-medium">
             Estado
           </label>
-          <select id="uf" name="uf" defaultValue={filtro.uf ?? ""} className={inputClass}>
+          <select id="state" name="uf" defaultValue={filters.state ?? ""} className={inputClass}>
             <option value="">Todos</option>
-            {ESTADOS.map((e) => (
-              <option key={e.uf} value={e.uf}>
-                {e.uf} — {e.nome}
+            {STATES.map((e) => (
+              <option key={e.state} value={e.state}>
+                {e.state} — {e.name}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="fonte" className="mb-1 block text-sm font-medium">
+          <label htmlFor="source" className="mb-1 block text-sm font-medium">
             Fonte
           </label>
-          <select id="fonte" name="fonte" defaultValue={filtro.fonte ?? ""} className={inputClass}>
+          <select
+            id="source"
+            name="fonte"
+            defaultValue={filters.source ? SOURCE_IN_URL[filters.source] : ""}
+            className={inputClass}
+          >
             <option value="">Todas</option>
             <option value="eolica">Eólica</option>
             <option value="solar">Solar</option>
@@ -113,7 +119,7 @@ export default async function UsinasPage({
       <div className="mt-6">
         {!result.ok ? (
           <DataUnavailable />
-        ) : result.data.itens.length === 0 ? (
+        ) : result.data.items.length === 0 ? (
           <DataUnavailable title="Nenhuma usina encontrada">
             Tente outro nome ou remova os filtros.
           </DataUnavailable>
@@ -124,25 +130,25 @@ export default async function UsinasPage({
               {result.data.total === 1 ? "resultado" : "resultados"}
             </p>
             <ul className="divide-y divide-[var(--color-grid)] rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)]">
-              {result.data.itens.map((u) => (
+              {result.data.items.map((u) => (
                 <li key={u.id} className="px-4 py-3">
                   <Link
                     href={`/usinas/${u.slug}`}
                     className="font-medium text-[var(--color-accent)] underline"
                   >
-                    {u.nome}
+                    {u.name}
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--color-ink-2)]">
-                    <Badge>{u.tipo === "conjunto" ? "Conjunto" : "Usina"}</Badge>
-                    <span>{formatFonte(u.fonte)}</span>
+                    <Badge>{u.kind === "cluster" ? "Conjunto" : "Usina"}</Badge>
+                    <span>{formatSource(u.source)}</span>
                     <span aria-hidden>·</span>
-                    <span>{u.uf}</span>
+                    <span>{u.state}</span>
                     <span aria-hidden>·</span>
-                    <span>{nomeSubsistema(u.subsistema)}</span>
-                    {u.potencia_mw !== null ? (
+                    <span>{subsystemName(u.subsystem)}</span>
+                    {u.capacity_mw !== null ? (
                       <>
                         <span aria-hidden>·</span>
-                        <span>{formatNumber(u.potencia_mw, 1)} MW</span>
+                        <span>{formatNumber(u.capacity_mw, 1)} MW</span>
                       </>
                     ) : null}
                   </div>
@@ -150,11 +156,11 @@ export default async function UsinasPage({
               ))}
             </ul>
             <Pagination
-              filtro={filtro}
-              pagina={result.data.pagina}
-              totalPaginas={Math.max(
+              filters={filters}
+              page={result.data.page}
+              totalPages={Math.max(
                 1,
-                Math.ceil(result.data.total / (result.data.tamanho || TAMANHO)),
+                Math.ceil(result.data.total / (result.data.page_size || PAGE_SIZE)),
               )}
             />
           </>
@@ -165,31 +171,31 @@ export default async function UsinasPage({
 }
 
 function Pagination({
-  filtro,
-  pagina,
-  totalPaginas,
+  filters,
+  page,
+  totalPages,
 }: {
-  filtro: UsinasFiltro;
-  pagina: number;
-  totalPaginas: number;
+  filters: PlantFilters;
+  page: number;
+  totalPages: number;
 }) {
-  if (totalPaginas <= 1) return null;
+  if (totalPages <= 1) return null;
   const linkClass =
     "rounded-md border border-line bg-surface px-3 py-1.5 text-sm hover:border-[var(--color-accent)]";
   return (
     <nav aria-label="Paginação" className="mt-4 flex items-center justify-between gap-3">
-      {pagina > 1 ? (
-        <Link href={pageHref(filtro, pagina - 1)} className={linkClass} rel="prev">
+      {page > 1 ? (
+        <Link href={pageHref(filters, page - 1)} className={linkClass} rel="prev">
           ← Anterior
         </Link>
       ) : (
         <span />
       )}
       <span className="text-sm text-[var(--color-ink-2)]">
-        Página {formatNumber(pagina, 0)} de {formatNumber(totalPaginas, 0)}
+        Página {formatNumber(page, 0)} de {formatNumber(totalPages, 0)}
       </span>
-      {pagina < totalPaginas ? (
-        <Link href={pageHref(filtro, pagina + 1)} className={linkClass} rel="next">
+      {page < totalPages ? (
+        <Link href={pageHref(filters, page + 1)} className={linkClass} rel="next">
           Próxima →
         </Link>
       ) : (

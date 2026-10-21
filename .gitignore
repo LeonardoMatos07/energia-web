@@ -1,23 +1,18 @@
-# dependências
 node_modules/
 .pnpm-store/
 
-# Next.js
 .next/
 .next-*/
 out/
 next-env.d.ts
 *.tsbuildinfo
 
-# testes
 coverage/
 
-# ambiente
 .env
 .env*.local
 .env.production
 
-# sistema / editores
 .DS_Store
 Thumbs.db
 *.log

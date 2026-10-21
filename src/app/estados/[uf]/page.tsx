@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
-import { FONTE_COLORS } from "@/components/charts/palette";
+import { SOURCE_COLORS } from "@/components/charts/palette";
 import type { ChartSeries } from "@/components/charts/types";
 import { JsonLd } from "@/components/json-ld";
 import { RankingTable } from "@/components/ranking-table";
-import { ReasonBreakdown, sumMotivos } from "@/components/reason-breakdown";
+import { ReasonBreakdown, sumReasons } from "@/components/reason-breakdown";
 import { Tabs } from "@/components/tabs";
 import {
   Container,
@@ -18,26 +18,28 @@ import {
   StatTile,
 } from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
-import { getCurtailmentUf } from "@/lib/api/queries";
-import type { CurtailmentMensalUf, CurtailmentUfResposta, FonteAgregada } from "@/lib/api/types";
+import { getStateCurtailment } from "@/lib/api/queries";
+import type {
+  StateMonthlyCurtailment,
+  StateCurtailmentResponse,
+  AggregateSource,
+} from "@/lib/api/types";
 import {
   formatBRLCompact,
   formatEnergy,
-  formatFonte,
-  formatMesCurto,
-  formatMesLongo,
+  formatSource,
+  formatShortMonth,
+  formatLongMonth,
   formatNumber,
   formatPercent,
 } from "@/lib/format";
-import { findEstado } from "@/lib/geo";
+import { findState } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
-import { latest, normalizeMes, pickEnergyUnit, pivotByMonth } from "@/lib/series";
+import { latest, normalizeMonth, pickEnergyUnit, pivotByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
 export const revalidate = 3600;
 
-// No paths are prebuilt (the build must not depend on the API); each state is rendered
-// on first request and then cached (ISR).
 export function generateStaticParams() {
   return [];
 }
@@ -45,97 +47,97 @@ export function generateStaticParams() {
 type Params = { uf: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { uf } = await params;
-  const estado = findEstado(uf);
-  if (!estado) return { title: "Estado não encontrado" };
+  const { uf: stateCode } = await params;
+  const brazilianState = findState(stateCode);
+  if (!brazilianState) return { title: "Estado não encontrado" };
   return pageMetadata({
-    title: `Curtailment eólico e solar em ${estado.nome} (${estado.uf})`,
-    description: `Energia eólica e solar cortada por restrições do ONS em ${estado.nome}, mês a mês, e as usinas mais afetadas.`,
-    path: `/estados/${estado.uf.toLowerCase()}`,
+    title: `Curtailment eólico e solar em ${brazilianState.name} (${brazilianState.state})`,
+    description: `Energia eólica e solar cortada por restrições do ONS em ${brazilianState.name}, mês a mês, e as usinas mais afetadas.`,
+    path: `/estados/${brazilianState.state.toLowerCase()}`,
   });
 }
 
-function FontePanel({
-  fonte,
+function SourcePanel({
+  source,
   result,
   stacked,
-  nomeEstado,
-  uf,
+  stateName,
+  state,
 }: {
-  fonte: FonteAgregada;
-  uf: string;
-  result: ApiResult<CurtailmentUfResposta>;
-  stacked?: { eolica: CurtailmentMensalUf[]; solar: CurtailmentMensalUf[] };
-  nomeEstado: string;
+  source: AggregateSource;
+  state: string;
+  result: ApiResult<StateCurtailmentResponse>;
+  stacked?: { wind: StateMonthlyCurtailment[]; solar: StateMonthlyCurtailment[] };
+  stateName: string;
 }) {
   if (!result.ok) {
     return result.error.isNotFound ? (
       <DataUnavailable title="Sem dados para este estado">
         Não há usinas{" "}
-        {fonte === "total" ? "eólicas ou solares" : fonte === "eolica" ? "eólicas" : "solares"} com
-        restrições registradas pelo ONS em {nomeEstado}.
+        {source === "total" ? "eólicas ou solares" : source === "wind" ? "eólicas" : "solares"} com
+        restrições registradas pelo ONS em {stateName}.
       </DataUnavailable>
     ) : (
       <DataUnavailable />
     );
   }
 
-  const { serie, ranking, mes_ranking } = result.data;
-  if (serie.length === 0) {
+  const { series, ranking, ranking_month } = result.data;
+  if (series.length === 0) {
     return (
       <DataUnavailable title="Sem dados para esta fonte">
-        Não há registros de {formatFonte(fonte).toLowerCase()} em {nomeEstado}.
+        Não há registros de {formatSource(source).toLowerCase()} em {stateName}.
       </DataUnavailable>
     );
   }
 
-  const ultimo = latest(serie);
-  const sourceRows = stacked ? [...stacked.eolica, ...stacked.solar] : serie;
-  const energy = pickEnergyUnit(Math.max(...serie.map((r) => r.energia_cortada_mwh)));
-  const series: ChartSeries[] = stacked
+  const latestRow = latest(series);
+  const sourceRows = stacked ? [...stacked.wind, ...stacked.solar] : series;
+  const energy = pickEnergyUnit(Math.max(...series.map((r) => r.curtailed_mwh)));
+  const chartSeries: ChartSeries[] = stacked
     ? [
-        { key: "eolica", label: "Eólica", color: FONTE_COLORS.eolica },
-        { key: "solar", label: "Solar", color: FONTE_COLORS.solar },
+        { key: "wind", label: "Eólica", color: SOURCE_COLORS.wind },
+        { key: "solar", label: "Solar", color: SOURCE_COLORS.solar },
       ]
     : [
         {
-          key: fonte,
-          label: formatFonte(fonte),
-          color: fonte === "solar" ? FONTE_COLORS.solar : FONTE_COLORS.eolica,
+          key: source,
+          label: formatSource(source),
+          color: source === "solar" ? SOURCE_COLORS.solar : SOURCE_COLORS.wind,
         },
       ];
   const rows = pivotByMonth(
     sourceRows,
-    (r) => r.fonte,
-    (r) => r.energia_cortada_mwh / energy.divisor,
+    (r) => r.source,
+    (r) => r.curtailed_mwh / energy.divisor,
   );
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-ink-2 mb-3 text-sm font-medium">
-          Último mês com dados: {formatMesLongo(ultimo?.mes)}
+          Último mês com dados: {formatLongMonth(latestRow?.month)}
         </h3>
         <StatGrid>
           <StatTile
             highlight
             label="Energia cortada"
-            value={formatEnergy(ultimo?.energia_cortada_mwh)}
+            value={formatEnergy(latestRow?.curtailed_mwh)}
           />
-          <StatTile label="% de corte" value={formatPercent(ultimo?.percentual_corte)} />
+          <StatTile label="% de corte" value={formatPercent(latestRow?.curtailment_pct)} />
           <StatTile
             label="Perda estimada"
-            value={formatBRLCompact(ultimo?.perda_estimada_brl)}
+            value={formatBRLCompact(latestRow?.estimated_loss_brl)}
             note="estimativa pelo PLD"
           />
-          <StatTile label="Usinas afetadas" value={formatNumber(ultimo?.usinas_afetadas, 0)} />
+          <StatTile label="Usinas afetadas" value={formatNumber(latestRow?.affected_plants, 0)} />
         </StatGrid>
       </div>
 
       <MonthlyChart
-        title={`Energia cortada por mês em ${nomeEstado} — ${formatFonte(fonte).toLowerCase()} (${energy.unit})`}
+        title={`Energia cortada por mês em ${stateName} — ${formatSource(source).toLowerCase()} (${energy.unit})`}
         rows={rows}
-        series={series}
+        series={chartSeries}
         unit={energy.unit}
         digits={energy.digits}
       />
@@ -144,23 +146,23 @@ function FontePanel({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
           <div>
             <h3 className="text-lg font-semibold tracking-tight">
-              Usinas mais afetadas em {formatMesLongo(mes_ranking)}
+              Usinas mais afetadas em {formatLongMonth(ranking_month)}
             </h3>
             <p className="text-ink-2 text-sm">
               Ranking por energia cortada no mês (até 20 usinas).
             </p>
           </div>
           <Link
-            href={`/usinas?uf=${uf}`}
+            href={`/usinas?uf=${state}`}
             className="text-accent text-sm font-medium hover:underline"
           >
-            Todas as usinas de {nomeEstado} →
+            Todas as usinas de {stateName} →
           </Link>
         </div>
         {ranking.length > 0 ? (
           <RankingTable
-            itens={ranking}
-            caption={`Usinas com mais energia cortada em ${nomeEstado}, ${formatMesCurto(mes_ranking)}`}
+            items={ranking}
+            caption={`Usinas com mais energia cortada em ${stateName}, ${formatShortMonth(ranking_month)}`}
           />
         ) : (
           <p className="text-ink-2 text-sm">Nenhuma usina com corte neste mês.</p>
@@ -173,37 +175,37 @@ function FontePanel({
           <span className="text-ink-2 font-normal">(todo o período)</span>
         </h3>
         <ReasonBreakdown
-          periodo={sumMotivos(serie)}
-          ultimoMes={ultimo ? sumMotivos([ultimo]) : undefined}
-          ultimoMesLabel={formatMesCurto(ultimo?.mes)}
+          period={sumReasons(series)}
+          latestMonth={latestRow ? sumReasons([latestRow]) : undefined}
+          latestMonthLabel={formatShortMonth(latestRow?.month)}
         />
       </div>
     </div>
   );
 }
 
-export default async function EstadoPage({ params }: { params: Promise<Params> }) {
-  const { uf } = await params;
-  const estado = findEstado(uf);
-  if (!estado) notFound();
+export default async function StatePage({ params }: { params: Promise<Params> }) {
+  const { uf: stateCode } = await params;
+  const brazilianState = findState(stateCode);
+  if (!brazilianState) notFound();
 
-  const [total, eolica, solar] = await Promise.all([
-    getCurtailmentUf(estado.uf, "total"),
-    getCurtailmentUf(estado.uf, "eolica"),
-    getCurtailmentUf(estado.uf, "solar"),
+  const [total, wind, solar] = await Promise.all([
+    getStateCurtailment(brazilianState.state, "total"),
+    getStateCurtailment(brazilianState.state, "wind"),
+    getStateCurtailment(brazilianState.state, "solar"),
   ]);
 
-  const meses = total.ok ? total.data.serie.map((r) => normalizeMes(r.mes)) : [];
+  const months = total.ok ? total.data.series.map((r) => normalizeMonth(r.month)) : [];
 
   return (
     <Container>
       <JsonLd
         data={datasetJsonLd({
-          name: `Curtailment mensal eólico e solar — ${estado.nome}`,
-          description: `Energia eólica e solar cortada por restrições do ONS em ${estado.nome}, por mês e fonte, e ranking das usinas mais afetadas.`,
-          path: `/estados/${estado.uf.toLowerCase()}`,
-          temporalCoverage: temporalCoverage(meses),
-          spatialCoverage: `${estado.nome}, Brasil`,
+          name: `Curtailment mensal eólico e solar — ${brazilianState.name}`,
+          description: `Energia eólica e solar cortada por restrições do ONS em ${brazilianState.name}, por mês e fonte, e ranking das usinas mais afetadas.`,
+          path: `/estados/${brazilianState.state.toLowerCase()}`,
+          temporalCoverage: temporalCoverage(months),
+          spatialCoverage: `${brazilianState.name}, Brasil`,
         })}
       />
       <PageHeader
@@ -212,12 +214,12 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
             Estados
           </Link>
         }
-        title={`${estado.nome} (${estado.uf})`}
+        title={`${brazilianState.name} (${brazilianState.state})`}
       >
         <p>Energia eólica e solar que deixou de ser gerada por ordem do ONS, mês a mês.</p>
       </PageHeader>
 
-      <Section id="serie" title="Série mensal">
+      <Section id="series" title="Série mensal">
         <Tabs
           label="Fonte"
           panels={[
@@ -225,16 +227,16 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
               key: "total",
               label: "Total",
               content: (
-                <FontePanel
-                  uf={estado.uf}
-                  fonte="total"
+                <SourcePanel
+                  state={brazilianState.state}
+                  source="total"
                   result={total}
-                  nomeEstado={estado.nome}
+                  stateName={brazilianState.name}
                   stacked={
-                    eolica.ok || solar.ok
+                    wind.ok || solar.ok
                       ? {
-                          eolica: eolica.ok ? eolica.data.serie : [],
-                          solar: solar.ok ? solar.data.serie : [],
+                          wind: wind.ok ? wind.data.series : [],
+                          solar: solar.ok ? solar.data.series : [],
                         }
                       : undefined
                   }
@@ -242,14 +244,14 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
               ),
             },
             {
-              key: "eolica",
+              key: "wind",
               label: "Eólica",
               content: (
-                <FontePanel
-                  fonte="eolica"
-                  result={eolica}
-                  nomeEstado={estado.nome}
-                  uf={estado.uf}
+                <SourcePanel
+                  source="wind"
+                  result={wind}
+                  stateName={brazilianState.name}
+                  state={brazilianState.state}
                 />
               ),
             },
@@ -257,7 +259,12 @@ export default async function EstadoPage({ params }: { params: Promise<Params> }
               key: "solar",
               label: "Solar",
               content: (
-                <FontePanel fonte="solar" result={solar} nomeEstado={estado.nome} uf={estado.uf} />
+                <SourcePanel
+                  source="solar"
+                  result={solar}
+                  stateName={brazilianState.name}
+                  state={brazilianState.state}
+                />
               ),
             },
           ]}

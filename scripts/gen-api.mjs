@@ -1,12 +1,9 @@
-// Generates src/lib/api/schema.d.ts from the energia-api OpenAPI document.
-// Source, in order: OPENAPI_SOURCE env (path or URL), ../energia-api/openapi.json,
-// http://localhost:8000/openapi.json.
-// In energia-api: `uv run python -m app.export_openapi openapi.json` writes the file.
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import openapiTS, { astToString } from "openapi-typescript";
+import ts from "typescript";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = resolve(root, "src/lib/api/schema.d.ts");
@@ -20,17 +17,21 @@ function pickSource() {
   return new URL("http://localhost:8000/openapi.json");
 }
 
+function withoutComments(code) {
+  const source = ts.createSourceFile("schema.d.ts", code, ts.ScriptTarget.Latest, true);
+  return ts.createPrinter({ removeComments: true }).printFile(source);
+}
+
 const source = pickSource();
-console.log(`Gerando tipos a partir de ${source.href}`);
+console.log(`Generating types from ${source.href}`);
 try {
   const ast = await openapiTS(source);
-  const header = "// Arquivo gerado por `pnpm gen:api` (openapi-typescript). Não edite à mão.\n\n";
-  await writeFile(output, header + astToString(ast), "utf8");
+  await writeFile(output, withoutComments(astToString(ast)), "utf8");
   console.log(`OK: ${output}`);
 } catch (error) {
-  console.error(`Falha ao gerar os tipos: ${error instanceof Error ? error.message : error}`);
+  console.error(`Failed to generate the types: ${error instanceof Error ? error.message : error}`);
   console.error(
-    "Exporte o schema no energia-api (uv run python -m app.export_openapi openapi.json) ou suba a API em http://localhost:8000.",
+    "Export the schema in energia-api (uv run python -m app.export_openapi openapi.json) or start the API on http://localhost:8000.",
   );
   process.exit(1);
 }

@@ -49,8 +49,8 @@ export function datasetJsonLd(opts: {
   };
 }
 
-export function temporalCoverage(meses: string[]): string | undefined {
-  if (meses.length === 0) return undefined;
-  const sorted = [...meses].sort();
+export function temporalCoverage(months: string[]): string | undefined {
+  if (months.length === 0) return undefined;
+  const sorted = [...months].sort();
   return `${sorted[0]}/${sorted.at(-1)}`;
 }

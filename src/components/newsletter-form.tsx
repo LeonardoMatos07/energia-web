@@ -6,8 +6,13 @@ import { initialNewsletterState, type NewsletterFormState } from "@/lib/newslett
 
 type Action = (prev: NewsletterFormState, formData: FormData) => Promise<NewsletterFormState>;
 
-/** Newsletter signup: e-mail only, explicit LGPD consent, double opt-in by e-mail. */
-export function NewsletterForm({ action, origem = "portal" }: { action: Action; origem?: string }) {
+export function NewsletterForm({
+  action,
+  signupSource = "portal",
+}: {
+  action: Action;
+  signupSource?: string;
+}) {
   const [state, formAction, pending] = useActionState(action, initialNewsletterState);
   const id = useId();
 
@@ -51,7 +56,7 @@ export function NewsletterForm({ action, origem = "portal" }: { action: Action; 
         <div className="mt-3 flex items-start gap-2 text-sm">
           <input
             id={`${id}-consent`}
-            name="consentimento"
+            name="consent"
             type="checkbox"
             required
             className="mt-0.5 size-4 shrink-0 accent-[var(--color-accent)]"
@@ -67,12 +72,11 @@ export function NewsletterForm({ action, origem = "portal" }: { action: Action; 
           </label>
         </div>
 
-        {/* Honeypot field, hidden from people and assistive tech. */}
         <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
           <label htmlFor={`${id}-website`}>Não preencha</label>
           <input id={`${id}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
         </div>
-        <input type="hidden" name="origem" value={origem} />
+        <input type="hidden" name="source" value={signupSource} />
 
         <p
           role="status"

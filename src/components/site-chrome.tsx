@@ -5,7 +5,6 @@ import { ThemeToggle } from "./theme-toggle";
 import { Container } from "./ui";
 
 function BrandMark() {
-  // A wind turbine blade over a clipped sun: wind and solar, the two sources tracked.
   return (
     <svg aria-hidden="true" viewBox="0 0 32 32" className="size-8 shrink-0">
       <rect width="32" height="32" rx="9" className="fill-accent" />

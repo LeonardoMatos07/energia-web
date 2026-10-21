@@ -1,4 +1,4 @@
-import type { NewsletterDescadastrarResposta } from "@/lib/api/types";
+import type { UnsubscribedResponse } from "@/lib/api/types";
 import { pageMetadata } from "@/lib/metadata";
 import { callTokenEndpoint, first, TokenResultPage } from "../token-result";
 
@@ -11,16 +11,16 @@ export const metadata = pageMetadata({
   noIndex: true,
 });
 
-export default async function DescadastrarPage({
+export default async function UnsubscribePage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const token = first((await searchParams).token);
-  const outcome = await callTokenEndpoint<NewsletterDescadastrarResposta>(
-    "/v1/newsletter/descadastrar",
+  const outcome = await callTokenEndpoint<UnsubscribedResponse>(
+    "/v1/newsletter/unsubscribe",
     token,
-    (d) => d.descadastrado === true,
+    (d) => d.unsubscribed === true,
   );
 
   return (

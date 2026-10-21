@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-/** Per-page metadata with canonical URL and Open Graph, relative to `metadataBase`. */
 export function pageMetadata(opts: {
   title: string;
   description: string;

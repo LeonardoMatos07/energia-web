@@ -27,19 +27,12 @@ interface HeaderReader {
   get(name: string): string | null;
 }
 
-/**
- * Headers that tell energia-api who the visitor is, so its per-IP rate limit does not
- * lump every visitor under this server's IP. The API only trusts `X-Cliente-IP` when
- * `X-Web-Api-Secret` matches its WEB_API_SECRET; without the secret we fall back to
- * forwarding X-Forwarded-For.
- */
 export function visitorIpHeaders(
   incoming: HeaderReader,
   secret: string | undefined,
 ): Record<string, string> {
   const forwardedFor = incoming.get("x-forwarded-for") ?? "";
-  // On Vercel x-real-ip is the visitor; elsewhere the left-most X-Forwarded-For entry is.
   const ip = (incoming.get("x-real-ip") ?? forwardedFor.split(",")[0] ?? "").trim();
-  if (secret && ip) return { "X-Web-Api-Secret": secret, "X-Cliente-IP": ip };
+  if (secret && ip) return { "X-Web-Api-Secret": secret, "X-Client-IP": ip };
   return forwardedFor ? { "X-Forwarded-For": forwardedFor } : {};
 }

@@ -4,5 +4,4 @@ export interface ChartSeries {
   color: string;
 }
 
-/** One row per month (`mes` = `YYYY-MM`); series values already in the chart's unit. */
-export type ChartRow = { mes: string } & Record<string, number | string | null | undefined>;
+export type ChartRow = { month: string } & Record<string, number | string | null | undefined>;

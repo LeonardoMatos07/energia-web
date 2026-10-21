@@ -3,18 +3,17 @@ import {
   EMPTY,
   formatBRL,
   formatBRLCompact,
-  formatDataHora,
+  formatDateTime,
   formatEnergy,
-  formatFonte,
+  formatSource,
   formatGWh,
-  formatMesCurto,
-  formatMesLongo,
+  formatShortMonth,
+  formatLongMonth,
   formatMWh,
   formatNumber,
   formatPercent,
 } from "./format";
 
-// Intl uses a non-breaking space between "R$" and the value.
 const nbsp = (s: string) => s.replace(/ /g, " ");
 
 describe("formatNumber", () => {
@@ -67,20 +66,20 @@ describe("money", () => {
 
 describe("months and dates", () => {
   it("formats YYYY-MM", () => {
-    expect(formatMesCurto("2026-09")).toBe("set/2026");
-    expect(formatMesLongo("2024-03")).toBe("março de 2024");
-    expect(formatMesCurto("2026-09-01")).toBe("set/2026");
-    expect(formatMesCurto("lixo")).toBe(EMPTY);
-    expect(formatMesCurto("2026-13")).toBe(EMPTY);
+    expect(formatShortMonth("2026-09")).toBe("set/2026");
+    expect(formatLongMonth("2024-03")).toBe("março de 2024");
+    expect(formatShortMonth("2026-09-01")).toBe("set/2026");
+    expect(formatShortMonth("garbage")).toBe(EMPTY);
+    expect(formatShortMonth("2026-13")).toBe(EMPTY);
   });
   it("shows timestamps in Brasília time", () => {
-    expect(formatDataHora("2026-10-20T15:05:00Z")).toBe("20/10/2026, 12:05");
+    expect(formatDateTime("2026-10-20T15:05:00Z")).toBe("20/10/2026, 12:05");
   });
 });
 
-describe("formatFonte", () => {
+describe("formatSource", () => {
   it("translates sources", () => {
-    expect(formatFonte("eolica")).toBe("Eólica");
-    expect(formatFonte("total")).toBe("Eólica + solar");
+    expect(formatSource("wind")).toBe("Eólica");
+    expect(formatSource("total")).toBe("Eólica + solar");
   });
 });

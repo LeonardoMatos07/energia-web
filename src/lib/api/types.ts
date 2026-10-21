@@ -1,232 +1,199 @@
-/**
- * API types written by hand from `energia-api/docs/contrato-fase1.md` (Fase 1).
- *
- * Once `energia-api` publishes its OpenAPI document, run `pnpm gen:api` to generate
- * `src/lib/api/schema.d.ts` and replace these aliases with the generated
- * `components["schemas"][...]` types. Keys mirror the database columns (contract rule).
- */
+export type Source = "wind" | "solar";
+export type AggregateSource = Source | "total";
+export type Subsystem = "N" | "NE" | "S" | "SE";
+export type SubsystemOrSin = Subsystem | "SIN";
+export type PlantKind = "plant" | "cluster";
+export type PriceBasis = "PLD" | "CMO" | "PLD_FILLED" | "CMO_FILLED";
+export type LoadRunStatus = "running" | "success" | "failed";
 
-export type Fonte = "eolica" | "solar";
-export type FonteAgregada = Fonte | "total";
-export type Subsistema = "N" | "NE" | "S" | "SE";
-export type SubsistemaOuSin = Subsistema | "SIN";
-export type TipoUsina = "usina" | "conjunto";
-export type BasePreco = "PLD" | "CMO" | "PLD_FILLED" | "CMO_FILLED";
-export type StatusCarga = "em_andamento" | "sucesso" | "falha";
-
-/** Month as returned by the API: `YYYY-MM`. */
-export type Mes = string;
-/** ISO 8601 timestamp (UTC). */
+export type Month = string;
 export type Timestamp = string;
 
-/** Columns shared by `curtailment_mensal_uf` and `curtailment_mensal_sin`. */
-export interface CurtailmentAgregadoBase {
-  fonte: FonteAgregada;
-  mes: Mes;
-  geracao_verificada_mwh: number;
-  energia_cortada_mwh: number;
-  percentual_corte: number | null;
-  corte_rel_mwh: number;
-  corte_cnf_mwh: number;
-  corte_ene_mwh: number;
-  corte_outros_mwh: number;
-  perda_estimada_brl: number | null;
-  usinas_afetadas: number;
-  atualizado_em: Timestamp;
+export interface CurtailmentAggregateBase {
+  source: AggregateSource;
+  month: Month;
+  verified_generation_mwh: number;
+  curtailed_mwh: number;
+  curtailment_pct: number | null;
+  curtailed_rel_mwh: number;
+  curtailed_cnf_mwh: number;
+  curtailed_ene_mwh: number;
+  curtailed_other_mwh: number;
+  estimated_loss_brl: number | null;
+  affected_plants: number;
+  updated_at: Timestamp;
 }
 
-export interface CurtailmentMensalUf extends CurtailmentAgregadoBase {
-  uf: string;
+export interface StateMonthlyCurtailment extends CurtailmentAggregateBase {
+  state: string;
 }
 
-export interface CurtailmentMensalSin extends CurtailmentAgregadoBase {
-  /** `N`, `NE`, `S`, `SE` or `SIN` (typed as plain string in the OpenAPI schema). */
-  subsistema: SubsistemaOuSin | (string & {});
+export interface SubsystemMonthlyCurtailment extends CurtailmentAggregateBase {
+  subsystem: SubsystemOrSin | (string & {});
 }
 
-export interface CurtailmentMensalUsina {
-  usina_id: string;
-  mes: Mes;
-  geracao_verificada_mwh: number;
-  energia_cortada_mwh: number;
-  percentual_corte: number | null;
-  corte_rel_mwh: number;
-  corte_cnf_mwh: number;
-  corte_ene_mwh: number;
-  corte_outros_mwh: number;
-  perda_estimada_brl: number | null;
-  base_preco: BasePreco | (string & {}) | null;
-  horas_restritas: number;
-  percentual_corte_medio_uf: number | null;
-  posicao_nacional: number | null;
-  posicao_uf: number | null;
-  atualizado_em: Timestamp;
+export interface PlantMonthlyCurtailment {
+  plant_id: string;
+  month: Month;
+  verified_generation_mwh: number;
+  curtailed_mwh: number;
+  curtailment_pct: number | null;
+  curtailed_rel_mwh: number;
+  curtailed_cnf_mwh: number;
+  curtailed_ene_mwh: number;
+  curtailed_other_mwh: number;
+  estimated_loss_brl: number | null;
+  price_basis: PriceBasis | (string & {}) | null;
+  restricted_hours: number;
+  state_avg_curtailment_pct: number | null;
+  national_rank: number | null;
+  state_rank: number | null;
+  updated_at: Timestamp;
 }
 
-export interface UsinaResumo {
+export interface PlantSummary {
   id: string;
-  tipo: TipoUsina;
-  nome: string;
+  kind: PlantKind;
+  name: string;
   slug: string;
-  fonte: Fonte;
-  uf: string;
-  subsistema: Subsistema | (string & {});
-  potencia_mw: number | null;
+  source: Source;
+  state: string;
+  subsystem: Subsystem | (string & {});
+  capacity_mw: number | null;
 }
 
-export interface Usina extends UsinaResumo {
-  conjunto_id: string | null;
+export interface Plant extends PlantSummary {
+  cluster_id: string | null;
   ceg: string | null;
-  ponto_conexao: string | null;
-  agente_operador: string | null;
-  atualizado_em: Timestamp;
+  connection_point: string | null;
+  operator: string | null;
+  updated_at: Timestamp;
 }
 
-export interface UsinaRanking extends UsinaResumo {
-  posicao: number;
-  energia_cortada_mwh: number;
-  percentual_corte: number | null;
-  perda_estimada_brl: number | null;
+export interface RankedPlant extends PlantSummary {
+  rank: number;
+  curtailed_mwh: number;
+  curtailment_pct: number | null;
+  estimated_loss_brl: number | null;
 }
 
-export interface RelatorioResumo {
-  mes: Mes;
-  titulo: string;
+export interface ReportSummary {
+  month: Month;
+  title: string;
   slug: string;
-  resumo: string | null;
-  publicado_em: Timestamp | null;
+  summary: string | null;
+  published_at: Timestamp | null;
 }
 
-export interface Relatorio extends RelatorioResumo {
-  conteudo: string;
+export interface Report extends ReportSummary {
+  content: string;
 }
 
-export interface CargaExecucao {
+export interface LoadRun {
   id: number;
   dataset: string;
-  /** Month processed (`YYYY-MM`). */
-  periodo: Mes | null;
-  arquivo: string | null;
-  hash: string | null;
-  linhas: number | null;
-  inicio: Timestamp;
-  fim: Timestamp | null;
-  status: StatusCarga;
-  detalhe: string | null;
+  period: Month | null;
+  source_file: string | null;
+  checksum: string | null;
+  row_count: number | null;
+  started_at: Timestamp;
+  finished_at: Timestamp | null;
+  status: LoadRunStatus;
+  detail: string | null;
 }
 
-// ---- Response envelopes ---------------------------------------------------------------
-
-/** GET /v1/curtailment/sin */
-export interface CurtailmentSinResposta {
-  itens: CurtailmentMensalSin[];
+export interface SubsystemCurtailmentResponse {
+  items: SubsystemMonthlyCurtailment[];
 }
 
-/** GET /v1/curtailment/uf/{uf} */
-export interface CurtailmentUfResposta {
-  serie: CurtailmentMensalUf[];
-  ranking: UsinaRanking[];
-  mes_ranking: Mes | null;
+export interface StateCurtailmentResponse {
+  series: StateMonthlyCurtailment[];
+  ranking: RankedPlant[];
+  ranking_month: Month | null;
 }
 
-/** GET /v1/usinas */
-export interface UsinasResposta {
-  itens: UsinaResumo[];
+export interface PlantListResponse {
+  items: PlantSummary[];
   total: number;
-  pagina: number;
-  tamanho: number;
+  page: number;
+  page_size: number;
 }
 
-/** GET /v1/usinas/{slug} */
-export interface UsinaDetalheResposta {
-  usina: Usina;
-  conjunto: UsinaResumo | null;
-  usinas_do_conjunto: UsinaResumo[];
-  serie: CurtailmentMensalUsina[];
+export interface PlantDetailResponse {
+  plant: Plant;
+  cluster: PlantSummary | null;
+  cluster_plants: PlantSummary[];
+  series: PlantMonthlyCurtailment[];
 }
 
-/** GET /v1/ranking */
-export interface RankingResposta {
-  mes: Mes | null;
-  itens: UsinaRanking[];
+export interface RankingResponse {
+  month: Month | null;
+  items: RankedPlant[];
 }
 
-/** GET /v1/meses */
-export interface MesesResposta {
-  meses: Mes[];
+export interface MonthsResponse {
+  months: Month[];
 }
 
-/** GET /v1/relatorios */
-export interface RelatoriosResposta {
-  itens: RelatorioResumo[];
+export interface ReportListResponse {
+  items: ReportSummary[];
 }
 
-/** POST /v1/newsletter (always 202) */
-export interface NewsletterResposta {
-  mensagem: string;
+export interface MessageResponse {
+  message: string;
 }
 
-export interface NewsletterInscricao {
+export interface NewsletterSignup {
   email: string;
-  consentimento: true;
-  origem?: string;
+  consent: true;
+  source?: string;
 }
 
-/** GET /v1/newsletter/confirmar */
-export interface NewsletterConfirmarResposta {
-  confirmado: boolean;
+export interface ConfirmedResponse {
+  confirmed: boolean;
 }
 
-/** GET /v1/newsletter/descadastrar */
-export interface NewsletterDescadastrarResposta {
-  descadastrado: boolean;
+export interface UnsubscribedResponse {
+  unsubscribed: boolean;
 }
 
-/** GET /v1/admin/cargas */
-export interface CargasResposta {
-  itens: CargaExecucao[];
+export interface LoadRunListResponse {
+  items: LoadRun[];
 }
 
-export interface RelatorioAdmin extends Relatorio {
-  criado_em: Timestamp;
-  atualizado_em: Timestamp;
+export interface AdminReport extends Report {
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
-/** GET /v1/admin/relatorios (all reports, drafts included) */
-export interface AdminRelatoriosResposta {
-  itens: RelatorioAdmin[];
+export interface AdminReportListResponse {
+  items: AdminReport[];
 }
 
-/** POST /v1/admin/relatorios body */
-export interface RelatorioEntrada {
-  mes: Mes;
-  titulo: string;
-  /** Optional (energia-api extension to the contract); generated from `titulo` when absent. */
+export interface ReportInput {
+  month: Month;
+  title: string;
   slug?: string;
-  resumo?: string | null;
-  conteudo: string;
-  publicar: boolean;
+  summary?: string | null;
+  content: string;
+  publish: boolean;
 }
 
-/** POST /v1/admin/revalidar body */
-export interface RevalidarEntrada {
+export interface RevalidateInput {
   tags?: CacheTag[];
 }
 
-/** POST /v1/admin/revalidar response */
-export interface RevalidarResposta {
+export interface RevalidateResponse {
   tags: CacheTag[];
-  cache_limpo: boolean;
-  entradas_removidas: number;
-  web_revalidado: boolean;
-  detalhe: string | null;
+  cache_cleared: boolean;
+  entries_removed: number;
+  web_revalidated: boolean;
+  detail: string | null;
 }
 
-/** Error body for every non-2xx response. */
-export interface ErroApi {
+export interface ApiErrorBody {
   detail: string | unknown;
 }
 
-/** Cache tags shared between the API and the portal (contract, "Revalidação do portal"). */
-export const CACHE_TAGS = ["curtailment", "usinas", "relatorios"] as const;
+export const CACHE_TAGS = ["curtailment", "plants", "reports"] as const;
 export type CacheTag = (typeof CACHE_TAGS)[number];

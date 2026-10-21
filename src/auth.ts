@@ -1,13 +1,6 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Cognito from "next-auth/providers/cognito";
 
-/**
- * Admin login: Auth.js v5 + Amazon Cognito (OAuth authorization code with PKCE).
- * The session is a JWE in an httpOnly cookie; the Cognito access token stays inside
- * it and is only read on the server (see `src/lib/admin-session.ts`). It is never
- * copied into the session object, so `/api/auth/session` does not expose it.
- */
-
 export function isAuthConfigured(): boolean {
   return Boolean(
     process.env.AUTH_SECRET &&
@@ -17,7 +10,6 @@ export function isAuthConfigured(): boolean {
   );
 }
 
-/** Secure (`__Secure-`) cookies whenever the site is served over HTTPS. */
 export function shouldUseSecureCookies(): boolean {
   const url = process.env.AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "";
   return url.startsWith("https://") || process.env.VERCEL === "1";

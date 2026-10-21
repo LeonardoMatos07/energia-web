@@ -1,155 +1,163 @@
 # energia-web
 
-Portal público do **Monitor de Curtailment** (Fase 1): quanta energia eólica e solar o ONS
-mandou deixar de gerar no Brasil, por mês, subsistema, estado e usina, com perda estimada em
-R$. Inclui uma área administrativa para acompanhar as cargas do pipeline e publicar
-relatórios mensais.
+Public portal of the **Monitor de Curtailment** (Phase 1): how much wind and solar energy ONS
+ordered Brazilian plants not to generate, per month, subsystem, state and plant, with the
+estimated loss in BRL. It includes an admin area to follow the pipeline loads and publish
+monthly reports.
 
-Faz parte de quatro repositórios; o contrato entre eles está em
-[`energia-api/docs/contrato-fase1.md`](../energia-api/docs/contrato-fase1.md).
+It is one of four repositories; the contract between them is in
+[`energia-api/docs/phase1-contract.md`](../energia-api/docs/phase1-contract.md).
 
-| Repositório       | Papel                                                       |
-| ----------------- | ----------------------------------------------------------- |
-| `energia-data`    | Airflow: ingere o ONS e escreve os agregados                |
-| `energia-api`     | FastAPI: dono do schema, leitura pública, newsletter, admin |
-| **`energia-web`** | Next.js: este portal (ISR) e a área admin                   |
-| `energia-infra`   | Terraform (AWS `sa-east-1`)                                 |
+| Repository        | Role                                                   |
+| ----------------- | ------------------------------------------------------ |
+| `energia-data`    | Airflow: ingests ONS data and writes the aggregates    |
+| `energia-api`     | FastAPI: schema owner, public reads, newsletter, admin |
+| **`energia-web`** | Next.js: this portal (ISR) and the admin area          |
+| `energia-infra`   | Terraform (AWS `sa-east-1`)                            |
 
 ## Stack
 
-Next.js 15 (App Router) · React 19 · TypeScript estrito · Tailwind CSS 4 · Recharts ·
+Next.js 15 (App Router) · React 19 · strict TypeScript · Tailwind CSS 4 · Recharts ·
 Auth.js v5 (Cognito) · Vitest + Testing Library · ESLint · Prettier · pnpm.
 
-Gráficos com **Recharts**: gera SVG (legível por leitores de tela e nítido em qualquer
-tela), é composto em componentes React e é bem menor que o ECharts para o que precisamos
-(barras empilhadas e linhas mensais). Todo gráfico tem legenda, tooltip e uma tabela com os
-dados; as cores seguem uma paleta categórica validada para daltonismo.
+Charts use **Recharts**: it renders SVG (readable by screen readers and sharp on any screen),
+composes as React components and is much smaller than ECharts for what we need (stacked bars
+and monthly lines). Every chart has a legend, a tooltip and a data table; colors follow a
+categorical palette checked for color blindness.
 
-## Páginas
+## Language
 
-| Rota                                                | Conteúdo                                                                                             | API                       |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------- |
-| `/`                                                 | Painel nacional: corte mensal por fonte e por subsistema, números do último mês, estados, newsletter | `/v1/curtailment/sin`     |
-| `/estados`, `/estados/[uf]`                         | Série mensal do estado (total/eólica/solar), ranking de usinas, motivos                              | `/v1/curtailment/uf/{uf}` |
-| `/usinas`                                           | Busca com filtros de UF e fonte, paginada                                                            | `/v1/usinas`              |
-| `/usinas/[slug]`                                    | Cadastro, histórico (verificada × cortada), motivos, comparação com a média da UF, conjunto ↔ usinas | `/v1/usinas/{slug}`       |
-| `/relatorios`, `/relatorios/[slug]`                 | Relatórios mensais (Markdown sanitizado)                                                             | `/v1/relatorios`          |
-| `/metodologia`                                      | Fontes, rateio, perda em R$, limitações, privacidade                                                 | —                         |
-| `/newsletter/confirmar`, `/newsletter/descadastrar` | Leem `?token=` e chamam a API                                                                        | `/v1/newsletter/*`        |
-| `/admin`                                            | Cargas do pipeline, criar/publicar relatórios, revalidar cache                                       | `/v1/admin/*`             |
-| `POST /api/revalidar`                               | Revalidação sob demanda (chamada pela API)                                                           | —                         |
+Code, identifiers, logs and documentation are in English. Everything rendered on screen is in
+Portuguese, and so are the public URLs, including their query parameters (`/usinas?uf=RN`,
+`?fonte=eolica`) and the section anchors of the content pages (`/metodologia#rateio`).
 
-SEO: `sitemap.xml` (páginas fixas, estados, relatórios e todas as usinas — tolera a API fora
-do ar), `robots.txt`, metadados por página (título, descrição, canonical, Open Graph) e
-JSON-LD (`Dataset` nas páginas de dados, `Article` nos relatórios).
+## Pages
 
-## Como rodar
+| Route                                               | Content                                                                                                     | API                              |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `/`                                                 | National dashboard: monthly curtailment by source and subsystem, latest month, states, newsletter           | `/v1/curtailment/subsystems`     |
+| `/estados`, `/estados/[uf]`                         | State monthly series (total/wind/solar), plant ranking, reasons                                             | `/v1/curtailment/states/{state}` |
+| `/usinas`                                           | Search with state and source filters, paginated                                                             | `/v1/plants`                     |
+| `/usinas/[slug]`                                    | Registry data, history (verified × curtailed), reasons, comparison with the state average, cluster ↔ plants | `/v1/plants/{slug}`              |
+| `/relatorios`, `/relatorios/[slug]`                 | Monthly reports (sanitized Markdown)                                                                        | `/v1/reports`                    |
+| `/metodologia`                                      | Sources, allocation, BRL loss, limitations, privacy                                                         | —                                |
+| `/newsletter/confirmar`, `/newsletter/descadastrar` | Read `?token=` and call the API                                                                             | `/v1/newsletter/*`               |
+| `/admin`                                            | Pipeline loads, create/publish reports, revalidate the cache                                                | `/v1/admin/*`                    |
+| `POST /api/revalidate`                              | On-demand revalidation (called by the API)                                                                  | —                                |
 
-Requer Node.js 22+ (CI usa 24) e pnpm 10 (`npm install -g pnpm@10.34.6` ou `corepack enable`).
+SEO: `sitemap.xml` (fixed pages, states, reports and every plant; it tolerates the API being
+down), `robots.txt`, per-page metadata (title, description, canonical, Open Graph) and JSON-LD
+(`Dataset` on the data pages, `Article` on reports).
+
+## Running
+
+Requires Node.js 22+ (CI uses 24) and pnpm 10 (`npm install -g pnpm@10.34.6` or
+`corepack enable`).
 
 ```bash
 pnpm install
-cp .env.example .env.local     # ajuste API_URL etc.
-pnpm dev                       # http://localhost:3000
+cp .env.example .env.local
+pnpm dev
 ```
 
-Com o `energia-api` rodando em `http://localhost:8000` as páginas mostram dados reais; sem
-ele, mostram "dados indisponíveis" — nada quebra.
+Adjust `API_URL` and the other variables in `.env.local`. The site runs on
+`http://localhost:3000`. With `energia-api` running on `http://127.0.0.1:8000` the pages show
+real data; without it they show "dados indisponíveis" and nothing breaks.
 
-| Comando                                  | O que faz                                                 |
-| ---------------------------------------- | --------------------------------------------------------- |
-| `pnpm dev` / `pnpm build` / `pnpm start` | Next.js                                                   |
-| `pnpm lint`                              | ESLint                                                    |
-| `pnpm typecheck`                         | `tsc --noEmit`                                            |
-| `pnpm format` / `pnpm format:check`      | Prettier                                                  |
-| `pnpm test`                              | Vitest                                                    |
-| `pnpm gen:api`                           | Gera `src/lib/api/schema.d.ts` a partir do OpenAPI da API |
+| Command                                  | What it does                                             |
+| ---------------------------------------- | -------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start` | Next.js                                                  |
+| `pnpm lint`                              | ESLint                                                   |
+| `pnpm typecheck`                         | `tsc --noEmit`                                           |
+| `pnpm format` / `pnpm format:check`      | Prettier                                                 |
+| `pnpm test`                              | Vitest                                                   |
+| `pnpm gen:api`                           | Generates `src/lib/api/schema.d.ts` from the API OpenAPI |
 
-### Tipos da API
+### API types
 
-`src/lib/api/types.ts` tem os tipos escritos à mão a partir do contrato.
-`pnpm gen:api` gera `src/lib/api/schema.d.ts` com o `openapi-typescript`, lendo (nesta ordem)
-`OPENAPI_SOURCE`, `../energia-api/openapi.json` ou `http://localhost:8000/openapi.json`. No
-`energia-api`, `uv run python -m app.export_openapi openapi.json` exporta o arquivo.
-`src/lib/api/schema-compat.ts` compara os dois em tempo de compilação: se a API mudar um
-formato, `pnpm typecheck` falha.
+`src/lib/api/types.ts` holds the hand-written types from the contract. `pnpm gen:api`
+generates `src/lib/api/schema.d.ts` with `openapi-typescript`, reading (in this order)
+`OPENAPI_SOURCE`, `../energia-api/openapi.json` or `http://localhost:8000/openapi.json`. In
+`energia-api`, `uv run python -m app.export_openapi openapi.json` exports the file.
+`src/lib/api/schema-compat.ts` compares both at compile time: if the API changes a payload,
+`pnpm typecheck` fails.
 
-## Variáveis de ambiente
+## Environment variables
 
-| Variável                                                        | Uso                                                                     |
+| Variable                                                        | Purpose                                                                 |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `API_URL`                                                       | URL do `energia-api` (só no servidor). Padrão `http://localhost:8000`   |
-| `NEXT_PUBLIC_SITE_URL`                                          | URL pública (canonical, OG, sitemap)                                    |
-| `NEXT_PUBLIC_CONTACT_EMAIL`                                     | Contato de privacidade (LGPD) exibido em `/privacidade`                 |
-| `REVALIDATE_SECRET`                                             | Segredo de `POST /api/revalidar`; o mesmo valor configurado na API      |
-| `WEB_API_SECRET`                                                | Mesmo valor da API; envia o IP do visitante para o limite da newsletter |
-| `AUTH_SECRET`                                                   | Chave de criptografia da sessão (Auth.js)                               |
-| `AUTH_COGNITO_ID`, `AUTH_COGNITO_SECRET`, `AUTH_COGNITO_ISSUER` | App client do Cognito                                                   |
-| `AUTH_URL`                                                      | Opcional fora da Vercel                                                 |
-| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` (+ `NEXT_PUBLIC_PLAUSIBLE_SRC`)  | Liga o Plausible                                                        |
-| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NEXT_PUBLIC_UMAMI_SRC`        | Liga o Umami                                                            |
+| `API_URL`                                                       | `energia-api` URL (server only). Default `http://127.0.0.1:8000`        |
+| `NEXT_PUBLIC_SITE_URL`                                          | Public URL (canonical, OG, sitemap)                                     |
+| `NEXT_PUBLIC_CONTACT_EMAIL`                                     | Privacy contact (LGPD) shown on `/privacidade`                          |
+| `REVALIDATE_SECRET`                                             | Secret of `POST /api/revalidate`; the same value configured in the API  |
+| `WEB_API_SECRET`                                                | Same value as the API; forwards the visitor IP for the newsletter limit |
+| `AUTH_SECRET`                                                   | Session encryption key (Auth.js)                                        |
+| `AUTH_COGNITO_ID`, `AUTH_COGNITO_SECRET`, `AUTH_COGNITO_ISSUER` | Cognito app client                                                      |
+| `AUTH_URL`                                                      | Optional outside Vercel                                                 |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` (+ `NEXT_PUBLIC_PLAUSIBLE_SRC`)  | Enables Plausible                                                       |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NEXT_PUBLIC_UMAMI_SRC`        | Enables Umami                                                           |
 
-Sem as variáveis do Cognito, `/admin` mostra "autenticação não configurada". Sem variáveis
-de analytics, nenhum script de terceiros é carregado.
+Without the Cognito variables, `/admin` says authentication is not configured. Without the
+analytics variables, no third-party script is loaded.
 
-## Dados e cache (ISR)
+## Data and cache (ISR)
 
-Todas as chamadas à API passam por `src/lib/api/client.ts`, no servidor, com
+Every API call goes through `src/lib/api/client.ts`, on the server, with
 `fetch(API_URL + path, { next: { tags, revalidate: 3600 } })`. Tags:
 
-- `curtailment` — séries mensais (SIN, UF, usina) e meses;
-- `usinas` — busca, páginas de usina e rankings;
-- `relatorios` — relatórios.
+- `curtailment`: monthly series (SIN, state, plant) and months;
+- `plants`: search, plant pages and rankings;
+- `reports`: reports.
 
-As respostas ficam no cache de dados por até um dia; as páginas são regeneradas no máximo a
-cada hora (reaproveitando o cache), o que permite que uma página gerada com a API fora do ar
-se recupere sozinha. Páginas dinâmicas (`/estados/[uf]`, `/usinas/[slug]`,
-`/relatorios/[slug]`) não são pré-geradas no build: cada uma é renderizada no primeiro acesso
-e então fica em cache. Por isso o build não depende da API.
+Responses stay in the data cache for up to a day; pages are regenerated at most every hour
+(reusing the cache), so a page generated while the API was down recovers on its own. Dynamic
+pages (`/estados/[uf]`, `/usinas/[slug]`, `/relatorios/[slug]`) are not generated at build
+time: each one is rendered on first access and then cached. That is why the build does not
+depend on the API.
 
-Chamadas do admin e da newsletter usam `cache: "no-store"`.
+Admin and newsletter calls use `cache: "no-store"`.
 
-## Como funciona a revalidação
+## How revalidation works
 
-1. Ao fim de cada carga, o `energia-data` chama `POST {API_URL}/v1/admin/revalidar` com
-   `{"tags": ["curtailment", "usinas"]}`.
-2. A API limpa o próprio cache e chama `POST {WEB_URL}/api/revalidar` com o cabeçalho
-   `x-revalidate-secret` e o mesmo corpo.
-3. Este portal compara o segredo em tempo constante e chama `revalidateTag` para cada tag
-   (sem corpo ou com `tags` vazio: todas as três).
+1. After each load, `energia-data` calls `POST {API_URL}/v1/admin/revalidate` with
+   `{"tags": ["curtailment", "plants"]}`.
+2. The API clears its own cache and calls `POST {WEB_URL}/api/revalidate` with the
+   `x-revalidate-secret` header and the same body.
+3. This portal compares the secret in constant time and calls `revalidateTag` for each tag
+   (no body or an empty `tags` list: all three).
 
 ```bash
-curl -X POST http://localhost:3000/api/revalidar \
+curl -X POST http://localhost:3000/api/revalidate \
   -H "x-revalidate-secret: $REVALIDATE_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{"tags": ["curtailment", "usinas"]}'
-# {"revalidado":true,"tags":["curtailment","usinas"],"em":"..."}
+  -d '{"tags": ["curtailment", "plants"]}'
 ```
 
-Respostas: `401` segredo errado/ausente, `400` JSON ou tag inválidos, `503`
-`REVALIDATE_SECRET` não configurado. Ao publicar um relatório pelo admin, o portal revalida a
-tag `relatorios` na hora.
+It answers `{"revalidated":true,"tags":["curtailment","plants"],"at":"..."}`. Errors: `401`
+wrong or missing secret, `400` invalid JSON or tag, `503` `REVALIDATE_SECRET` not set. When a
+report is published from the admin area, the portal revalidates the `reports` tag right away.
 
 ## Admin
 
-Login OAuth (código de autorização com PKCE) no Cognito via Auth.js v5; sessão em cookie
-`httpOnly` criptografado. O _access token_ do Cognito fica dentro do cookie e só é lido no
-servidor para chamar `/v1/admin/*` — nunca vai para o navegador. A API exige o grupo `admin`.
-Callback a cadastrar no app client: `{SITE_URL}/api/auth/callback/cognito`. Não há renovação
-automática do token: quando ele expira (1 h por padrão no Cognito), o admin entra de novo.
+OAuth sign-in (authorization code with PKCE) against Cognito through Auth.js v5; session in an
+encrypted `httpOnly` cookie. The Cognito _access token_ lives inside the cookie and is only
+read on the server to call `/v1/admin/*`; it never reaches the browser. The API requires the
+`admin` group. Callback to register on the app client: `{SITE_URL}/api/auth/callback/cognito`.
+There is no automatic token refresh: when it expires (1 h by default in Cognito), the admin
+signs in again.
 
-## Privacidade
+## Privacy
 
-Sem login público e sem cookies de rastreamento. A newsletter guarda só o e-mail, com
-consentimento explícito (LGPD), confirmação por e-mail (double opt-in) e descadastro em um
-clique.
+No public sign-in and no tracking cookies. The newsletter only stores the e-mail address, with
+explicit consent (LGPD), e-mail confirmation (double opt-in) and one-click unsubscribe.
 
-## CI e deploy
+## CI and deployment
 
-`.github/workflows/ci.yml` roda em todo PR e push na `main`: `pnpm install
---frozen-lockfile`, lint, `tsc --noEmit`, `prettier --check`, `vitest run` e `next build`
-(sem API).
+`.github/workflows/ci.yml` runs on every PR and push to `main`: `pnpm install
+--frozen-lockfile`, lint, `tsc --noEmit`, `prettier --check`, `vitest run` and `next build`
+(without the API).
 
-O **deploy é feito pela Vercel** (integração com o GitHub): preview a cada PR e produção a
-cada merge na `main`. Configure na Vercel as variáveis acima (`API_URL`,
-`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, `REVALIDATE_SECRET`, `WEB_API_SECRET`, `AUTH_*`, analytics). O CI não faz deploy.
+**Deployment is done by Vercel** (GitHub integration): a preview per PR and production on each
+merge to `main`. Set the variables above on Vercel (`API_URL`, `NEXT_PUBLIC_SITE_URL`,
+`NEXT_PUBLIC_CONTACT_EMAIL`, `REVALIDATE_SECRET`, `WEB_API_SECRET`, `AUTH_*`, analytics). CI
+does not deploy.

@@ -10,7 +10,6 @@ export type AdminState =
   | { kind: "forbidden"; email: string | null }
   | { kind: "admin"; email: string | null; accessToken: string };
 
-/** Resolves the admin state for the current request. Server-side only. */
 export async function getAdminState(): Promise<AdminState> {
   if (!isAuthConfigured()) return { kind: "not-configured" };
 
@@ -18,7 +17,6 @@ export async function getAdminState(): Promise<AdminState> {
   if (!session?.user) return { kind: "anonymous" };
   const email = session.user.email ?? null;
 
-  // The API enforces authorization too; this check only avoids a useless round trip.
   if (!session.groups.includes("admin")) return { kind: "forbidden", email };
   if (session.accessTokenExpired) return { kind: "expired", email };
 

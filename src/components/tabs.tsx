@@ -8,7 +8,6 @@ export interface TabPanel {
   content: ReactNode;
 }
 
-/** Accessible tabs (WAI-ARIA pattern). All panels are server-rendered; only visibility changes. */
 export function Tabs({
   panels,
   label,

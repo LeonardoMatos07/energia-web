@@ -1,57 +1,57 @@
-import type { Subsistema } from "./api/types";
+import type { Subsystem } from "./api/types";
 
-export interface Estado {
-  uf: string;
-  nome: string;
-  regiao: "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
+export interface BrazilianState {
+  state: string;
+  name: string;
+  region: "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
 }
 
-export const ESTADOS: readonly Estado[] = [
-  { uf: "AC", nome: "Acre", regiao: "Norte" },
-  { uf: "AL", nome: "Alagoas", regiao: "Nordeste" },
-  { uf: "AM", nome: "Amazonas", regiao: "Norte" },
-  { uf: "AP", nome: "Amapá", regiao: "Norte" },
-  { uf: "BA", nome: "Bahia", regiao: "Nordeste" },
-  { uf: "CE", nome: "Ceará", regiao: "Nordeste" },
-  { uf: "DF", nome: "Distrito Federal", regiao: "Centro-Oeste" },
-  { uf: "ES", nome: "Espírito Santo", regiao: "Sudeste" },
-  { uf: "GO", nome: "Goiás", regiao: "Centro-Oeste" },
-  { uf: "MA", nome: "Maranhão", regiao: "Nordeste" },
-  { uf: "MG", nome: "Minas Gerais", regiao: "Sudeste" },
-  { uf: "MS", nome: "Mato Grosso do Sul", regiao: "Centro-Oeste" },
-  { uf: "MT", nome: "Mato Grosso", regiao: "Centro-Oeste" },
-  { uf: "PA", nome: "Pará", regiao: "Norte" },
-  { uf: "PB", nome: "Paraíba", regiao: "Nordeste" },
-  { uf: "PE", nome: "Pernambuco", regiao: "Nordeste" },
-  { uf: "PI", nome: "Piauí", regiao: "Nordeste" },
-  { uf: "PR", nome: "Paraná", regiao: "Sul" },
-  { uf: "RJ", nome: "Rio de Janeiro", regiao: "Sudeste" },
-  { uf: "RN", nome: "Rio Grande do Norte", regiao: "Nordeste" },
-  { uf: "RO", nome: "Rondônia", regiao: "Norte" },
-  { uf: "RR", nome: "Roraima", regiao: "Norte" },
-  { uf: "RS", nome: "Rio Grande do Sul", regiao: "Sul" },
-  { uf: "SC", nome: "Santa Catarina", regiao: "Sul" },
-  { uf: "SE", nome: "Sergipe", regiao: "Nordeste" },
-  { uf: "SP", nome: "São Paulo", regiao: "Sudeste" },
-  { uf: "TO", nome: "Tocantins", regiao: "Norte" },
+export const STATES: readonly BrazilianState[] = [
+  { state: "AC", name: "Acre", region: "Norte" },
+  { state: "AL", name: "Alagoas", region: "Nordeste" },
+  { state: "AM", name: "Amazonas", region: "Norte" },
+  { state: "AP", name: "Amapá", region: "Norte" },
+  { state: "BA", name: "Bahia", region: "Nordeste" },
+  { state: "CE", name: "Ceará", region: "Nordeste" },
+  { state: "DF", name: "Distrito Federal", region: "Centro-Oeste" },
+  { state: "ES", name: "Espírito Santo", region: "Sudeste" },
+  { state: "GO", name: "Goiás", region: "Centro-Oeste" },
+  { state: "MA", name: "Maranhão", region: "Nordeste" },
+  { state: "MG", name: "Minas Gerais", region: "Sudeste" },
+  { state: "MS", name: "Mato Grosso do Sul", region: "Centro-Oeste" },
+  { state: "MT", name: "Mato Grosso", region: "Centro-Oeste" },
+  { state: "PA", name: "Pará", region: "Norte" },
+  { state: "PB", name: "Paraíba", region: "Nordeste" },
+  { state: "PE", name: "Pernambuco", region: "Nordeste" },
+  { state: "PI", name: "Piauí", region: "Nordeste" },
+  { state: "PR", name: "Paraná", region: "Sul" },
+  { state: "RJ", name: "Rio de Janeiro", region: "Sudeste" },
+  { state: "RN", name: "Rio Grande do Norte", region: "Nordeste" },
+  { state: "RO", name: "Rondônia", region: "Norte" },
+  { state: "RR", name: "Roraima", region: "Norte" },
+  { state: "RS", name: "Rio Grande do Sul", region: "Sul" },
+  { state: "SC", name: "Santa Catarina", region: "Sul" },
+  { state: "SE", name: "Sergipe", region: "Nordeste" },
+  { state: "SP", name: "São Paulo", region: "Sudeste" },
+  { state: "TO", name: "Tocantins", region: "Norte" },
 ];
 
-export const REGIOES = ["Nordeste", "Norte", "Sudeste", "Sul", "Centro-Oeste"] as const;
+export const REGIONS = ["Nordeste", "Norte", "Sudeste", "Sul", "Centro-Oeste"] as const;
 
-export function findEstado(uf: string | undefined | null): Estado | undefined {
-  if (!uf) return undefined;
-  const upper = uf.toUpperCase();
-  return ESTADOS.find((e) => e.uf === upper);
+export function findState(state: string | undefined | null): BrazilianState | undefined {
+  if (!state) return undefined;
+  const upper = state.toUpperCase();
+  return STATES.find((e) => e.state === upper);
 }
 
-export const SUBSISTEMAS: readonly { id: Subsistema; nome: string }[] = [
-  { id: "N", nome: "Norte" },
-  { id: "NE", nome: "Nordeste" },
-  { id: "SE", nome: "Sudeste/Centro-Oeste" },
-  { id: "S", nome: "Sul" },
+export const SUBSYSTEMS: readonly { id: Subsystem; name: string }[] = [
+  { id: "N", name: "Norte" },
+  { id: "NE", name: "Nordeste" },
+  { id: "SE", name: "Sudeste/Centro-Oeste" },
+  { id: "S", name: "Sul" },
 ];
 
-export function nomeSubsistema(id: string): string {
+export function subsystemName(id: string): string {
   if (id === "SIN") return "SIN (total nacional)";
-  return SUBSISTEMAS.find((s) => s.id === id)?.nome ?? id;
+  return SUBSYSTEMS.find((s) => s.id === id)?.name ?? id;
 }

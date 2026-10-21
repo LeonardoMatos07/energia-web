@@ -27,29 +27,29 @@ function Status({ state }: { state: AdminFormState }) {
   );
 }
 
-export function RelatorioForm({ action, defaultMes }: { action: Action; defaultMes: string }) {
+export function ReportForm({ action, defaultMonth }: { action: Action; defaultMonth: string }) {
   const [state, formAction, pending] = useActionState(action, initial);
   return (
     <form action={formAction} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr]">
         <div>
-          <label htmlFor="mes" className="mb-1 block text-sm font-medium">
+          <label htmlFor="month" className="mb-1 block text-sm font-medium">
             Mês de referência
           </label>
           <input
-            id="mes"
-            name="mes"
+            id="month"
+            name="month"
             type="month"
             required
-            defaultValue={defaultMes}
+            defaultValue={defaultMonth}
             className={input}
           />
         </div>
         <div>
-          <label htmlFor="titulo" className="mb-1 block text-sm font-medium">
+          <label htmlFor="title" className="mb-1 block text-sm font-medium">
             Título
           </label>
-          <input id="titulo" name="titulo" required maxLength={300} className={input} />
+          <input id="title" name="title" required maxLength={300} className={input} />
         </div>
       </div>
       <div>
@@ -65,26 +65,26 @@ export function RelatorioForm({ action, defaultMes }: { action: Action; defaultM
         />
       </div>
       <div>
-        <label htmlFor="resumo" className="mb-1 block text-sm font-medium">
+        <label htmlFor="summary" className="mb-1 block text-sm font-medium">
           Resumo (opcional)
         </label>
-        <textarea id="resumo" name="resumo" rows={2} className={input} />
+        <textarea id="summary" name="summary" rows={2} className={input} />
       </div>
       <div>
-        <label htmlFor="conteudo" className="mb-1 block text-sm font-medium">
+        <label htmlFor="content" className="mb-1 block text-sm font-medium">
           Conteúdo (Markdown)
         </label>
         <textarea
-          id="conteudo"
-          name="conteudo"
+          id="content"
+          name="content"
           rows={14}
           required
           className={`${input} font-mono text-sm`}
         />
       </div>
       <div className="flex items-center gap-2">
-        <input id="publicar" name="publicar" type="checkbox" className="h-4 w-4" />
-        <label htmlFor="publicar" className="text-sm">
+        <input id="publish" name="publish" type="checkbox" className="h-4 w-4" />
+        <label htmlFor="publish" className="text-sm">
           Publicar agora (desmarcado = salvar como rascunho)
         </label>
       </div>
@@ -102,7 +102,7 @@ export function RelatorioForm({ action, defaultMes }: { action: Action; defaultM
   );
 }
 
-export function RevalidarForm({ action }: { action: Action }) {
+export function RevalidateForm({ action }: { action: Action }) {
   const [state, formAction, pending] = useActionState(action, initial);
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-3">

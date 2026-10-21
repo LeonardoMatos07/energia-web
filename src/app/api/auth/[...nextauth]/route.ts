@@ -3,7 +3,7 @@ import { handlers, isAuthConfigured } from "@/auth";
 
 function notConfigured() {
   return NextResponse.json(
-    { detail: "Autenticação não configurada neste ambiente." },
+    { detail: "Authentication is not configured in this environment." },
     { status: 503 },
   );
 }

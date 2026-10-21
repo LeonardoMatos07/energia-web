@@ -15,7 +15,6 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Main navigation; scrolls sideways on narrow screens instead of wrapping. */
 export function NavLinks() {
   const pathname = usePathname() ?? "/";
   return (

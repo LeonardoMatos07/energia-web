@@ -11,8 +11,8 @@ export const metadata = pageMetadata({
 
 const UPDATED_AT = "21 de outubro de 2026";
 
-export default function PrivacidadePage() {
-  const contato = getContactEmail();
+export default function PrivacyPage() {
+  const contact = getContactEmail();
 
   return (
     <Container>
@@ -20,7 +20,7 @@ export default function PrivacidadePage() {
         <p>Última atualização: {UPDATED_AT}.</p>
       </PageHeader>
 
-      <div className="prose prose-neutral prose-a:text-[var(--color-accent)] max-w-3xl">
+      <div className="prose prose-site max-w-3xl">
         <p>
           O {SITE_NAME} é um portal aberto: você não precisa de conta para ver nenhum dado. O único
           dado pessoal que tratamos é o e-mail de quem assina a newsletter. Esta página explica esse
@@ -28,10 +28,10 @@ export default function PrivacidadePage() {
         </p>
 
         <h2 id="controlador">Quem é o controlador</h2>
-        {contato ? (
+        {contact ? (
           <p>
             O controlador dos dados é o responsável pelo {SITE_NAME}. Para qualquer pedido sobre
-            seus dados, escreva para <a href={`mailto:${contato}`}>{contato}</a>.
+            seus dados, escreva para <a href={`mailto:${contact}`}>{contact}</a>.
           </p>
         ) : (
           <Notice>
@@ -110,9 +110,9 @@ export default function PrivacidadePage() {
           </li>
           <li>
             Para os demais pedidos
-            {contato ? (
+            {contact ? (
               <>
-                , escreva para <a href={`mailto:${contato}`}>{contato}</a>
+                , escreva para <a href={`mailto:${contact}`}>{contact}</a>
               </>
             ) : (
               ", use o contato indicado acima"

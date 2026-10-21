@@ -1,20 +1,20 @@
 import type { MetadataRoute } from "next";
-import { getRelatorios, getUsinas } from "@/lib/api/queries";
-import { ESTADOS } from "@/lib/geo";
+import { getReports, getPlants } from "@/lib/api/queries";
+import { STATES } from "@/lib/geo";
 import { absoluteUrl } from "@/lib/site";
 
 export const revalidate = 86400;
 
-const PAGE_SIZE = 100; // API maximum for `tamanho`
-const MAX_PAGES = 400; // safety cap (40k plants, under the 50k sitemap limit)
+const PAGE_SIZE = 100;
+const MAX_PAGES = 400;
 
 async function allPlantSlugs(): Promise<string[]> {
   const slugs: string[] = [];
-  for (let pagina = 1; pagina <= MAX_PAGES; pagina++) {
-    const result = await getUsinas({ pagina, tamanho: PAGE_SIZE });
-    if (!result.ok) break; // tolerate API failure: keep what we have
-    slugs.push(...result.data.itens.map((u) => u.slug));
-    if (result.data.itens.length < PAGE_SIZE || slugs.length >= result.data.total) break;
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const result = await getPlants({ page, pageSize: PAGE_SIZE });
+    if (!result.ok) break;
+    slugs.push(...result.data.items.map((u) => u.slug));
+    if (result.data.items.length < PAGE_SIZE || slugs.length >= result.data.total) break;
   }
   return slugs;
 }
@@ -29,28 +29,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/privacidade"), changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const estados: MetadataRoute.Sitemap = ESTADOS.map((e) => ({
-    url: absoluteUrl(`/estados/${e.uf.toLowerCase()}`),
+  const brazilianStates: MetadataRoute.Sitemap = STATES.map((e) => ({
+    url: absoluteUrl(`/estados/${e.state.toLowerCase()}`),
     changeFrequency: "monthly",
     priority: 0.7,
   }));
 
-  const [slugs, relatorios] = await Promise.all([allPlantSlugs(), getRelatorios()]);
+  const [slugs, reports] = await Promise.all([allPlantSlugs(), getReports()]);
 
-  const usinas: MetadataRoute.Sitemap = slugs.map((slug) => ({
+  const plants: MetadataRoute.Sitemap = slugs.map((slug) => ({
     url: absoluteUrl(`/usinas/${slug}`),
     changeFrequency: "monthly",
     priority: 0.5,
   }));
 
-  const reports: MetadataRoute.Sitemap = relatorios.ok
-    ? relatorios.data.itens.map((r) => ({
+  const reportPages: MetadataRoute.Sitemap = reports.ok
+    ? reports.data.items.map((r) => ({
         url: absoluteUrl(`/relatorios/${r.slug}`),
-        lastModified: r.publicado_em ?? undefined,
+        lastModified: r.published_at ?? undefined,
         changeFrequency: "yearly" as const,
         priority: 0.6,
       }))
     : [];
 
-  return [...staticPages, ...estados, ...reports, ...usinas];
+  return [...staticPages, ...brazilianStates, ...reportPages, ...plants];
 }

@@ -3,10 +3,10 @@ import Link from "next/link";
 import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import { getAdminState } from "@/lib/admin-session";
 import { apiTry } from "@/lib/api/client";
-import type { AdminRelatoriosResposta, CargasResposta, StatusCarga } from "@/lib/api/types";
-import { formatDataHora, formatMesCurto, formatNumber } from "@/lib/format";
-import { loginAction, logoutAction, revalidarAction, saveRelatorioAction } from "./actions";
-import { RelatorioForm, RevalidarForm } from "./admin-forms";
+import type { AdminReportListResponse, LoadRunListResponse, LoadRunStatus } from "@/lib/api/types";
+import { formatDateTime, formatShortMonth, formatNumber } from "@/lib/format";
+import { loginAction, logoutAction, revalidateAction, saveReportAction } from "./actions";
+import { ReportForm, RevalidateForm } from "./admin-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const STATUS_LABEL: Record<StatusCarga, string> = {
-  sucesso: "✓ Sucesso",
-  falha: "✕ Falha",
-  em_andamento: "… Em andamento",
+const STATUS_LABEL: Record<LoadRunStatus, string> = {
+  success: "✓ Sucesso",
+  failed: "✕ Falha",
+  running: "… Em andamento",
 };
 
 function Button({ children }: { children: React.ReactNode }) {
@@ -86,9 +86,9 @@ export default async function AdminPage() {
     );
   }
 
-  const [cargas, relatorios] = await Promise.all([
-    apiTry<CargasResposta>("/v1/admin/cargas?limite=50", { accessToken: state.accessToken }),
-    apiTry<AdminRelatoriosResposta>("/v1/admin/relatorios", { accessToken: state.accessToken }),
+  const [loadRuns, reports] = await Promise.all([
+    apiTry<LoadRunListResponse>("/v1/admin/load-runs?limit=50", { accessToken: state.accessToken }),
+    apiTry<AdminReportListResponse>("/v1/admin/reports", { accessToken: state.accessToken }),
   ]);
 
   return (
@@ -105,13 +105,13 @@ export default async function AdminPage() {
       </PageHeader>
 
       <Section id="cache" title="Cache">
-        <RevalidarForm action={revalidarAction} />
+        <RevalidateForm action={revalidateAction} />
       </Section>
 
-      <Section id="cargas" title="Cargas do pipeline" description="Últimas 50 execuções.">
-        {!cargas.ok ? (
+      <Section id="load-runs" title="Cargas do pipeline" description="Últimas 50 execuções.">
+        {!loadRuns.ok ? (
           <DataUnavailable title="Não foi possível carregar as cargas">
-            {cargas.error.detail}
+            {loadRuns.error.detail}
           </DataUnavailable>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)]">
@@ -129,18 +129,18 @@ export default async function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {cargas.data.itens.map((c) => (
+                {loadRuns.data.items.map((c) => (
                   <tr key={c.id} className="border-b border-[var(--color-grid)] align-top">
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDataHora(c.inicio)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(c.started_at)}</td>
                     <td className="px-3 py-2">{c.dataset}</td>
-                    <td className="px-3 py-2">{formatMesCurto(c.periodo)}</td>
+                    <td className="px-3 py-2">{formatShortMonth(c.period)}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {STATUS_LABEL[c.status] ?? c.status}
                     </td>
-                    <td className="px-3 py-2 text-right">{formatNumber(c.linhas, 0)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDataHora(c.fim)}</td>
+                    <td className="px-3 py-2 text-right">{formatNumber(c.row_count, 0)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(c.finished_at)}</td>
                     <td className="max-w-xs px-3 py-2 break-words text-[var(--color-ink-2)]">
-                      {c.detalhe}
+                      {c.detail}
                     </td>
                   </tr>
                 ))}
@@ -150,32 +150,32 @@ export default async function AdminPage() {
         )}
       </Section>
 
-      <Section id="relatorios" title="Relatórios">
-        {!relatorios.ok ? (
+      <Section id="reports" title="Relatórios">
+        {!reports.ok ? (
           <DataUnavailable title="Não foi possível carregar os relatórios">
-            {relatorios.error.detail}
+            {reports.error.detail}
           </DataUnavailable>
-        ) : relatorios.data.itens.length === 0 ? (
+        ) : reports.data.items.length === 0 ? (
           <p className="text-sm text-[var(--color-ink-2)]">Nenhum relatório ainda.</p>
         ) : (
           <ul className="divide-y divide-[var(--color-grid)] rounded-lg border border-[var(--color-grid)] bg-[var(--color-surface)]">
-            {relatorios.data.itens.map((r) => (
+            {reports.data.items.map((r) => (
               <li
                 key={r.slug}
                 className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2 text-sm"
               >
                 <span>
-                  <strong>{r.titulo}</strong>{" "}
+                  <strong>{r.title}</strong>{" "}
                   <span className="text-[var(--color-muted)]">
-                    ({formatMesCurto(r.mes)} · {r.slug})
+                    ({formatShortMonth(r.month)} · {r.slug})
                   </span>
                 </span>
-                {r.publicado_em ? (
+                {r.published_at ? (
                   <Link
                     href={`/relatorios/${r.slug}`}
                     className="text-[var(--color-accent)] underline"
                   >
-                    Publicado em {formatDataHora(r.publicado_em)}
+                    Publicado em {formatDateTime(r.published_at)}
                   </Link>
                 ) : (
                   <span className="text-[var(--color-muted)]">Rascunho</span>
@@ -187,11 +187,11 @@ export default async function AdminPage() {
       </Section>
 
       <Section
-        id="novo-relatorio"
+        id="new-report"
         title="Criar ou atualizar relatório"
         description="Salvar com um slug existente atualiza aquele relatório. Sem slug, ele é gerado a partir do título."
       >
-        <RelatorioForm action={saveRelatorioAction} defaultMes={previousMonth()} />
+        <ReportForm action={saveReportAction} defaultMonth={previousMonth()} />
       </Section>
     </Container>
   );

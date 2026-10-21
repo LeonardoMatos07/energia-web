@@ -1,4 +1,4 @@
-import type { NewsletterConfirmarResposta } from "@/lib/api/types";
+import type { ConfirmedResponse } from "@/lib/api/types";
 import { pageMetadata } from "@/lib/metadata";
 import { callTokenEndpoint, first, TokenResultPage } from "../token-result";
 
@@ -11,16 +11,16 @@ export const metadata = pageMetadata({
   noIndex: true,
 });
 
-export default async function ConfirmarPage({
+export default async function ConfirmPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const token = first((await searchParams).token);
-  const outcome = await callTokenEndpoint<NewsletterConfirmarResposta>(
-    "/v1/newsletter/confirmar",
+  const outcome = await callTokenEndpoint<ConfirmedResponse>(
+    "/v1/newsletter/confirm",
     token,
-    (d) => d.confirmado === true,
+    (d) => d.confirmed === true,
   );
 
   return (

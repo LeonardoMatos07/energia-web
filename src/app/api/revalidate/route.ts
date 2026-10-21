@@ -4,22 +4,18 @@ import { parseTags, safeCompare } from "@/lib/revalidate";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Called by `energia-api` at the end of each pipeline load (contract, "Revalidação do portal"):
- * `POST /api/revalidar` with header `x-revalidate-secret` and body `{"tags": [...]}`.
- */
 export async function POST(request: NextRequest) {
   const expected = process.env.REVALIDATE_SECRET;
   if (!expected) {
     return NextResponse.json(
-      { detail: "Revalidação não configurada (REVALIDATE_SECRET ausente)." },
+      { detail: "Revalidation is not configured (REVALIDATE_SECRET is missing)." },
       { status: 503 },
     );
   }
 
   const provided = request.headers.get("x-revalidate-secret") ?? "";
   if (!safeCompare(provided, expected)) {
-    return NextResponse.json({ detail: "Segredo inválido." }, { status: 401 });
+    return NextResponse.json({ detail: "Invalid secret." }, { status: 401 });
   }
 
   let body: unknown = null;
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
     try {
       body = JSON.parse(text);
     } catch {
-      return NextResponse.json({ detail: "Corpo não é JSON válido." }, { status: 400 });
+      return NextResponse.json({ detail: "The body is not valid JSON." }, { status: 400 });
     }
   }
 
@@ -41,5 +37,5 @@ export async function POST(request: NextRequest) {
     revalidateTag(tag);
   }
 
-  return NextResponse.json({ revalidado: true, tags: parsed.tags, em: new Date().toISOString() });
+  return NextResponse.json({ revalidated: true, tags: parsed.tags, at: new Date().toISOString() });
 }

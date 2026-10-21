@@ -1,4 +1,4 @@
-import { formatMesCurto, formatNumber } from "@/lib/format";
+import { formatShortMonth, formatNumber } from "@/lib/format";
 import type { ChartRow, ChartSeries } from "./types";
 
 interface DataTableProps {
@@ -9,7 +9,6 @@ interface DataTableProps {
   digits?: number;
 }
 
-/** Table view of a chart, for screen readers, color-blind readers and anyone who wants numbers. */
 export function ChartDataTable({ caption, rows, series, unit, digits = 1 }: DataTableProps) {
   return (
     <details className="mt-3 text-sm">
@@ -33,9 +32,9 @@ export function ChartDataTable({ caption, rows, series, unit, digits = 1 }: Data
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.mes} className="border-t border-[var(--color-grid)]">
+              <tr key={row.month} className="border-t border-[var(--color-grid)]">
                 <th scope="row" className="px-3 py-1.5 font-normal">
-                  {formatMesCurto(row.mes)}
+                  {formatShortMonth(row.month)}
                 </th>
                 {series.map((s) => {
                   const value = row[s.key];

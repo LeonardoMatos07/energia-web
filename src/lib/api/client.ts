@@ -1,11 +1,6 @@
 import "server-only";
 import type { CacheTag } from "./types";
 
-/**
- * Data cache lifetime for public API responses. Tag revalidation refreshes sooner; the
- * hourly expiry is the fallback when that call fails, so an empty response cached before
- * a load does not linger for a day.
- */
 export const DEFAULT_REVALIDATE_SECONDS = 3_600;
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -24,17 +19,14 @@ export class ApiError extends Error {
     return this.status === 404;
   }
 
-  /** Network failure, timeout or 5xx: the API is unreachable or broken, not the request. */
   get isUnavailable(): boolean {
     return this.status === 0 || this.status >= 500;
   }
 }
 
 export interface ApiFetchOptions {
-  /** Cache tags for ISR (`curtailment`, `usinas`, `relatorios`). Ignored when `noStore`. */
   tags?: CacheTag[];
   revalidate?: number;
-  /** Bypass the Next.js data cache (mutations, admin, per-user data). */
   noStore?: boolean;
   method?: "GET" | "POST";
   body?: unknown;
@@ -46,11 +38,10 @@ export interface ApiFetchOptions {
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
 
 export function getApiBaseUrl(): string {
-  const base = process.env.API_URL?.trim() || "http://localhost:8000";
+  const base = process.env.API_URL?.trim() || "http://127.0.0.1:8000";
   return base.replace(/\/+$/, "");
 }
 
-/** Builds `path?query`, dropping empty values. */
 export function withQuery(
   path: string,
   query: Record<string, string | number | boolean | null | undefined>,
@@ -80,16 +71,10 @@ async function readErrorDetail(response: Response): Promise<string> {
     if (body && typeof body === "object" && "detail" in body) {
       return detailToString((body as { detail: unknown }).detail) || response.statusText;
     }
-  } catch {
-    // Non-JSON error body: fall back to the status text.
-  }
-  return response.statusText || "Erro desconhecido";
+  } catch {}
+  return response.statusText || "Unknown error";
 }
 
-/**
- * The single entry point for calls to `energia-api`. Server-side only.
- * Throws `ApiError` (status 0 for network failures and timeouts).
- */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const {
     tags,
@@ -123,7 +108,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     response = await fetch(`${getApiBaseUrl()}${path}`, init);
   } catch (cause) {
     const reason = cause instanceof Error ? cause.message : String(cause);
-    throw new ApiError(0, `API indisponível (${reason})`);
+    throw new ApiError(0, `API unavailable (${reason})`);
   }
 
   if (!response.ok) {
@@ -134,11 +119,10 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   try {
     return (await response.json()) as T;
   } catch {
-    throw new ApiError(502, "Resposta da API não é JSON válido");
+    throw new ApiError(502, "The API response is not valid JSON");
   }
 }
 
-/** Like `apiFetch`, but never throws: pages use it to render an empty state. */
 export async function apiTry<T>(path: string, options?: ApiFetchOptions): Promise<ApiResult<T>> {
   try {
     return { ok: true, data: await apiFetch<T>(path, options) };

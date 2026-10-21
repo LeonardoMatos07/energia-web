@@ -13,7 +13,6 @@ export function Container({
   );
 }
 
-/** Rounded panel on the surface color: the base of tiles, charts and tables. */
 export function Card({
   children,
   className = "",
@@ -66,7 +65,6 @@ export function Section({
   title: string;
   id?: string;
   description?: ReactNode;
-  /** Optional link or control shown at the right of the title. */
   action?: ReactNode;
   children: ReactNode;
 }) {
@@ -95,7 +93,6 @@ export function StatTile({
   label: string;
   value: string;
   note?: ReactNode;
-  /** The headline number of the group: drawn on the accent color. */
   highlight?: boolean;
 }) {
   return (
@@ -121,7 +118,6 @@ export function StatGrid({ children }: { children: ReactNode }) {
   return <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">{children}</dl>;
 }
 
-/** Friendly message when the API is unreachable or returns nothing. */
 export function DataUnavailable({
   title = "Dados indisponíveis no momento",
   children,

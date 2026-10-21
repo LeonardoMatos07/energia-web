@@ -1,10 +1,9 @@
 import Link from "next/link";
-import type { UsinaRanking } from "@/lib/api/types";
-import { formatBRLCompact, formatEnergy, formatFonte, formatPercent } from "@/lib/format";
+import type { RankedPlant } from "@/lib/api/types";
+import { formatBRLCompact, formatEnergy, formatSource, formatPercent } from "@/lib/format";
 
-/** Most affected plants in a month, each linking to its page. */
-export function RankingTable({ itens, caption }: { itens: UsinaRanking[]; caption: string }) {
-  const maxCut = Math.max(0, ...itens.map((u) => u.energia_cortada_mwh));
+export function RankingTable({ items, caption }: { items: RankedPlant[]; caption: string }) {
+  const maxCut = Math.max(0, ...items.map((u) => u.curtailed_mwh));
   return (
     <div className="border-grid bg-surface shadow-card overflow-x-auto rounded-2xl border">
       <table className="tabular w-full min-w-[560px] text-left text-sm">
@@ -29,31 +28,31 @@ export function RankingTable({ itens, caption }: { itens: UsinaRanking[]; captio
           </tr>
         </thead>
         <tbody>
-          {itens.map((u) => (
+          {items.map((u) => (
             <tr key={u.id} className="border-grid hover:bg-surface-2 border-b last:border-0">
-              <td className="text-muted w-12 px-3 py-2.5">{u.posicao}º</td>
+              <td className="text-muted w-12 px-3 py-2.5">{u.rank}º</td>
               <th scope="row" className="px-3 py-2.5 font-normal">
                 <Link
                   href={`/usinas/${u.slug}`}
                   className="text-ink hover:text-accent font-medium hover:underline"
                 >
-                  {u.nome}
+                  {u.name}
                 </Link>
                 <span className="text-muted block text-xs">
-                  {formatFonte(u.fonte)} · {u.uf}
+                  {formatSource(u.source)} · {u.state}
                 </span>
               </th>
               <td className="px-3 py-2.5 text-right">
-                {formatEnergy(u.energia_cortada_mwh)}
+                {formatEnergy(u.curtailed_mwh)}
                 <span aria-hidden className="bg-grid mt-1 ml-auto block h-1 w-24 rounded-full">
                   <span
                     className="bg-accent block h-full rounded-full"
-                    style={{ width: `${maxCut > 0 ? (u.energia_cortada_mwh / maxCut) * 100 : 0}%` }}
+                    style={{ width: `${maxCut > 0 ? (u.curtailed_mwh / maxCut) * 100 : 0}%` }}
                   />
                 </span>
               </td>
-              <td className="px-3 py-2.5 text-right">{formatPercent(u.percentual_corte, 1, 1)}</td>
-              <td className="px-3 py-2.5 text-right">{formatBRLCompact(u.perda_estimada_brl)}</td>
+              <td className="px-3 py-2.5 text-right">{formatPercent(u.curtailment_pct, 1, 1)}</td>
+              <td className="px-3 py-2.5 text-right">{formatBRLCompact(u.estimated_loss_brl)}</td>
             </tr>
           ))}
         </tbody>

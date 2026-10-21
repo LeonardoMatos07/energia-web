@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatMesCurto, formatMesLongo, formatNumber } from "@/lib/format";
+import { formatShortMonth, formatLongMonth, formatNumber } from "@/lib/format";
 import { fillMonthGaps } from "@/lib/series";
 import { ChartDataTable } from "./data-table";
 import { CHART_INK } from "./palette";
@@ -23,7 +23,6 @@ export interface MonthlyChartProps {
   description?: string;
   rows: ChartRow[];
   series: ChartSeries[];
-  /** Unit of the values in `rows`, shown on the axis, tooltip and table (e.g. "GWh", "%"). */
   unit: string;
   kind?: "stacked-bar" | "line";
   digits?: number;
@@ -57,7 +56,7 @@ function ChartTooltip({
   const total = numeric.reduce((sum, p) => sum + (p.value as number), 0);
   return (
     <div className="border-grid bg-surface min-w-44 rounded-xl border px-4 py-3 text-sm shadow-lg">
-      <p className="mb-1 font-semibold">{formatMesLongo(String(label))}</p>
+      <p className="mb-1 font-semibold">{formatLongMonth(String(label))}</p>
       <ul className="tabular space-y-0.5">
         {payload.map((p) => (
           <li key={String(p.dataKey)} className="flex items-center gap-2">
@@ -101,7 +100,6 @@ function ChartLegend({ series, unit }: { series: ChartSeries[]; unit: string }) 
   );
 }
 
-/** Monthly time series (stacked bars or lines) with legend, tooltip and a table view. */
 export function MonthlyChart({
   title,
   description,
@@ -112,10 +110,8 @@ export function MonthlyChart({
   digits = 1,
   height = 300,
 }: MonthlyChartProps) {
-  // Recharts measures the DOM; render the plot only after mount to avoid SSR size warnings.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  // Missing months stay on the axis as gaps; the table lists only months with data.
   const plotted = useMemo(() => fillMonthGaps(rows), [rows]);
 
   const tickFormatter = (v: number) => formatNumber(v, v !== 0 && Math.abs(v) < 10 ? 1 : 0);
@@ -128,8 +124,8 @@ export function MonthlyChart({
     <>
       <CartesianGrid vertical={false} stroke={CHART_INK.grid} />
       <XAxis
-        dataKey="mes"
-        tickFormatter={(m: string) => formatMesCurto(m)}
+        dataKey="month"
+        tickFormatter={(m: string) => formatShortMonth(m)}
         interval="preserveStartEnd"
         minTickGap={24}
         tickLine={false}
@@ -189,7 +185,6 @@ export function MonthlyChart({
                     name={s.label}
                     stroke={s.color}
                     strokeWidth={2}
-                    // Small dots so a month with no neighbours still shows up between gaps.
                     dot={{ r: 2, strokeWidth: 0, fill: s.color }}
                     activeDot={{ r: 4, strokeWidth: 2, stroke: CHART_INK.surface }}
                     isAnimationActive={false}

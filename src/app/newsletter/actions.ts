@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { apiFetch, ApiError } from "@/lib/api/client";
-import type { NewsletterInscricao, NewsletterResposta } from "@/lib/api/types";
+import type { NewsletterSignup, MessageResponse } from "@/lib/api/types";
 import {
   validateNewsletterInput,
   visitorIpHeaders,
@@ -13,22 +13,20 @@ export async function subscribeNewsletter(
   _prev: NewsletterFormState,
   formData: FormData,
 ): Promise<NewsletterFormState> {
-  // Honeypot: bots fill every field; humans never see this one.
   if (formData.get("website")) {
     return { status: "success", message: "Pronto! Confira seu e-mail para confirmar a inscrição." };
   }
 
-  const validation = validateNewsletterInput(formData.get("email"), formData.get("consentimento"));
+  const validation = validateNewsletterInput(formData.get("email"), formData.get("consent"));
   if (!validation.ok) return { status: "error", message: validation.message };
 
-  const origem = String(formData.get("origem") ?? "portal").slice(0, 64);
-  const body: NewsletterInscricao = { email: validation.email, consentimento: true, origem };
+  const source = String(formData.get("source") ?? "portal").slice(0, 64);
+  const body: NewsletterSignup = { email: validation.email, consent: true, source };
 
-  // The API rate-limits per IP; identify the visitor so all visitors don't share ours.
   const ipHeaders = visitorIpHeaders(await headers(), process.env.WEB_API_SECRET);
 
   try {
-    const res = await apiFetch<NewsletterResposta>("/v1/newsletter", {
+    await apiFetch<MessageResponse>("/v1/newsletter", {
       method: "POST",
       body,
       headers: ipHeaders,
@@ -36,7 +34,6 @@ export async function subscribeNewsletter(
     return {
       status: "success",
       message:
-        res?.mensagem ||
         "Pronto! Enviamos um e-mail de confirmação. A inscrição só vale depois que você confirmar.",
     };
   } catch (error) {

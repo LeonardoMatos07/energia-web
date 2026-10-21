@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { Markdown } from "@/components/markdown";
 import { Container, DataUnavailable, PageHeader } from "@/components/ui";
-import { getRelatorio } from "@/lib/api/queries";
-import { formatData, formatMesLongo } from "@/lib/format";
+import { getReport } from "@/lib/api/queries";
+import { formatDate, formatLongMonth } from "@/lib/format";
 import { pageMetadata } from "@/lib/metadata";
 import { absoluteUrl } from "@/lib/site";
 import { publisher } from "@/lib/structured-data";
@@ -20,21 +20,22 @@ type Params = { slug: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const result = await getRelatorio(slug);
+  const result = await getReport(slug);
   if (!result.ok) return { title: "Relatório", robots: { index: false } };
   const r = result.data;
   return pageMetadata({
-    title: r.titulo,
-    description: r.resumo ?? `Relatório de curtailment eólico e solar de ${formatMesLongo(r.mes)}.`,
+    title: r.title,
+    description:
+      r.summary ?? `Relatório de curtailment eólico e solar de ${formatLongMonth(r.month)}.`,
     path: `/relatorios/${r.slug}`,
     type: "article",
-    publishedTime: r.publicado_em ?? undefined,
+    publishedTime: r.published_at ?? undefined,
   });
 }
 
-export default async function RelatorioPage({ params }: { params: Promise<Params> }) {
+export default async function ReportPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const result = await getRelatorio(slug);
+  const result = await getReport(slug);
 
   if (!result.ok) {
     if (result.error.isNotFound) notFound();
@@ -52,14 +53,14 @@ export default async function RelatorioPage({ params }: { params: Promise<Params
       <JsonLd
         data={{
           "@type": "Article",
-          headline: r.titulo,
-          description: r.resumo ?? undefined,
-          datePublished: r.publicado_em ?? undefined,
+          headline: r.title,
+          description: r.summary ?? undefined,
+          datePublished: r.published_at ?? undefined,
           inLanguage: "pt-BR",
           mainEntityOfPage: absoluteUrl(`/relatorios/${r.slug}`),
           author: publisher(),
           publisher: publisher(),
-          about: `Curtailment de usinas eólicas e solares no Brasil — ${formatMesLongo(r.mes)}`,
+          about: `Curtailment de usinas eólicas e solares no Brasil — ${formatLongMonth(r.month)}`,
         }}
       />
       <article className="mx-auto max-w-3xl">
@@ -69,19 +70,19 @@ export default async function RelatorioPage({ params }: { params: Promise<Params
               <Link href="/relatorios" className="underline">
                 Relatórios
               </Link>{" "}
-              · {formatMesLongo(r.mes)}
+              · {formatLongMonth(r.month)}
             </>
           }
-          title={r.titulo}
+          title={r.title}
         >
-          {r.resumo ? <p>{r.resumo}</p> : null}
-          {r.publicado_em ? (
+          {r.summary ? <p>{r.summary}</p> : null}
+          {r.published_at ? (
             <p className="mt-2 text-sm">
-              Publicado em <time dateTime={r.publicado_em}>{formatData(r.publicado_em)}</time>
+              Publicado em <time dateTime={r.published_at}>{formatDate(r.published_at)}</time>
             </p>
           ) : null}
         </PageHeader>
-        <Markdown>{r.conteudo}</Markdown>
+        <Markdown>{r.content}</Markdown>
       </article>
     </Container>
   );
