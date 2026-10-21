@@ -3,7 +3,7 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
-import { DEFAULT_SCOPE, KpiFilters } from "@/components/kpi-filters";
+import { KpiFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import {
   Container,
@@ -25,7 +25,7 @@ import {
   formatShortMonth,
   mwhToGwh,
 } from "@/lib/format";
-import { STATES, REGIONS, SUBSYSTEMS, findState, subsystemName } from "@/lib/geo";
+import { DEFAULT_SCOPE, STATES, REGIONS, SUBSYSTEMS, findState, subsystemName } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
 import { normalizeMonth, pivotByMonth } from "@/lib/series";
 import { SITE_DESCRIPTION } from "@/lib/site";

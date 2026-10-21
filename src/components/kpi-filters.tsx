@@ -3,9 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useId, useTransition } from "react";
 import { PeriodFilter } from "@/components/charts/period-filter";
-import { REGIONS, STATES, SUBSYSTEMS } from "@/lib/geo";
-
-export const DEFAULT_SCOPE = "SIN";
+import { DEFAULT_SCOPE, REGIONS, STATES, SUBSYSTEMS } from "@/lib/geo";
 
 export function KpiFilters({
   first,

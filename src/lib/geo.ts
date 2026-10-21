@@ -36,6 +36,8 @@ export const STATES: readonly BrazilianState[] = [
   { state: "TO", name: "Tocantins", region: "Norte" },
 ];
 
+export const DEFAULT_SCOPE = "SIN";
+
 export const REGIONS = ["Nordeste", "Norte", "Sudeste", "Sul", "Centro-Oeste"] as const;
 
 export function findState(state: string | undefined | null): BrazilianState | undefined {
