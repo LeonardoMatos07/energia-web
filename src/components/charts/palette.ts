@@ -5,25 +5,26 @@ export const SERIES = {
   s4: "var(--color-series-4)",
   s5: "var(--color-series-5)",
   s6: "var(--color-series-6)",
+  s7: "var(--color-series-7)",
 } as const;
 
 export const ENTITY_COLORS = [SERIES.s1, SERIES.s2, SERIES.s3, SERIES.s4, SERIES.s5, SERIES.s6];
 
 export const SOURCE_COLORS = {
   wind: SERIES.s1,
-  solar: SERIES.s2,
+  solar: SERIES.s6,
 } as const;
 
 export const SUBSYSTEM_COLORS = {
-  NE: SERIES.s1,
-  N: SERIES.s2,
+  NE: SERIES.s2,
   SE: SERIES.s3,
   S: SERIES.s4,
+  N: SERIES.s7,
 } as const;
 
 export const GENERATION_COLORS = {
   verified: SERIES.s1,
-  curtailed: SERIES.s2,
+  curtailed: SERIES.s3,
 } as const;
 
 export const REASON_COLORS = {

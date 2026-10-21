@@ -32,9 +32,17 @@ export interface MonthlyChartProps {
   digits?: number;
   height?: number;
   periodFilter?: boolean;
+  kindOptions?: readonly ChartKind[];
 }
 
 export type ChartKind = "stacked-bar" | "bar" | "line" | "pie";
+
+const KIND_LABELS: Record<ChartKind, string> = {
+  "stacked-bar": "Barras",
+  bar: "Barras",
+  line: "Linhas",
+  pie: "Pizza",
+};
 
 interface Slice {
   key: string;
@@ -171,18 +179,16 @@ function PieView({ slices, unit, digits }: { slices: Slice[]; unit: string; digi
   );
 }
 
-function ChartLegend({ series, unit }: { series: ChartSeries[]; unit: string }) {
+function ChartLegend({ series }: { series: ChartSeries[] }) {
+  if (series.length < 2) return null;
   return (
     <div className="text-ink-2 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-      {series.length > 1
-        ? series.map((s) => (
-            <span key={s.key} className="inline-flex items-center gap-1.5">
-              <span aria-hidden className="size-2.5 rounded-sm" style={{ background: s.color }} />
-              {s.label}
-            </span>
-          ))
-        : null}
-      <span className="text-muted ml-auto text-xs">em {unit}</span>
+      {series.map((s) => (
+        <span key={s.key} className="inline-flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-sm" style={{ background: s.color }} />
+          {s.label}
+        </span>
+      ))}
     </div>
   );
 }
@@ -193,11 +199,14 @@ export function MonthlyChart({
   rows,
   series,
   unit,
-  kind = "stacked-bar",
+  kind: kindProp = "stacked-bar",
   digits = 1,
   height = 300,
   periodFilter = true,
+  kindOptions,
 }: MonthlyChartProps) {
+  const [picked, setPicked] = useState<ChartKind>(kindProp);
+  const kind = kindOptions ? picked : kindProp;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const first = rows[0]?.month ?? "";
@@ -244,7 +253,7 @@ export function MonthlyChart({
         {...axisProps}
       />
       <YAxis
-        width={48}
+        width={52}
         tickFormatter={tickFormatter}
         tickLine={false}
         axisLine={false}
@@ -270,9 +279,32 @@ export function MonthlyChart({
 
   return (
     <figure className="border-grid bg-surface shadow-card rounded-2xl border p-4 sm:p-6">
-      <figcaption>
-        <h3 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h3>
-        {description ? <p className="text-ink-2 mt-1 text-sm">{description}</p> : null}
+      <figcaption className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h3>
+          {description ? <p className="text-ink-2 mt-1 text-sm">{description}</p> : null}
+        </div>
+        {kindOptions && kindOptions.length > 1 ? (
+          <div
+            role="group"
+            aria-label="Tipo de gráfico"
+            className="border-line bg-surface inline-flex gap-1 rounded-lg border p-1"
+          >
+            {kindOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={option === kind}
+                onClick={() => setPicked(option)}
+                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                  option === kind ? "bg-accent text-on-accent" : "text-ink-2 hover:bg-surface-2"
+                }`}
+              >
+                {KIND_LABELS[option]}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </figcaption>
       {filterable ? (
         <PeriodFilter
@@ -289,13 +321,16 @@ export function MonthlyChart({
           }
         />
       ) : null}
-      {kind === "pie" ? null : <ChartLegend series={series} unit={unit} />}
+      {kind === "pie" ? null : <ChartLegend series={series} />}
       <div
-        className="mt-3"
+        className="relative mt-3"
         style={{ height }}
         role="img"
         aria-label={`${title}. Valores em ${unit}. Os dados completos estão na tabela abaixo.`}
       >
+        {plotted.length > 0 && kind !== "pie" ? (
+          <span className="text-ink-2 absolute top-0 left-0 text-sm font-semibold">{unit}</span>
+        ) : null}
         {plotted.length === 0 ? (
           <p className="text-ink-2 flex h-full items-center justify-center text-sm">
             Sem dados no período selecionado.
@@ -307,7 +342,7 @@ export function MonthlyChart({
         ) : mounted ? (
           <ResponsiveContainer width="100%" height="100%">
             {kind === "line" ? (
-              <LineChart data={plotted} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+              <LineChart data={plotted} margin={{ top: 44, right: 12, left: 0, bottom: 0 }}>
                 {common}
                 {series.map((s) => (
                   <Line
@@ -324,7 +359,7 @@ export function MonthlyChart({
                 ))}
               </LineChart>
             ) : (
-              <BarChart data={plotted} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+              <BarChart data={plotted} margin={{ top: 44, right: 4, left: 0, bottom: 0 }}>
                 {common}
                 {series.map((s, i) => (
                   <Bar
@@ -334,8 +369,8 @@ export function MonthlyChart({
                     stackId={stacked ? "total" : undefined}
                     fill={s.color}
                     stroke={CHART_INK.surface}
-                    strokeWidth={stacked ? 1 : 0}
-                    radius={!stacked || i === series.length - 1 ? [3, 3, 0, 0] : 0}
+                    strokeWidth={stacked ? 2 : 0}
+                    radius={!stacked || i === series.length - 1 ? [4, 4, 0, 0] : 0}
                     maxBarSize={stacked ? 28 : 18}
                     isAnimationActive={false}
                   />

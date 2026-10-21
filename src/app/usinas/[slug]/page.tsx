@@ -42,6 +42,9 @@ export function generateStaticParams() {
 
 type Params = { slug: string };
 
+const STACKED_OR_LINE = ["stacked-bar", "line"] as const;
+const LINE_OR_BAR = ["line", "bar"] as const;
+
 const PRICE_BASIS_LABEL: Record<string, string> = {
   PLD: "PLD",
   CMO: "CMO",
@@ -260,6 +263,7 @@ export default async function PlantPage({ params }: { params: Promise<Params> })
               rows={generationRows}
               unit={energy.unit}
               digits={energy.digits}
+              kindOptions={STACKED_OR_LINE}
               series={[
                 {
                   key: "verified",
@@ -280,6 +284,7 @@ export default async function PlantPage({ params }: { params: Promise<Params> })
               title="% de corte por mês: esta usina × média do estado (%)"
               description={`Média das usinas ${plant.source === "solar" ? "solares" : "eólicas"} de ${plant.state} no mês.`}
               kind="line"
+              kindOptions={LINE_OR_BAR}
               rows={comparisonRows}
               unit="%"
               digits={1}

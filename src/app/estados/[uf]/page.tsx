@@ -46,6 +46,8 @@ export function generateStaticParams() {
 
 type Params = { uf: string };
 
+const KIND_OPTIONS = ["stacked-bar", "line"] as const;
+
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { uf: stateCode } = await params;
   const brazilianState = findState(stateCode);
@@ -140,6 +142,7 @@ function SourcePanel({
         series={chartSeries}
         unit={energy.unit}
         digits={energy.digits}
+        kindOptions={KIND_OPTIONS}
       />
 
       <div>

@@ -51,7 +51,7 @@ const KINDS: { value: KindChoice; label: string }[] = [
 const METRIC_COLORS: Record<MetricKey, string> = {
   verified: GENERATION_COLORS.verified,
   curtailed: GENERATION_COLORS.curtailed,
-  loss: SERIES.s3,
+  loss: SERIES.s2,
   pct: SERIES.s4,
 };
 

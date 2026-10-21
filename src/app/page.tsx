@@ -38,6 +38,9 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
+const KIND_OPTIONS = ["stacked-bar", "line"] as const;
+const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
+
 function onlySin(rows: SubsystemMonthlyCurtailment[]) {
   return rows.filter((r) => r.subsystem === "SIN");
 }
@@ -145,6 +148,7 @@ export default async function HomePage() {
                         title="Energia cortada por mês, eólica e solar"
                         description="Total nacional. Dados de usinas solares só existem a partir de abril de 2024."
                         rows={bySource}
+                        kindOptions={KIND_OPTIONS}
                         unit="GWh"
                         series={[
                           { key: "wind", label: "Eólica", color: SOURCE_COLORS.wind },
@@ -165,11 +169,12 @@ export default async function HomePage() {
                         description="Eólica + solar. O Nordeste concentra a maior parte dos parques."
                         rows={bySubsystem}
                         unit="GWh"
-                        series={SUBSYSTEMS.map((s) => ({
-                          key: s.id,
-                          label: s.name,
-                          color: SUBSYSTEM_COLORS[s.id],
+                        series={STACK_ORDER.map((id) => ({
+                          key: id,
+                          label: SUBSYSTEMS.find((s) => s.id === id)?.name ?? id,
+                          color: SUBSYSTEM_COLORS[id],
                         }))}
+                        kindOptions={KIND_OPTIONS}
                       />
                     ) : (
                       <DataUnavailable title="Série por subsistema indisponível" />
