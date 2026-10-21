@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { Tabs } from "@/components/tabs";
 import { entityToken, MAX_ENTITIES, serializeEntities, type EntityRef } from "@/lib/compare";
 import { REGIONS, STATES, SUBSYSTEMS, subsystemName } from "@/lib/geo";
@@ -51,6 +51,114 @@ function Chip({
       {selected ? <span aria-hidden>✓ </span> : null}
       {label}
     </button>
+  );
+}
+
+function StatePicker({
+  selected,
+  full,
+  onToggle,
+}: {
+  selected: Set<string>;
+  full: boolean;
+  onToggle: (ref: EntityRef) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const listId = useId();
+  const count = STATES.filter((state) =>
+    selected.has(entityToken({ kind: "state", id: state.state })),
+  ).length;
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      trigger.current?.focus();
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={root} className="relative inline-block w-full max-w-sm">
+      <button
+        ref={trigger}
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen(!open)}
+        className="border-line bg-surface text-ink hover:border-accent flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm font-medium"
+      >
+        <span>{count > 0 ? `Estados escolhidos: ${count}` : "Escolher estados"}</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 shrink-0">
+          <path
+            d="M5 8l5 5 5-5"
+            transform={open ? "rotate(180 10 10)" : undefined}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {open ? (
+        <div
+          id={listId}
+          role="group"
+          aria-label="Estados"
+          className="border-line bg-surface shadow-card absolute top-full left-0 z-20 mt-2 max-h-80 w-full min-w-72 overflow-y-auto rounded-xl border p-3"
+        >
+          {REGIONS.map((region) => (
+            <div key={region} className="mb-3 last:mb-0">
+              <h4 className="text-muted mb-1 text-xs font-semibold tracking-wide uppercase">
+                {region}
+              </h4>
+              <ul>
+                {STATES.filter((state) => state.region === region).map((state) => {
+                  const ref: EntityRef = { kind: "state", id: state.state };
+                  const checked = selected.has(entityToken(ref));
+                  return (
+                    <li key={state.state}>
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={checked}
+                        disabled={full && !checked}
+                        onClick={() => onToggle(ref)}
+                        className="hover:bg-accent-soft flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm disabled:pointer-events-none disabled:opacity-40"
+                      >
+                        <span
+                          aria-hidden
+                          className={`flex size-4 shrink-0 items-center justify-center rounded border text-[10px] leading-none ${
+                            checked
+                              ? "border-accent bg-accent text-on-accent"
+                              : "border-line bg-surface"
+                          }`}
+                        >
+                          {checked ? "✓" : ""}
+                        </span>
+                        {state.name}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -308,28 +416,11 @@ export function EntityPicker({ items }: { items: PickerItem[] }) {
             key: "states",
             label: "Estados",
             content: (
-              <div className="space-y-4 pt-2">
-                {REGIONS.map((region) => (
-                  <div key={region}>
-                    <h4 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
-                      {region}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {STATES.filter((state) => state.region === region).map((state) => {
-                        const ref: EntityRef = { kind: "state", id: state.state };
-                        return (
-                          <Chip
-                            key={state.state}
-                            label={state.name}
-                            selected={selected.has(entityToken(ref))}
-                            disabled={full}
-                            onClick={() => toggle(ref)}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-2 pt-2">
+                <p className="text-ink-2 text-sm">
+                  Abra a lista e marque os estados que quer comparar.
+                </p>
+                <StatePicker selected={selected} full={full} onToggle={toggle} />
               </div>
             ),
           },

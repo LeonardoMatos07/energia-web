@@ -1,15 +1,13 @@
-import Link from "next/link";
 import { ENTITY_COLORS } from "@/components/charts/palette";
 import { Comparator } from "@/components/compare/comparator";
 import { EntityPicker, type PickerItem } from "@/components/compare/entity-picker";
-import { Card, Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
+import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
 import type { StateCurtailmentResponse, SubsystemCurtailmentResponse } from "@/lib/api/types";
 import { getPlant, getStateCurtailment, getSubsystemCurtailment } from "@/lib/api/queries";
 import {
   parseEntities,
   parseView,
-  serializeEntities,
   type CompareEntity,
   type EntityRef,
   type MonthValues,
@@ -110,12 +108,6 @@ async function load(ref: EntityRef): Promise<Loaded | null> {
   };
 }
 
-const EXAMPLES = [
-  { label: "Bahia × Rio Grande do Norte", refs: "e:BA,e:RN" },
-  { label: "Nordeste × Sul", refs: "s:NE,s:S" },
-  { label: "Eólica no RN × todo o Brasil", refs: "e:RN,s:SIN" },
-];
-
 export default async function ComparePage({
   searchParams,
 }: {
@@ -166,22 +158,7 @@ export default async function ComparePage({
         <EntityPicker items={items} />
       </Section>
 
-      {refs.length === 0 ? (
-        <Section id="exemplos" title="Comece por um exemplo">
-          <ul className="grid gap-3 sm:grid-cols-3">
-            {EXAMPLES.map((example) => (
-              <li key={example.refs}>
-                <Link
-                  href={`/comparar?itens=${encodeURIComponent(serializeEntities(parseEntities(example.refs)))}`}
-                  className="block"
-                >
-                  <Card className="hover:border-accent p-4 font-medium">{example.label}</Card>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      ) : unavailable ? (
+      {refs.length === 0 ? null : unavailable ? (
         <DataUnavailable />
       ) : (
         <Comparator entities={entities} initial={view} />
