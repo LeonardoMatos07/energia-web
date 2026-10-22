@@ -18,11 +18,11 @@ export function trackEvent(action: string, properties: Record<string, unknown> =
   const body = JSON.stringify({ events: [{ action, path, properties }] });
   try {
     if (navigator.sendBeacon?.(ENDPOINT, new Blob([body], { type: "application/json" }))) return;
-    void fetch(ENDPOINT, {
+    fetch(ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,
       keepalive: true,
-    });
+    }).catch(() => undefined);
   } catch {}
 }
