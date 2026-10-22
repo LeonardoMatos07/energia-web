@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { subscribeNewsletter } from "@/app/newsletter/actions";
 import { JsonLd } from "@/components/json-ld";
+import { HeroBackdrop, HeroChart } from "@/components/hero-visual";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { Card, Container, Section, StatGrid, StatTile } from "@/components/ui";
 import { getPlants, getReports, getSubsystemCurtailment } from "@/lib/api/queries";
@@ -13,6 +14,7 @@ import {
   formatNumber,
   formatPercent,
   formatShortMonth,
+  mwhToGwh,
 } from "@/lib/format";
 import { STATES } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
@@ -52,6 +54,8 @@ const COMPARE_EXAMPLES = [
   { label: "Nordeste × Sul", refs: "s:NE,s:S" },
   { label: "Rio Grande do Norte × Brasil", refs: "e:RN,s:SIN" },
 ] as const;
+
+const HERO_MONTHS = 24;
 
 const COMING_SOON = [
   {
@@ -133,6 +137,11 @@ export default async function LandingPage() {
   const oldestReport = sortedReports.at(-1);
   const plantCount = plants.ok ? plants.data.total : null;
 
+  const heroPoints = sinTotal.slice(-HERO_MONTHS).map((row) => ({
+    label: formatShortMonth(row.month),
+    value: mwhToGwh(row.curtailed_mwh),
+  }));
+
   const proof = [
     sinTotal.length > 0 ? { value: String(sinTotal.length), label: "meses de histórico" } : null,
     plantCount ? { value: formatNumber(plantCount, 0), label: "usinas e conjuntos" } : null,
@@ -187,30 +196,63 @@ export default async function LandingPage() {
         }}
       />
 
-      <header className="py-14 sm:py-20">
-        <p className="text-accent text-xs font-semibold tracking-[0.14em] uppercase">{SITE_NAME}</p>
-        <h1 className="mt-3 max-w-4xl text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:text-6xl">
-          {SITE_TAGLINE}
-        </h1>
-        <p className="text-ink-2 mt-5 max-w-2xl text-lg leading-8">
-          Quando a rede não consegue receber toda a energia, o ONS manda usinas eólicas e solares
-          reduzirem a produção. Esse corte é energia limpa que existia e foi desperdiçada. O{" "}
-          {SITE_NAME} mostra, mês a mês, onde e quanto, usina por usina.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link
-            href="/painel"
-            className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
-          >
-            Abrir o painel
-          </Link>
-          <Link
-            href="/comparar"
-            className="border-line bg-surface hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold"
-          >
-            Comparar usinas e estados
-          </Link>
-          <span className="text-ink-2 text-sm">Gratuito e sem cadastro nesta primeira fase.</span>
+      <header className="relative isolate my-6 overflow-hidden rounded-[2rem] border border-[var(--color-grid)] bg-gradient-to-br from-[var(--color-accent-soft)] via-[var(--color-surface)] to-[var(--color-page)] px-6 py-12 sm:my-8 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
+        <HeroBackdrop />
+        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <p
+              className="hero-rise text-accent text-xs font-semibold tracking-[0.14em] uppercase"
+              style={{ animationDelay: "0.05s" }}
+            >
+              {SITE_NAME} · monitor de curtailment
+            </p>
+            <h1
+              className="hero-rise mt-3 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:text-6xl"
+              style={{ animationDelay: "0.15s" }}
+            >
+              A energia limpa que{" "}
+              <span className="bg-gradient-to-r from-[var(--color-series-1)] to-[var(--color-series-2)] bg-clip-text text-transparent">
+                transborda
+              </span>{" "}
+              da rede
+            </h1>
+            <p
+              className="hero-rise text-ink-2 mt-5 max-w-xl text-lg leading-8"
+              style={{ animationDelay: "0.3s" }}
+            >
+              Quando a rede não consegue receber toda a energia, o ONS manda usinas eólicas e
+              solares reduzirem a produção. Esse corte é energia limpa que existia e foi
+              desperdiçada. O {SITE_NAME} mostra, mês a mês, onde e quanto, usina por usina.
+            </p>
+            <div
+              className="hero-rise mt-8 flex flex-wrap items-center gap-3"
+              style={{ animationDelay: "0.45s" }}
+            >
+              <Link
+                href="/painel"
+                className="bg-accent text-on-accent shadow-card rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
+              >
+                Abrir o painel
+              </Link>
+              <Link
+                href="/comparar"
+                className="border-line bg-surface/80 hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold backdrop-blur"
+              >
+                Comparar usinas e estados
+              </Link>
+              <span className="text-ink-2 text-sm">
+                Gratuito e sem cadastro nesta primeira fase.
+              </span>
+            </div>
+          </div>
+          <div className="hero-rise" style={{ animationDelay: "0.6s" }}>
+            <HeroChart
+              title="Energia cortada no mês"
+              unit="GWh"
+              caption="Total nacional, eólica + solar, nos últimos 24 meses."
+              points={heroPoints}
+            />
+          </div>
         </div>
       </header>
 

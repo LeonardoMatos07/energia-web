@@ -153,3 +153,130 @@ button {
     transition: none !important;
   }
 }
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(36px, -24px, 0) scale(1.12);
+  }
+}
+
+@keyframes wave {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.hero-rise {
+  opacity: 0;
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+.hero-blob {
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+.hero-wave {
+  width: 200%;
+  animation: wave 22s linear infinite;
+}
+
+.hero-wave-slow {
+  animation-duration: 36s;
+  animation-direction: reverse;
+}
+
+.hero-float {
+  animation: float 7s ease-in-out infinite;
+}
+
+.chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 2.4s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+}
+
+.chart-area {
+  opacity: 0;
+  animation: fade-in 1s ease-out 1.6s forwards;
+}
+
+.chart-dot {
+  opacity: 0;
+  animation: fade-in 0.4s ease-out 2.6s forwards;
+}
+
+.chart-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: pulse-ring 2.4s ease-out 2.8s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .chart-area,
+  .chart-dot {
+    opacity: 1;
+    animation: none !important;
+  }
+  .chart-line {
+    stroke-dashoffset: 0;
+    animation: none !important;
+  }
+  .hero-blob,
+  .hero-wave,
+  .hero-float,
+  .chart-pulse {
+    animation: none !important;
+  }
+}
