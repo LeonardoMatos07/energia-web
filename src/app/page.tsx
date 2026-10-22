@@ -221,8 +221,8 @@ export default async function LandingPage() {
               style={{ animationDelay: "0.3s" }}
             >
               Quando a rede não consegue receber toda a energia, o ONS manda usinas eólicas e
-              solares reduzirem a produção. Esse corte é energia limpa que existia e foi
-              desperdiçada. O {SITE_NAME} mostra, mês a mês, onde e quanto, usina por usina.
+              solares reduzirem a produção. Esse corte é energia limpa desperdiçada. O {SITE_NAME}{" "}
+              mostra, mês a mês, onde e quanto.
             </p>
             <div
               className="hero-rise mt-8 flex flex-wrap items-center gap-3"

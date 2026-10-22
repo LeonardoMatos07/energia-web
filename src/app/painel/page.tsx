@@ -5,15 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
-import {
-  Container,
-  DataUnavailable,
-  Notice,
-  PageHeader,
-  Section,
-  StatGrid,
-  StatTile,
-} from "@/components/ui";
+import { Container, DataUnavailable, Notice, Section, StatGrid, StatTile } from "@/components/ui";
 import { getCurtailmentSummary, getSubsystemCurtailment } from "@/lib/api/queries";
 import type { SubsystemMonthlyCurtailment } from "@/lib/api/types";
 import {
@@ -122,16 +114,12 @@ export default async function DashboardPage({
           spatialCoverage: "Brasil",
         })}
       />
-      <PageHeader
-        eyebrow="Monitor de curtailment"
-        title="Quanta energia limpa o Brasil deixa de gerar"
-      >
-        <p>
-          Quando a rede não consegue receber toda a energia, o ONS manda usinas eólicas e solares
-          reduzirem a produção. Esse corte — o <em>curtailment</em> — é energia que existia e foi
-          desperdiçada. Aqui você acompanha, mês a mês, onde e quanto.
+      <header className="pt-8 pb-2 sm:pt-10">
+        <p className="text-accent text-xs font-semibold tracking-[0.14em] uppercase">
+          Monitor de curtailment
         </p>
-      </PageHeader>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Painel nacional</h1>
+      </header>
 
       {!hasData ? (
         <DataUnavailable />
