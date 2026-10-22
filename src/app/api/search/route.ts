@@ -1,7 +1,14 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { getPlants } from "@/lib/api/queries";
 import type { Source } from "@/lib/api/types";
 import { findState } from "@/lib/geo";
+import {
+  clientIp,
+  sendEvents,
+  SESSION_COOKIE,
+  VISIT_COOKIE,
+  VISITOR_COOKIE,
+} from "@/lib/track-core";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +33,41 @@ export async function GET(request: NextRequest) {
   });
   if (!result.ok) {
     return NextResponse.json({ items: [], total: 0, unavailable: true });
+  }
+  const optedOut = request.headers.get("dnt") === "1" || request.headers.get("sec-gpc") === "1";
+  const sessionToken = request.cookies.get(SESSION_COOKIE)?.value ?? null;
+  if (!optedOut || sessionToken) {
+    after(() =>
+      sendEvents(
+        {
+          events: [
+            {
+              category: "interaction",
+              action: "search.plants",
+              path: request.headers.get("referer")
+                ? new URL(request.headers.get("referer")!).pathname
+                : "/api/search",
+              properties: {
+                q: query,
+                state: state ?? null,
+                source: source ?? null,
+                results: result.data.total,
+              },
+            },
+          ],
+          visitor_id: request.cookies.get(VISITOR_COOKIE)?.value ?? null,
+          session_key: request.cookies.get(VISIT_COOKIE)?.value ?? null,
+          user_agent: request.headers.get("user-agent"),
+          referrer: request.headers.get("referer"),
+        },
+        {
+          apiUrl: process.env.API_URL?.trim() || "http://127.0.0.1:8000",
+          secret: process.env.WEB_API_SECRET,
+          ip: clientIp(request.headers),
+          sessionToken,
+        },
+      ),
+    );
   }
   const items = result.data.items.map((plant) => ({
     slug: plant.slug,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
+import { trackEvent } from "@/lib/track";
 
 export interface TabPanel {
   key: string;
@@ -49,7 +50,10 @@ export function Tabs({
               aria-selected={selected}
               aria-controls={`${id}-panel-${p.key}`}
               tabIndex={selected ? 0 : -1}
-              onClick={() => setActive(p.key)}
+              onClick={() => {
+                setActive(p.key);
+                trackEvent("tab.change", { group: label, tab: p.key });
+              }}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                 selected

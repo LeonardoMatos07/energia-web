@@ -10,6 +10,7 @@ import {
   applyViewParams,
   buildMetricRows,
   buildSeparateRows,
+  entityToken,
   groupMetrics,
   groupUnit,
   METRIC_ORDER,
@@ -27,6 +28,7 @@ import {
   type ViewState,
 } from "@/lib/compare";
 import { formatPercent } from "@/lib/format";
+import { trackEvent } from "@/lib/track";
 import { defaultPeriod, filterByMonthRange } from "@/lib/series";
 
 const LAYOUTS: { value: Layout; label: string; help: string }[] = [
@@ -145,6 +147,23 @@ export function Comparator({
       query ? `${window.location.pathname}?${query}` : window.location.pathname,
     );
   }, [metrics, layoutChoice, kind, source]);
+
+  const entityTokens = useMemo(
+    () => allEntities.map((entity) => entityToken({ kind: entity.kind, id: entity.id })),
+    [allEntities],
+  );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackEvent("compare.configure", {
+        entities: entityTokens,
+        metrics,
+        layout: layoutChoice,
+        kind,
+        source,
+      });
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [entityTokens, metrics, layoutChoice, kind, source]);
 
   const months = useMemo(
     () => [...new Set(entities.flatMap((entity) => entity.rows.map((row) => row.month)))].sort(),

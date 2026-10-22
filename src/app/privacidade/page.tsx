@@ -61,6 +61,18 @@ export default function PrivacyPage() {
             consentimento é separado e pode ser retirado a qualquer momento.
           </li>
           <li>
+            <strong>Uso do site:</strong> quando você está logado, registramos as páginas que abre,
+            os filtros e períodos que escolhe, as consultas que faz (por exemplo, um estado, uma
+            usina ou uma comparação), as buscas, os cliques em botões e o tempo de permanência, com
+            data e hora, o tipo de dispositivo e navegador e o endereço IP apenas em forma de código
+            irreversível (hash). Visitantes sem login também têm as páginas registradas, a menos que
+            o navegador envie o sinal “Não rastrear” (DNT) ou Global Privacy Control, que
+            respeitamos. A finalidade é medir o que as pessoas usam e melhorar o produto, e é
+            tratada como legítimo interesse (art. 7º, IX) e, para quem tem conta, também com base no
+            consentimento dado no cadastro. Os registros ficam ligados à sua conta por até 24 meses;
+            ao excluir a conta, eles deixam de apontar para você.
+          </li>
+          <li>
             <strong>Proteção contra abuso:</strong> o endereço IP de quem envia o formulário da
             newsletter é usado na hora, em memória, para limitar tentativas repetidas. Ele não é
             gravado em banco de dados (legítimo interesse, art. 7º, IX).
@@ -77,8 +89,10 @@ export default function PrivacyPage() {
           Não usamos cookies de rastreamento. O site guarda no seu navegador apenas a preferência de
           tema claro ou escuro (<code>localStorage</code>). Quando você entra na sua conta, o site
           grava um cookie de sessão estritamente necessário (<code>spillway_session</code>), que
-          vale por até 14 dias e é apagado quando você sai. A área administrativa, de uso interno,
-          também usa um cookie de sessão para o login.
+          vale por até 14 dias e é apagado quando você sai. Também usamos dois cookies próprios de
+          medição de uso, sem terceiros: um identificador de visitante (<code>spillway_vid</code>, 1
+          ano) e um de visita (<code>spillway_sid</code>, 30 minutos). A área administrativa, de uso
+          interno, também usa um cookie de sessão para o login.
         </p>
 
         <h2 id="retencao">Por quanto tempo guardamos</h2>

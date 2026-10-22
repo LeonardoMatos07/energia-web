@@ -18,6 +18,7 @@ import {
 import { formatShortMonth, formatLongMonth, formatNumber } from "@/lib/format";
 import { defaultPeriod, fillMonthGaps, filterByMonthRange, monthSpan } from "@/lib/series";
 import { ChartDataTable } from "./data-table";
+import { trackEvent } from "@/lib/track";
 import { PeriodFilter } from "./period-filter";
 import { CHART_INK } from "./palette";
 import type { ChartRow, ChartSeries } from "./types";
@@ -296,7 +297,10 @@ export function MonthlyChart({
                 key={option}
                 type="button"
                 aria-pressed={option === kind}
-                onClick={() => setPicked(option)}
+                onClick={() => {
+                  setPicked(option);
+                  trackEvent("chart.kind_change", { kind: option, chart: title });
+                }}
                 className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
                   option === kind ? "bg-accent text-on-accent" : "text-ink-2 hover:bg-surface-2"
                 }`}
@@ -313,13 +317,14 @@ export function MonthlyChart({
           last={last}
           start={start}
           end={end}
-          onChange={(nextStart, nextEnd) =>
+          onChange={(nextStart, nextEnd) => {
             setRange(
               nextStart > nextEnd
                 ? { start: nextStart, end: nextStart }
                 : { start: nextStart, end: nextEnd },
-            )
-          }
+            );
+            trackEvent("chart.period_change", { chart: title, start: nextStart, end: nextEnd });
+          }}
         />
       ) : null}
       {kind === "pie" ? null : <ChartLegend series={series} />}

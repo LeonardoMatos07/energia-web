@@ -86,12 +86,14 @@ export default async function LandingPage() {
             >
               <Link
                 href="/cadastro"
+                data-track="landing.hero_signup"
                 className="bg-accent text-on-accent shadow-card rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
               >
                 Criar conta gratuita
               </Link>
               <Link
                 href="/entrar"
+                data-track="landing.hero_login"
                 className="border-line bg-surface/80 hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold backdrop-blur"
               >
                 Entrar
@@ -135,7 +137,11 @@ export default async function LandingPage() {
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {INCLUDED.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className="block h-full">
+              <Link
+                href={item.href}
+                data-track={`landing.included.${item.title.toLowerCase()}`}
+                className="block h-full"
+              >
                 <Card className="hover:border-accent h-full px-5 py-4 transition-colors">
                   <h3 className="font-semibold">{item.title}</h3>
                   <p className="text-ink-2 mt-0.5 text-sm">{item.text}</p>
@@ -147,6 +153,7 @@ export default async function LandingPage() {
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link
             href="/cadastro"
+            data-track="landing.bottom_signup"
             className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
           >
             Criar conta gratuita

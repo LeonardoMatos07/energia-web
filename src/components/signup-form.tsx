@@ -12,6 +12,7 @@ import {
 } from "@/components/form-fields";
 import type { MemberRole, SignupPayload } from "@/lib/api/types";
 import { resendVerificationAction, signUpAction } from "@/lib/auth-actions";
+import { trackEvent } from "@/lib/track";
 import {
   ACADEMIC_ROLES,
   COMPANY_SIZE_OPTIONS,
@@ -243,7 +244,10 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
     startTransition(async () => {
       const result = await signUpAction(payload);
       if (result.ok) setDone(result.message);
-      else setError(result.message);
+      else {
+        setError(result.message);
+        trackEvent("signup.error", { message: result.message });
+      }
     });
   }
 
@@ -343,7 +347,10 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
           id="role"
           label="Qual é o seu perfil?"
           value={values.role}
-          onChange={(value) => set("role", value as MemberRole | "")}
+          onChange={(value) => {
+            set("role", value as MemberRole | "");
+            if (value) trackEvent("signup.role_selected", { role: value });
+          }}
           options={ROLE_OPTIONS}
           required
         />
@@ -476,7 +483,8 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
             <Link href="/privacidade" className="text-accent underline" target="_blank">
               Política de Privacidade
             </Link>{" "}
-            e autorizo o uso dos meus dados para criar a conta e liberar o acesso.{" "}
+            e autorizo o uso dos meus dados para criar a conta, liberar o acesso e registrar as
+            páginas e consultas que eu fizer, para melhorar o produto.{" "}
             <span className="text-danger">*</span>
           </span>
         </label>

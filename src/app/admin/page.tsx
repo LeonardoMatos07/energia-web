@@ -96,6 +96,9 @@ export default async function AdminPage() {
       <PageHeader title="Administração">
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span>Conectado como {state.email}</span>
+          <Link href="/admin/uso" className="underline">
+            Uso do site
+          </Link>
           <form action={logoutAction}>
             <button type="submit" className="underline">
               Sair

@@ -383,6 +383,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ingest_v1_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/load-runs": {
         parameters: {
             query?: never;
@@ -447,6 +463,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["usage_overview_v1_admin_usage_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["usage_events_v1_admin_usage_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/events.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["usage_events_csv_v1_admin_usage_events_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["member_timeline_v1_admin_usage_members__member_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["usage_purge_v1_admin_usage_purge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -467,6 +563,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ActiveLead: {
+            member_id: string;
+            name: string;
+            email: string;
+            organization: string | null;
+            role: string;
+            lead_tier: string;
+            lead_score: number;
+            events: number;
+            last_seen: string | null;
+        };
         AdminReport: {
             month: string;
             title: string;
@@ -482,6 +589,10 @@ export interface components {
         };
         ConfirmedResponse: {
             confirmed: boolean;
+        };
+        CountItem: {
+            name: string;
+            count: number;
         };
         CurtailmentSummary: {
             scope: string;
@@ -499,8 +610,49 @@ export interface components {
             estimated_loss_brl: number | null;
             affected_plants: number;
         };
+        DailyUsage: {
+            day: string;
+            page_views: number;
+            interactions: number;
+            members: number;
+        };
         EmailOnly: {
             email: string;
+        };
+        EntityUsage: {
+            entity_type: string;
+            entity_id: string;
+            views: number;
+            members: number;
+        };
+        EventBatch: {
+            events: components["schemas"]["EventInput"][];
+            visitor_id?: string | null;
+            session_key?: string | null;
+            user_agent?: string | null;
+            referrer?: string | null;
+            request_id?: string | null;
+        };
+        EventInput: {
+            category: "page" | "interaction";
+            action: string;
+            path?: string | null;
+            query?: {
+                [key: string]: string;
+            } | null;
+            section?: string | null;
+            entity_type?: string | null;
+            entity_id?: string | null;
+            properties?: {
+                [key: string]: unknown;
+            };
+        };
+        EventsAccepted: {
+            accepted: number;
+        };
+        FunnelStep: {
+            step: string;
+            count: number;
         };
         GroupRankingResponse: {
             group: "operator" | "connection_point";
@@ -617,6 +769,11 @@ export interface components {
             consent: true;
             source?: string | null;
         };
+        MemberTimeline: {
+            member: components["schemas"]["Lead"];
+            events: components["schemas"]["UsageEventOut"][];
+            total: number;
+        };
         MessageResponse: {
             message: string;
         };
@@ -690,6 +847,10 @@ export interface components {
             subsystem: string;
             capacity_mw: number | null;
         };
+        PurgeResponse: {
+            deleted: number;
+            older_than_days: number;
+        };
         RankedGroup: {
             rank: number;
             name: string;
@@ -756,6 +917,17 @@ export interface components {
             web_revalidated: boolean;
             detail: string | null;
         };
+        RoleUsage: {
+            role: string | null;
+            segment: string | null;
+            members: number;
+            events: number;
+        };
+        SectionUsage: {
+            section: string;
+            views: number;
+            members: number;
+        };
         StateCurtailment: {
             source: "wind" | "solar" | "total";
             month: string;
@@ -799,6 +971,56 @@ export interface components {
         };
         UnsubscribedResponse: {
             unsubscribed: boolean;
+        };
+        UsageEventList: {
+            items: components["schemas"]["UsageEventOut"][];
+            total: number;
+        };
+        UsageEventOut: {
+            id: number;
+            occurred_at: string;
+            category: string;
+            action: string;
+            section: string | null;
+            entity_type: string | null;
+            entity_id: string | null;
+            path: string | null;
+            properties: {
+                [key: string]: unknown;
+            };
+            member_id: string | null;
+            member_role: string | null;
+            member_segment: string | null;
+            visitor_id: string | null;
+            session_key: string | null;
+            device: string | null;
+            is_bot: boolean;
+            referrer: string | null;
+            request_id: string | null;
+        };
+        UsageSummary: {
+            start: string;
+            end: string;
+            days: number;
+            include_bots: boolean;
+            totals: components["schemas"]["UsageTotals"];
+            daily: components["schemas"]["DailyUsage"][];
+            sections: components["schemas"]["SectionUsage"][];
+            entities: components["schemas"]["EntityUsage"][];
+            searches: components["schemas"]["CountItem"][];
+            interactions: components["schemas"]["CountItem"][];
+            compared: components["schemas"]["CountItem"][];
+            funnel: components["schemas"]["FunnelStep"][];
+            roles: components["schemas"]["RoleUsage"][];
+            active_leads: components["schemas"]["ActiveLead"][];
+        };
+        UsageTotals: {
+            events: number;
+            page_views: number;
+            members_active: number;
+            visitors: number;
+            sessions: number;
+            new_members: number;
         };
         ValidationError: {
             loc: (string | number)[];
@@ -1581,6 +1803,45 @@ export interface operations {
             };
         };
     };
+    ingest_v1_events_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventBatch"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventsAccepted"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_load_runs_v1_admin_load_runs_get: {
         parameters: {
             query?: {
@@ -1709,6 +1970,161 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeadListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_overview_v1_admin_usage_summary_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                include_bots?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummary"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_events_v1_admin_usage_events_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                action?: string | null;
+                section?: string | null;
+                member_id?: string | null;
+                include_bots?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageEventList"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_events_csv_v1_admin_usage_events_csv_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    member_timeline_v1_admin_usage_members__member_id__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                member_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberTimeline"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_purge_v1_admin_usage_purge_post: {
+        parameters: {
+            query?: {
+                days?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurgeResponse"];
                 };
             };
             422: {

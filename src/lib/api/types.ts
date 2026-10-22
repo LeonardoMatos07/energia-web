@@ -299,3 +299,39 @@ export interface HourlyProfileResponse {
   months: number;
   points: HourlyPoint[];
 }
+
+export interface UsageTotals {
+  events: number;
+  page_views: number;
+  members_active: number;
+  visitors: number;
+  sessions: number;
+  new_members: number;
+}
+
+export interface UsageSummary {
+  start: Timestamp;
+  end: Timestamp;
+  days: number;
+  include_bots: boolean;
+  totals: UsageTotals;
+  daily: { day: string; page_views: number; interactions: number; members: number }[];
+  sections: { section: string; views: number; members: number }[];
+  entities: { entity_type: string; entity_id: string; views: number; members: number }[];
+  searches: { name: string; count: number }[];
+  interactions: { name: string; count: number }[];
+  compared: { name: string; count: number }[];
+  funnel: { step: string; count: number }[];
+  roles: { role: string | null; segment: string | null; members: number; events: number }[];
+  active_leads: {
+    member_id: string;
+    name: string;
+    email: string;
+    organization: string | null;
+    role: string;
+    lead_tier: string;
+    lead_score: number;
+    events: number;
+    last_seen: Timestamp | null;
+  }[];
+}
