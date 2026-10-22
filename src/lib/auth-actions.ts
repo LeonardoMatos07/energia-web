@@ -3,14 +3,19 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api/client";
-import type { LoginResponse, MessageResponse, SignupPayload } from "@/lib/api/types";
+import type {
+  LoginResponse,
+  MessageResponse,
+  SignupPayload,
+  SignupResponse,
+} from "@/lib/api/types";
 import { getSessionToken, SESSION_COOKIE } from "@/lib/members";
 import { safeNextPath } from "@/lib/safe-path";
 import { MIN_PASSWORD_LENGTH } from "@/lib/member-options";
 import { visitorIpHeaders } from "@/lib/newsletter";
 
 export type ActionResult =
-  | { ok: true; message: string }
+  | { ok: true; message: string; devCode?: string | null }
   | { ok: false; code: "invalid" | "unverified" | "rate" | "error"; message: string };
 
 const GENERIC_ERROR = "Não conseguimos concluir agora. Tente novamente em alguns minutos.";
@@ -53,14 +58,15 @@ export async function signUpAction(payload: SignupPayload): Promise<ActionResult
     };
   }
   try {
-    await apiFetch<MessageResponse>("/v1/auth/signup", {
+    const response = await apiFetch<SignupResponse>("/v1/auth/signup", {
       method: "POST",
       body: { ...payload, email: payload.email.trim().toLowerCase(), consent: true },
       headers: await ipHeaders(),
     });
     return {
       ok: true,
-      message: "Enviamos um e-mail para confirmar seu endereço. O acesso é liberado depois disso.",
+      message: "Enviamos um código de 6 dígitos para o seu e-mail.",
+      devCode: response.dev_code ?? null,
     };
   } catch (error) {
     if (error instanceof ApiError && error.status === 422) {
@@ -107,13 +113,40 @@ export async function loginAction(input: {
 
 export async function resendVerificationAction(email: string): Promise<ActionResult> {
   try {
-    await apiFetch<MessageResponse>("/v1/auth/resend-verification", {
+    const response = await apiFetch<SignupResponse>("/v1/auth/resend-verification", {
       method: "POST",
       body: { email: email.trim().toLowerCase() },
       headers: await ipHeaders(),
     });
-    return { ok: true, message: "Se o e-mail estiver cadastrado, enviamos um novo link." };
+    return {
+      ok: true,
+      message: "Se o e-mail estiver cadastrado, enviamos um novo código.",
+      devCode: response.dev_code ?? null,
+    };
   } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function verifyEmailAction(input: {
+  email: string;
+  code: string;
+}): Promise<ActionResult> {
+  try {
+    await apiFetch<{ verified: boolean }>("/v1/auth/verify-email", {
+      method: "POST",
+      body: { email: input.email.trim().toLowerCase(), code: input.code },
+      headers: await ipHeaders(),
+    });
+    return { ok: true, message: "E-mail confirmado." };
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 400 || error.status === 422)) {
+      return {
+        ok: false,
+        code: "invalid",
+        message: "Código incorreto ou vencido. Confira os 6 dígitos ou peça um novo código.",
+      };
+    }
     return failure(error);
   }
 }

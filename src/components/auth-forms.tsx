@@ -7,23 +7,21 @@ import {
   deleteAccountAction,
   forgotPasswordAction,
   loginAction,
-  resendVerificationAction,
   resetPasswordAction,
   type ActionResult,
 } from "@/lib/auth-actions";
 import { MIN_PASSWORD_LENGTH } from "@/lib/member-options";
+import { VerifyCodeForm } from "@/components/verify-code-form";
 
 export function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [result, setResult] = useState<ActionResult | null>(null);
-  const [resent, setResent] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
     setResult(null);
-    setResent(null);
     startTransition(async () => {
       const response = await loginAction({ email, password, next });
       if (response) setResult(response);
@@ -56,20 +54,12 @@ export function LoginForm({ next }: { next?: string }) {
       </Field>
       {result && !result.ok ? <FormMessage status="error">{result.message}</FormMessage> : null}
       {result && !result.ok && result.code === "unverified" ? (
-        <div>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                setResent((await resendVerificationAction(email)).message);
-              })
-            }
-            className="border-line hover:border-accent hover:bg-accent-soft rounded-full border px-4 py-2 text-sm font-semibold"
-          >
-            Reenviar e-mail de confirmação
-          </button>
-          {resent ? <p className="text-ink-2 mt-2 text-sm">{resent}</p> : null}
+        <div className="border-line space-y-3 rounded-xl border p-4">
+          <p className="text-sm font-medium">Digite o código enviado ao seu e-mail</p>
+          <VerifyCodeForm
+            email={email}
+            onVerified={() => void loginAction({ email, password, next })}
+          />
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-4">

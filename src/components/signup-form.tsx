@@ -11,8 +11,9 @@ import {
   SelectField,
 } from "@/components/form-fields";
 import type { MemberRole, SignupPayload } from "@/lib/api/types";
-import { resendVerificationAction, signUpAction } from "@/lib/auth-actions";
+import { loginAction, signUpAction } from "@/lib/auth-actions";
 import { trackEvent } from "@/lib/track";
+import { VerifyCodeForm } from "@/components/verify-code-form";
 import {
   ACADEMIC_ROLES,
   COMPANY_SIZE_OPTIONS,
@@ -202,8 +203,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function SignupForm({ source = "cadastro" }: { source?: string }) {
   const [values, setValues] = useState<FormValues>(INITIAL);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<string | null>(null);
-  const [resent, setResent] = useState<string | null>(null);
+  const [done, setDone] = useState<{ devCode: string | null } | null>(null);
   const [pending, startTransition] = useTransition();
   const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
     setValues((current) => ({ ...current, [key]: value }));
@@ -243,7 +243,7 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
     };
     startTransition(async () => {
       const result = await signUpAction(payload);
-      if (result.ok) setDone(result.message);
+      if (result.ok) setDone({ devCode: result.devCode ?? null });
       else {
         setError(result.message);
         trackEvent("signup.error", { message: result.message });
@@ -254,30 +254,23 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
   if (done) {
     return (
       <div className="border-grid bg-surface shadow-card space-y-4 rounded-2xl border p-6 sm:p-8">
-        <h2 className="text-2xl font-bold tracking-tight">Falta só confirmar o e-mail</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Confirme seu e-mail</h2>
         <p className="text-ink-2 leading-7">
-          {done} Enviamos o link para <strong>{values.email}</strong>. Ele vale por 48 horas. Se não
-          achar, olhe a caixa de spam.
+          Digite o código de 6 dígitos que enviamos para confirmar seu endereço e liberar o acesso.
         </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                const result = await resendVerificationAction(values.email);
-                setResent(result.message);
-              })
-            }
-            className="border-line hover:border-accent hover:bg-accent-soft rounded-full border px-4 py-2 text-sm font-semibold"
-          >
-            Reenviar o e-mail
+        <VerifyCodeForm
+          email={values.email}
+          devCode={done.devCode}
+          onVerified={() =>
+            void loginAction({ email: values.email, password: values.password, next: "/painel" })
+          }
+        />
+        <p className="text-ink-2 text-sm">
+          Errou o e-mail?{" "}
+          <button type="button" onClick={() => setDone(null)} className="text-accent underline">
+            Voltar e corrigir
           </button>
-          <Link href="/entrar" className="text-accent text-sm font-medium underline">
-            Já confirmei, quero entrar
-          </Link>
-        </div>
-        {resent ? <FormMessage status="success">{resent}</FormMessage> : null}
+        </p>
       </div>
     );
   }

@@ -619,6 +619,10 @@ export interface components {
         EmailOnly: {
             email: string;
         };
+        EmailVerification: {
+            email: string;
+            code: string;
+        };
         EntityUsage: {
             entity_type: string;
             entity_id: string;
@@ -928,6 +932,10 @@ export interface components {
             views: number;
             members: number;
         };
+        SignupResponse: {
+            message: string;
+            dev_code?: string | null;
+        };
         StateCurtailment: {
             source: "wind" | "solar" | "total";
             month: string;
@@ -965,9 +973,6 @@ export interface components {
         };
         SubsystemCurtailmentResponse: {
             items: components["schemas"]["SubsystemCurtailment"][];
-        };
-        TokenOnly: {
-            token: string;
         };
         UnsubscribedResponse: {
             unsubscribed: boolean;
@@ -1520,7 +1525,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["SignupResponse"];
                 };
             };
             422: {
@@ -1548,7 +1553,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TokenOnly"];
+                "application/json": components["schemas"]["EmailVerification"];
             };
         };
         responses: {
@@ -1588,7 +1593,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["SignupResponse"];
                 };
             };
             422: {

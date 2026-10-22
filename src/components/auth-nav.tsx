@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logoutAction } from "@/lib/auth-actions";
 
@@ -8,6 +9,7 @@ type SessionState = { member: { name: string; email: string } | null } | null;
 
 export function AuthNav() {
   const [session, setSession] = useState<SessionState>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     let active = true;
@@ -22,7 +24,7 @@ export function AuthNav() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [pathname]);
 
   if (session === null) return <div className="h-9 w-40" aria-hidden />;
 

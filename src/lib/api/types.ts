@@ -335,3 +335,8 @@ export interface UsageSummary {
     last_seen: Timestamp | null;
   }[];
 }
+
+export interface SignupResponse {
+  message: string;
+  dev_code: string | null;
+}
