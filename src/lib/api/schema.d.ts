@@ -31,6 +31,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/curtailment/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["summary_v1_curtailment_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/curtailment/hourly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hourly_v1_curtailment_hourly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/plants": {
         parameters: {
             query?: never;
@@ -87,6 +119,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["months_v1_months_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/rankings/operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["operators_v1_rankings_operators_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/rankings/connection-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["connection_points_v1_rankings_connection_points_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -175,6 +239,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["signup_v1_auth_signup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["verify_email_v1_auth_verify_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resend_verification_v1_auth_resend_verification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["login_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["logout_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["forgot_password_v1_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reset_password_v1_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/me/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delete_account_v1_auth_me_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/load-runs": {
         parameters: {
             query?: never;
@@ -223,6 +431,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_leads_v1_admin_leads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -259,12 +483,81 @@ export interface components {
         ConfirmedResponse: {
             confirmed: boolean;
         };
+        CurtailmentSummary: {
+            scope: string;
+            source: "wind" | "solar" | "total";
+            start: string | null;
+            end: string | null;
+            months: number;
+            verified_generation_mwh: number;
+            curtailed_mwh: number;
+            curtailed_rel_mwh: number;
+            curtailed_cnf_mwh: number;
+            curtailed_ene_mwh: number;
+            curtailed_other_mwh: number;
+            curtailment_pct: number | null;
+            estimated_loss_brl: number | null;
+            affected_plants: number;
+        };
+        EmailOnly: {
+            email: string;
+        };
+        GroupRankingResponse: {
+            group: "operator" | "connection_point";
+            source: "wind" | "solar" | "total";
+            start: string | null;
+            end: string | null;
+            items: components["schemas"]["RankedGroup"][];
+        };
         HTTPValidationError: {
             detail?: components["schemas"]["ValidationError"][];
         };
         HealthResponse: {
             status: string;
             database: string;
+        };
+        HourlyPoint: {
+            day_type: "weekday" | "weekend";
+            hour: number;
+            avg_curtailed_mwh: number;
+            avg_generation_mwh: number;
+            curtailment_pct: number | null;
+        };
+        HourlyProfileResponse: {
+            scope: string;
+            source: "wind" | "solar" | "total";
+            start: string | null;
+            end: string | null;
+            months: number;
+            points: components["schemas"]["HourlyPoint"][];
+        };
+        Lead: {
+            id: string;
+            email: string;
+            name: string;
+            role: "researcher" | "student" | "professional" | "journalist" | "public_sector" | "investor" | "other";
+            organization: string | null;
+            job_title: string | null;
+            segment: string | null;
+            institution: string | null;
+            regions: string[];
+            plants: string[];
+            interests: string[];
+            created_at: string;
+            company_size: string | null;
+            study_level: string | null;
+            phone: string | null;
+            referral: string | null;
+            signup_source: string | null;
+            marketing_opt_in: boolean;
+            email_verified_at: string | null;
+            lead_score: number;
+            lead_tier: "hot" | "warm" | "cold";
+            last_login_at: string | null;
+        };
+        LeadListResponse: {
+            items: components["schemas"]["Lead"][];
+            total: number;
         };
         LoadRun: {
             id: number;
@@ -281,6 +574,49 @@ export interface components {
         LoadRunListResponse: {
             items: components["schemas"]["LoadRun"][];
         };
+        LoginResponse: {
+            session_token: string;
+            expires_at: string;
+            member: components["schemas"]["MemberProfile"];
+        };
+        MemberLogin: {
+            email: string;
+            password: string;
+        };
+        MemberProfile: {
+            id: string;
+            email: string;
+            name: string;
+            role: "researcher" | "student" | "professional" | "journalist" | "public_sector" | "investor" | "other";
+            organization: string | null;
+            job_title: string | null;
+            segment: string | null;
+            institution: string | null;
+            regions: string[];
+            plants: string[];
+            interests: string[];
+            created_at: string;
+        };
+        MemberSignup: {
+            email: string;
+            password: string;
+            name: string;
+            role: "researcher" | "student" | "professional" | "journalist" | "public_sector" | "investor" | "other";
+            organization?: string | null;
+            job_title?: string | null;
+            segment?: ("generator" | "storage_developer" | "trader" | "consultancy" | "financial" | "consumer" | "utility" | "equipment" | "law_regulatory" | "other") | null;
+            company_size?: ("1-10" | "11-50" | "51-200" | "201-1000" | "1000+") | null;
+            institution?: string | null;
+            study_level?: ("undergraduate" | "master" | "phd" | "postdoc" | "other") | null;
+            regions?: ("Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul")[];
+            plants?: string[];
+            interests?: ("monitor_losses" | "compensation" | "storage" | "free_market" | "investment" | "data_api" | "research" | "press")[];
+            phone?: string | null;
+            referral?: string | null;
+            marketing_opt_in: boolean;
+            consent: true;
+            source?: string | null;
+        };
         MessageResponse: {
             message: string;
         };
@@ -291,6 +627,13 @@ export interface components {
             email: string;
             consent: true;
             source?: string | null;
+        };
+        PasswordConfirmation: {
+            password: string;
+        };
+        PasswordReset: {
+            token: string;
+            password: string;
         };
         Plant: {
             id: string;
@@ -346,6 +689,18 @@ export interface components {
             state: string;
             subsystem: string;
             capacity_mw: number | null;
+        };
+        RankedGroup: {
+            rank: number;
+            name: string;
+            state: string | null;
+            plants: number;
+            affected_plants: number;
+            verified_generation_mwh: number;
+            curtailed_mwh: number;
+            curtailment_pct: number | null;
+            estimated_loss_brl: number | null;
+            compensable_mwh: number;
         };
         RankedPlant: {
             id: string;
@@ -439,6 +794,9 @@ export interface components {
         SubsystemCurtailmentResponse: {
             items: components["schemas"]["SubsystemCurtailment"][];
         };
+        TokenOnly: {
+            token: string;
+        };
         UnsubscribedResponse: {
             unsubscribed: boolean;
         };
@@ -448,6 +806,9 @@ export interface components {
             type: string;
             input?: unknown;
             ctx?: Record<string, never>;
+        };
+        VerifiedResponse: {
+            verified: boolean;
         };
     };
     responses: never;
@@ -510,6 +871,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StateCurtailmentResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_v1_curtailment_summary_get: {
+        parameters: {
+            query?: {
+                scope?: string;
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurtailmentSummary"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hourly_v1_curtailment_hourly_get: {
+        parameters: {
+            query?: {
+                scope?: "N" | "NE" | "S" | "SE" | "SIN";
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HourlyProfileResponse"];
                 };
             };
             422: {
@@ -632,6 +1057,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonthsResponse"];
+                };
+            };
+        };
+    };
+    operators_v1_rankings_operators_get: {
+        parameters: {
+            query?: {
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupRankingResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connection_points_v1_rankings_connection_points_get: {
+        parameters: {
+            query?: {
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupRankingResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -791,6 +1280,307 @@ export interface operations {
             };
         };
     };
+    signup_v1_auth_signup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberSignup"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verify_email_v1_auth_verify_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenOnly"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifiedResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_verification_v1_auth_resend_verification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailOnly"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberLogin"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberProfile"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forgot_password_v1_auth_forgot_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailOnly"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_v1_auth_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordReset"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_account_v1_auth_me_delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirmation"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_load_runs_v1_admin_load_runs_get: {
         parameters: {
             query?: {
@@ -889,6 +1679,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RevalidateResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_leads_v1_admin_leads_get: {
+        parameters: {
+            query?: {
+                tier?: ("hot" | "warm" | "cold") | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadListResponse"];
                 };
             };
             422: {
