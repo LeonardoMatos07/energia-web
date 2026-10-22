@@ -53,6 +53,21 @@ const COMPARE_EXAMPLES = [
   { label: "Rio Grande do Norte × Brasil", refs: "e:RN,s:SIN" },
 ] as const;
 
+const COMING_SOON = [
+  {
+    title: "Download dos dados",
+    text: "Baixe as séries mensais por estado, subsistema e usina em planilha, para analisar do seu jeito.",
+  },
+  {
+    title: "Relatórios em PDF",
+    text: "Leve o relatório do mês em PDF, pronto para anexar a uma apresentação ou enviar à sua equipe.",
+  },
+  {
+    title: "API para extração de dados",
+    text: "Acesse os números direto no seu sistema, sem copiar e colar, com documentação aberta.",
+  },
+] as const;
+
 const EXPLORE = [
   {
     href: "/painel",
@@ -388,6 +403,33 @@ export default async function LandingPage() {
             </li>
           ))}
         </ul>
+      </Section>
+
+      <Section
+        id="coming-soon"
+        title="Em breve"
+        description="O que estamos preparando para as próximas etapas."
+      >
+        <ul className="grid gap-4 sm:grid-cols-3">
+          {COMING_SOON.map((item) => (
+            <li key={item.title}>
+              <Card className="border-line h-full border-dashed p-5">
+                <span className="bg-accent-soft text-accent-strong inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                  Em breve
+                </span>
+                <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
+                <p className="text-ink-2 mt-1 text-sm leading-6">{item.text}</p>
+              </Card>
+            </li>
+          ))}
+        </ul>
+        <p className="text-ink-2 mt-4 text-sm">
+          Quer acompanhar?{" "}
+          <Link href="#newsletter" className="text-accent font-medium underline">
+            Assine o resumo mensal
+          </Link>
+          .
+        </p>
       </Section>
 
       <Section id="data" title="De onde vêm os dados">
