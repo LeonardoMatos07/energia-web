@@ -34,11 +34,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { normalizeMonth, pickEnergyUnit, sortByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
-export const revalidate = 3600;
-
-export function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 type Params = { slug: string };
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { AuthNav } from "./auth-nav";
 import { NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 import { Container } from "./ui";
@@ -52,7 +53,8 @@ export function SiteHeader() {
         <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
           <NavLinks />
         </div>
-        <div className="ml-auto sm:ml-0">
+        <div className="ml-auto flex items-center gap-3 sm:ml-0">
+          <AuthNav />
           <ThemeToggle />
         </div>
       </Container>

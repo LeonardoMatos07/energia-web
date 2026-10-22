@@ -49,6 +49,18 @@ export default function PrivacyPage() {
             marcar a caixa do formulário e confirmado pelo link enviado por e-mail.
           </li>
           <li>
+            <strong>Conta gratuita:</strong> nome, e-mail, senha (guardada apenas em forma de hash,
+            nunca em texto), perfil (por exemplo, pesquisador, estudante ou profissional de
+            empresa), empresa ou instituição e cargo, segmento e porte da empresa, regiões e usinas
+            de interesse, o que você pretende fazer no site, telefone e como nos conheceu (estes
+            dois últimos opcionais), a data do consentimento e do último acesso. Usamos para criar e
+            proteger a sua conta, liberar o acesso às funcionalidades e entender quem usa o site e o
+            que mais interessa. A base legal é o seu consentimento (art. 7º, I) e a execução do
+            serviço que você pediu (art. 7º, V). Se você marcar a caixa de contato, também podemos
+            falar com você sobre novidades e propostas ligadas aos seus interesses; esse
+            consentimento é separado e pode ser retirado a qualquer momento.
+          </li>
+          <li>
             <strong>Proteção contra abuso:</strong> o endereço IP de quem envia o formulário da
             newsletter é usado na hora, em memória, para limitar tentativas repetidas. Ele não é
             gravado em banco de dados (legítimo interesse, art. 7º, IX).
@@ -63,8 +75,10 @@ export default function PrivacyPage() {
         <h2 id="armazenamento">O que fica no seu navegador</h2>
         <p>
           Não usamos cookies de rastreamento. O site guarda no seu navegador apenas a preferência de
-          tema claro ou escuro (<code>localStorage</code>). A área administrativa, de uso interno,
-          usa um cookie de sessão estritamente necessário para o login.
+          tema claro ou escuro (<code>localStorage</code>). Quando você entra na sua conta, o site
+          grava um cookie de sessão estritamente necessário (<code>spillway_session</code>), que
+          vale por até 14 dias e é apagado quando você sai. A área administrativa, de uso interno,
+          também usa um cookie de sessão para o login.
         </p>
 
         <h2 id="retencao">Por quanto tempo guardamos</h2>
@@ -73,6 +87,11 @@ export default function PrivacyPage() {
             Inscrição não confirmada: apagada depois que o link de confirmação expira (48 horas).
           </li>
           <li>Assinatura ativa: enquanto você quiser receber a newsletter.</li>
+          <li>
+            Conta gratuita: enquanto ela existir. Você pode excluí-la a qualquer momento em “Minha
+            conta”, e seus dados de cadastro são apagados. Cadastros cujo e-mail não foi confirmado
+            em 48 horas deixam de ter validade.
+          </li>
           <li>
             Depois do descadastro: o registro é apagado em até 30 dias. Nesse intervalo ele serve só
             para garantir que você não receba mais e-mails.

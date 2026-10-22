@@ -5,7 +5,7 @@ import { getReports } from "@/lib/api/queries";
 import { formatDate, formatLongMonth } from "@/lib/format";
 import { pageMetadata } from "@/lib/metadata";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Relatórios mensais de curtailment",

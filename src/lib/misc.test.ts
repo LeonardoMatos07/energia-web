@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { validateNewsletterInput, visitorIpHeaders } from "./newsletter";
 import { parseTags, safeCompare } from "./revalidate";
+import { safeNextPath } from "./safe-path";
 import {
+  defaultPeriod,
   fillMonthGaps,
   filterByMonthRange,
   monthSpan,
@@ -120,5 +122,24 @@ describe("visitorIpHeaders", () => {
     const h = reader({ "x-forwarded-for": "198.51.100.2", "x-real-ip": "198.51.100.2" });
     expect(visitorIpHeaders(h, undefined)).toEqual({ "X-Forwarded-For": "198.51.100.2" });
     expect(visitorIpHeaders(reader({}), "")).toEqual({});
+  });
+});
+
+describe("safeNextPath", () => {
+  it("keeps internal paths and rejects anything that could leave the site", () => {
+    expect(safeNextPath("/comparar?itens=e%3ABA")).toBe("/comparar?itens=e%3ABA");
+    expect(safeNextPath("https://evil.example")).toBe("/painel");
+    expect(safeNextPath("//evil.example")).toBe("/painel");
+    expect(safeNextPath("/" + String.fromCharCode(92) + "evil.example")).toBe("/painel");
+    expect(safeNextPath(undefined)).toBe("/painel");
+    expect(safeNextPath("relative")).toBe("/painel");
+    expect(safeNextPath("nope", "/conta")).toBe("/conta");
+  });
+});
+
+describe("defaultPeriod", () => {
+  it("starts twelve months before the last month, never before the first", () => {
+    expect(defaultPeriod("2021-10", "2026-09")).toEqual({ start: "2025-10", end: "2026-09" });
+    expect(defaultPeriod("2026-03", "2026-09")).toEqual({ start: "2026-03", end: "2026-09" });
   });
 });

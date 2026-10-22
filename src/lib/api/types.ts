@@ -32,6 +32,10 @@ export interface CurtailmentSummary {
   months: number;
   verified_generation_mwh: number;
   curtailed_mwh: number;
+  curtailed_rel_mwh: number;
+  curtailed_cnf_mwh: number;
+  curtailed_ene_mwh: number;
+  curtailed_other_mwh: number;
   curtailment_pct: number | null;
   estimated_loss_brl: number | null;
   affected_plants: number;
@@ -210,3 +214,88 @@ export interface ApiErrorBody {
 
 export const CACHE_TAGS = ["curtailment", "plants", "reports"] as const;
 export type CacheTag = (typeof CACHE_TAGS)[number];
+
+export type MemberRole =
+  "researcher" | "student" | "professional" | "journalist" | "public_sector" | "investor" | "other";
+
+export interface MemberProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: MemberRole;
+  organization: string | null;
+  job_title: string | null;
+  segment: string | null;
+  institution: string | null;
+  regions: string[];
+  plants: string[];
+  interests: string[];
+  created_at: Timestamp;
+}
+
+export interface LoginResponse {
+  session_token: string;
+  expires_at: Timestamp;
+  member: MemberProfile;
+}
+
+export interface SignupPayload {
+  email: string;
+  password: string;
+  name: string;
+  role: MemberRole;
+  organization?: string | null;
+  job_title?: string | null;
+  segment?: string | null;
+  company_size?: string | null;
+  institution?: string | null;
+  study_level?: string | null;
+  regions: string[];
+  plants: string[];
+  interests: string[];
+  phone?: string | null;
+  referral?: string | null;
+  marketing_opt_in: boolean;
+  consent: true;
+  source?: string | null;
+}
+
+export interface RankedGroup {
+  rank: number;
+  name: string;
+  state: string | null;
+  plants: number;
+  affected_plants: number;
+  verified_generation_mwh: number;
+  curtailed_mwh: number;
+  curtailment_pct: number | null;
+  estimated_loss_brl: number | null;
+  compensable_mwh: number;
+}
+
+export interface GroupRankingResponse {
+  group: "operator" | "connection_point";
+  source: AggregateSource;
+  start: Month | null;
+  end: Month | null;
+  items: RankedGroup[];
+}
+
+export type DayType = "weekday" | "weekend";
+
+export interface HourlyPoint {
+  day_type: DayType;
+  hour: number;
+  avg_curtailed_mwh: number;
+  avg_generation_mwh: number;
+  curtailment_pct: number | null;
+}
+
+export interface HourlyProfileResponse {
+  scope: string;
+  source: AggregateSource;
+  start: Month | null;
+  end: Month | null;
+  months: number;
+  points: HourlyPoint[];
+}

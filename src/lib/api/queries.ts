@@ -3,6 +3,8 @@ import { apiTry, withQuery } from "./client";
 import type {
   AggregateSource,
   CurtailmentSummary,
+  GroupRankingResponse,
+  HourlyProfileResponse,
   MonthsResponse,
   PlantDetailResponse,
   PlantKind,
@@ -34,6 +36,27 @@ export function getCurtailmentSummary(
   return apiTry<CurtailmentSummary>(
     withQuery("/v1/curtailment/summary", { scope, source, start, end }),
     { tags: ["curtailment", "plants"] },
+  );
+}
+
+export function getGroupRanking(
+  group: "operators" | "connection-points",
+  options: { source?: AggregateSource; start?: string; end?: string; limit?: number } = {},
+) {
+  return apiTry<GroupRankingResponse>(withQuery(`/v1/rankings/${group}`, options), {
+    tags: ["curtailment", "plants"],
+  });
+}
+
+export function getHourlyProfile(
+  scope: string,
+  source: AggregateSource = "total",
+  start?: string,
+  end?: string,
+) {
+  return apiTry<HourlyProfileResponse>(
+    withQuery("/v1/curtailment/hourly", { scope, source, start, end }),
+    { tags: ["curtailment"] },
   );
 }
 

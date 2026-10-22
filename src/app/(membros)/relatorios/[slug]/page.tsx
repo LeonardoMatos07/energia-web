@@ -10,11 +10,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { absoluteUrl } from "@/lib/site";
 import { publisher } from "@/lib/structured-data";
 
-export const revalidate = 3600;
-
-export function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 type Params = { slug: string };
 

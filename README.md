@@ -179,3 +179,17 @@ secret `VERCEL_TOKEN`; variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`; environme
 with required reviewers. Set the runtime variables above on Vercel (`API_URL`,
 `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, `REVALIDATE_SECRET`, `WEB_API_SECRET`,
 `AUTH_*`, analytics).
+
+## Accounts and gated pages
+
+The dashboard, states, plants, compare, reports, analyses and account pages sit in the
+`src/app/(membros)` route group and need a free account. The landing page, sign-up, login,
+methodology and privacy pages are public.
+
+- `src/middleware.ts` redirects to `/entrar?proximo=...` when the `spillway_session` cookie is
+  missing; the group layout then validates the session against the API (`/v1/auth/me`), so a
+  forged cookie is rejected too. Pages in the group are dynamic on purpose.
+- Sign-up, login, logout, password reset and account deletion are server actions in
+  `src/lib/auth-actions.ts`. The session token lives in an `httpOnly` cookie.
+- The header reads `/api/session` after load, so public pages stay static.
+- Data routes of the API are still public: the gate captures leads, it does not protect the data.
