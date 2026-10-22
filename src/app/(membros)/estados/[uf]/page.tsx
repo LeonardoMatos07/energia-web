@@ -7,6 +7,7 @@ import type { ChartSeries } from "@/components/charts/types";
 import { JsonLd } from "@/components/json-ld";
 import { RankingTable } from "@/components/ranking-table";
 import { ReasonBreakdown, sumReasons } from "@/components/reason-breakdown";
+import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import {
   Container,
@@ -18,11 +19,12 @@ import {
   StatTile,
 } from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
-import { getStateCurtailment } from "@/lib/api/queries";
+import { getCurtailmentSummary, getStateCurtailment } from "@/lib/api/queries";
 import type {
   StateMonthlyCurtailment,
   StateCurtailmentResponse,
   AggregateSource,
+  CurtailmentSummary,
 } from "@/lib/api/types";
 import {
   formatBRLCompact,
@@ -35,6 +37,7 @@ import {
 } from "@/lib/format";
 import { findState } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
+import { describePeriod, requestedEnd, resolvePeriod } from "@/lib/period";
 import { latest, normalizeMonth, pickEnergyUnit, pivotByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
@@ -55,18 +58,31 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
+function inPeriod<T extends { month: string }>(rows: readonly T[], start: string, end: string) {
+  return rows.filter((row) => {
+    const month = normalizeMonth(row.month);
+    return month >= start && month <= end;
+  });
+}
+
 function SourcePanel({
   source,
   result,
   stacked,
   stateName,
   state,
+  start,
+  end,
+  summary,
 }: {
   source: AggregateSource;
   state: string;
   result: ApiResult<StateCurtailmentResponse>;
   stacked?: { wind: StateMonthlyCurtailment[]; solar: StateMonthlyCurtailment[] };
   stateName: string;
+  start: string;
+  end: string;
+  summary: ApiResult<CurtailmentSummary>;
 }) {
   if (!result.ok) {
     return result.error.isNotFound ? (
@@ -80,7 +96,8 @@ function SourcePanel({
     );
   }
 
-  const { series, ranking, ranking_month } = result.data;
+  const { ranking, ranking_month } = result.data;
+  const series = inPeriod(result.data.series, start, end);
   if (series.length === 0) {
     return (
       <DataUnavailable title="Sem dados para esta fonte">
@@ -90,7 +107,7 @@ function SourcePanel({
   }
 
   const latestRow = latest(series);
-  const sourceRows = stacked ? [...stacked.wind, ...stacked.solar] : series;
+  const sourceRows = stacked ? inPeriod([...stacked.wind, ...stacked.solar], start, end) : series;
   const energy = pickEnergyUnit(Math.max(...series.map((r) => r.curtailed_mwh)));
   const chartSeries: ChartSeries[] = stacked
     ? [
@@ -114,22 +131,29 @@ function SourcePanel({
     <div className="space-y-6">
       <div>
         <h3 className="text-ink-2 mb-3 text-sm font-medium">
-          Último mês com dados: {formatLongMonth(latestRow?.month)}
+          {describePeriod(start, end, formatShortMonth)}
         </h3>
-        <StatGrid>
-          <StatTile
-            highlight
-            label="Energia cortada"
-            value={formatEnergy(latestRow?.curtailed_mwh)}
-          />
-          <StatTile label="% de corte" value={formatPercent(latestRow?.curtailment_pct)} />
-          <StatTile
-            label="Perda estimada"
-            value={formatBRLCompact(latestRow?.estimated_loss_brl)}
-            note="estimativa pelo PLD"
-          />
-          <StatTile label="Usinas afetadas" value={formatNumber(latestRow?.affected_plants, 0)} />
-        </StatGrid>
+        {summary.ok ? (
+          <StatGrid>
+            <StatTile
+              highlight
+              label="Energia cortada"
+              value={formatEnergy(summary.data.curtailed_mwh)}
+            />
+            <StatTile label="% de corte" value={formatPercent(summary.data.curtailment_pct)} />
+            <StatTile
+              label="Perda estimada"
+              value={formatBRLCompact(summary.data.estimated_loss_brl)}
+              note="estimativa pelo PLD"
+            />
+            <StatTile
+              label="Usinas afetadas"
+              value={formatNumber(summary.data.affected_plants, 0)}
+            />
+          </StatGrid>
+        ) : (
+          <DataUnavailable title="Indicadores indisponíveis" />
+        )}
       </div>
 
       <MonthlyChart
@@ -139,6 +163,7 @@ function SourcePanel({
         unit={energy.unit}
         digits={energy.digits}
         kindOptions={KIND_OPTIONS}
+        periodFilter={false}
       />
 
       <div>
@@ -171,7 +196,9 @@ function SourcePanel({
       <div>
         <h3 className="mb-3 text-lg font-semibold tracking-tight">
           Por que a energia foi cortada{" "}
-          <span className="text-ink-2 font-normal">(todo o período)</span>
+          <span className="text-ink-2 font-normal">
+            ({describePeriod(start, end, formatShortMonth)})
+          </span>
         </h3>
         <ReasonBreakdown
           period={sumReasons(series)}
@@ -183,18 +210,34 @@ function SourcePanel({
   );
 }
 
-export default async function StatePage({ params }: { params: Promise<Params> }) {
+export default async function StatePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { uf: stateCode } = await params;
+  const query = await searchParams;
   const brazilianState = findState(stateCode);
   if (!brazilianState) notFound();
 
+  const rankingMonth = requestedEnd(query);
   const [total, wind, solar] = await Promise.all([
-    getStateCurtailment(brazilianState.state, "total"),
-    getStateCurtailment(brazilianState.state, "wind"),
-    getStateCurtailment(brazilianState.state, "solar"),
+    getStateCurtailment(brazilianState.state, "total", rankingMonth),
+    getStateCurtailment(brazilianState.state, "wind", rankingMonth),
+    getStateCurtailment(brazilianState.state, "solar", rankingMonth),
   ]);
 
-  const months = total.ok ? total.data.series.map((r) => normalizeMonth(r.month)) : [];
+  const months = total.ok ? total.data.series.map((r) => normalizeMonth(r.month)).sort() : [];
+  const firstMonth = months[0] ?? "";
+  const lastMonth = months.at(-1) ?? "";
+  const { start, end } = resolvePeriod(query, firstMonth, lastMonth);
+  const [totalSummary, windSummary, solarSummary] = await Promise.all(
+    (["total", "wind", "solar"] as const).map((source) =>
+      getCurtailmentSummary(brazilianState.state, start, end, source),
+    ),
+  );
 
   return (
     <Container>
@@ -219,6 +262,9 @@ export default async function StatePage({ params }: { params: Promise<Params> })
       </PageHeader>
 
       <Section id="series" title="Série mensal">
+        {firstMonth ? (
+          <DashboardFilters first={firstMonth} last={lastMonth} start={start} end={end} />
+        ) : null}
         <Tabs
           label="Fonte"
           panels={[
@@ -230,6 +276,9 @@ export default async function StatePage({ params }: { params: Promise<Params> })
                   state={brazilianState.state}
                   source="total"
                   result={total}
+                  start={start}
+                  end={end}
+                  summary={totalSummary!}
                   stateName={brazilianState.name}
                   stacked={
                     wind.ok || solar.ok
@@ -249,6 +298,9 @@ export default async function StatePage({ params }: { params: Promise<Params> })
                 <SourcePanel
                   source="wind"
                   result={wind}
+                  start={start}
+                  end={end}
+                  summary={windSummary!}
                   stateName={brazilianState.name}
                   state={brazilianState.state}
                 />
@@ -261,6 +313,9 @@ export default async function StatePage({ params }: { params: Promise<Params> })
                 <SourcePanel
                   source="solar"
                   result={solar}
+                  start={start}
+                  end={end}
+                  summary={solarSummary!}
                   stateName={brazilianState.name}
                   state={brazilianState.state}
                 />

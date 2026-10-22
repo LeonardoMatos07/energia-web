@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { GENERATION_COLORS, SERIES } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
+import { DashboardFilters } from "@/components/kpi-filters";
 import { ReasonBreakdown, sumReasons } from "@/components/reason-breakdown";
 import {
   Badge,
@@ -31,6 +32,7 @@ import {
 } from "@/lib/format";
 import { findState, subsystemName } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
+import { describePeriod, resolvePeriod } from "@/lib/period";
 import { normalizeMonth, pickEnergyUnit, sortByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
@@ -113,8 +115,15 @@ function comparisonText(latestRow: PlantMonthlyCurtailment, state: string): stri
     : `${formatNumber(-diff, 1)} pontos percentuais abaixo da média das usinas da mesma fonte em ${state}.`;
 }
 
-export default async function PlantPage({ params }: { params: Promise<Params> }) {
+export default async function PlantPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { slug } = await params;
+  const query = await searchParams;
   const result = await getPlant(slug);
 
   if (!result.ok) {
@@ -142,22 +151,37 @@ export default async function PlantPage({ params }: { params: Promise<Params> })
   const brazilianState = findState(plant.state);
   const isCluster = plant.kind === "cluster";
 
+  const months = series.map((r) => normalizeMonth(r.month));
+  const firstMonth = months[0] ?? "";
+  const lastMonth = months.at(-1) ?? "";
+  const { start, end } = resolvePeriod(query, firstMonth, lastMonth);
+  const visible = series.filter((r) => {
+    const month = normalizeMonth(r.month);
+    return month >= start && month <= end;
+  });
+  const visibleLatest = visible.at(-1);
+  const singleMonth = start === end;
+
   const energy = pickEnergyUnit(
-    Math.max(0, ...series.map((r) => r.verified_generation_mwh + r.curtailed_mwh)),
+    Math.max(0, ...visible.map((r) => r.verified_generation_mwh + r.curtailed_mwh)),
   );
-  const generationRows = series.map((r) => ({
+  const generationRows = visible.map((r) => ({
     month: normalizeMonth(r.month),
     verified: r.verified_generation_mwh / energy.divisor,
     curtailed: r.curtailed_mwh / energy.divisor,
   }));
-  const comparisonRows = series.map((r) => ({
+  const comparisonRows = visible.map((r) => ({
     month: normalizeMonth(r.month),
     plant: r.curtailment_pct,
     stateAverage: r.state_avg_curtailment_pct,
   }));
-  const totalCurtailed = series.reduce((s, r) => s + r.curtailed_mwh, 0);
-  const totalLoss = series.reduce((s, r) => s + (r.estimated_loss_brl ?? 0), 0);
-  const hasLoss = series.some((r) => r.estimated_loss_brl !== null);
+  const periodCurtailed = visible.reduce((s, r) => s + r.curtailed_mwh, 0);
+  const periodVerified = visible.reduce((s, r) => s + r.verified_generation_mwh, 0);
+  const potential = periodCurtailed + periodVerified;
+  const periodPct = potential > 0 ? (periodCurtailed / potential) * 100 : null;
+  const hasLoss = visible.some((r) => r.estimated_loss_brl !== null);
+  const periodLoss = hasLoss ? visible.reduce((s, r) => s + (r.estimated_loss_brl ?? 0), 0) : null;
+  const periodHours = visible.reduce((s, r) => s + r.restricted_hours, 0);
 
   return (
     <Container>
@@ -209,100 +233,110 @@ export default async function PlantPage({ params }: { params: Promise<Params> })
         </DataUnavailable>
       ) : (
         <>
-          <Section
-            id="latest-month"
-            title={`Último mês com dados: ${formatLongMonth(latestRow.month)}`}
-          >
-            <StatGrid>
-              <StatTile
-                highlight
-                label="Energia cortada"
-                value={formatEnergy(latestRow.curtailed_mwh)}
-              />
-              <StatTile
-                label="% de corte"
-                value={formatPercent(latestRow.curtailment_pct)}
-                note={`média ${formatSource(plant.source).toLowerCase()} ${plant.state}: ${formatPercent(latestRow.state_avg_curtailment_pct)}`}
-              />
-              <StatTile
-                label="Perda estimada"
-                value={formatBRLCompact(latestRow.estimated_loss_brl)}
-                note={
-                  latestRow.price_basis
-                    ? `base: ${PRICE_BASIS_LABEL[latestRow.price_basis] ?? latestRow.price_basis}`
-                    : "estimativa"
-                }
-              />
-              <StatTile
-                label="Horas com restrição"
-                value={`${formatNumber(latestRow.restricted_hours, 1)} h`}
-                note={
-                  latestRow.national_rank
-                    ? `${latestRow.national_rank}º no Brasil · ${latestRow.state_rank ?? EMPTY}º em ${plant.state}`
-                    : undefined
-                }
-              />
-            </StatGrid>
-            <p className="text-ink-2 mt-3 text-sm">
-              No período todo: {formatEnergy(totalCurtailed)} cortados
-              {hasLoss ? `, perda estimada de ${formatBRLCompact(totalLoss)}` : ""}.
-            </p>
+          <Section id="latest-month" title={describePeriod(start, end, formatLongMonth)}>
+            <DashboardFilters first={firstMonth} last={lastMonth} start={start} end={end} />
+            {visibleLatest ? (
+              <StatGrid>
+                <StatTile highlight label="Energia cortada" value={formatEnergy(periodCurtailed)} />
+                <StatTile
+                  label="% de corte"
+                  value={formatPercent(periodPct)}
+                  note={
+                    singleMonth
+                      ? `média ${formatSource(plant.source).toLowerCase()} ${plant.state}: ${formatPercent(visibleLatest.state_avg_curtailment_pct)}`
+                      : "cortada ÷ (gerada + cortada)"
+                  }
+                />
+                <StatTile
+                  label="Perda estimada"
+                  value={formatBRLCompact(periodLoss)}
+                  note={
+                    visibleLatest.price_basis
+                      ? `base: ${PRICE_BASIS_LABEL[visibleLatest.price_basis] ?? visibleLatest.price_basis}`
+                      : "estimativa"
+                  }
+                />
+                <StatTile
+                  label="Horas com restrição"
+                  value={`${formatNumber(periodHours, 1)} h`}
+                  note={
+                    singleMonth && visibleLatest.national_rank
+                      ? `${visibleLatest.national_rank}º no Brasil · ${visibleLatest.state_rank ?? EMPTY}º em ${plant.state}`
+                      : undefined
+                  }
+                />
+              </StatGrid>
+            ) : (
+              <DataUnavailable title="Sem dados no período">
+                Escolha outro período para ver {isCluster ? "este conjunto" : "esta usina"}.
+              </DataUnavailable>
+            )}
           </Section>
 
-          <Section
-            id="history"
-            title="Histórico mensal"
-            description="Geração verificada é o que a usina efetivamente entregou; energia cortada é o que ela deixou de gerar por ordem do ONS."
-          >
-            <MonthlyChart
-              title={`Geração verificada e energia cortada por mês (${energy.unit})`}
-              rows={generationRows}
-              unit={energy.unit}
-              digits={energy.digits}
-              kindOptions={STACKED_OR_LINE}
-              series={[
-                {
-                  key: "verified",
-                  label: "Geração verificada",
-                  color: GENERATION_COLORS.verified,
-                },
-                { key: "curtailed", label: "Energia cortada", color: GENERATION_COLORS.curtailed },
-              ]}
-            />
-          </Section>
+          {visibleLatest ? (
+            <>
+              <Section
+                id="history"
+                title="Histórico mensal"
+                description="Geração verificada é o que a usina efetivamente entregou; energia cortada é o que ela deixou de gerar por ordem do ONS."
+              >
+                <MonthlyChart
+                  title={`Geração verificada e energia cortada por mês (${energy.unit})`}
+                  rows={generationRows}
+                  unit={energy.unit}
+                  digits={energy.digits}
+                  kindOptions={STACKED_OR_LINE}
+                  periodFilter={false}
+                  series={[
+                    {
+                      key: "verified",
+                      label: "Geração verificada",
+                      color: GENERATION_COLORS.verified,
+                    },
+                    {
+                      key: "curtailed",
+                      label: "Energia cortada",
+                      color: GENERATION_COLORS.curtailed,
+                    },
+                  ]}
+                />
+              </Section>
 
-          <Section
-            id="comparison"
-            title={`Comparação com a média de ${brazilianState?.name ?? plant.state}`}
-            description={comparisonText(latestRow, plant.state) ?? undefined}
-          >
-            <MonthlyChart
-              title="% de corte por mês: esta usina × média do estado (%)"
-              description={`Média das usinas ${plant.source === "solar" ? "solares" : "eólicas"} de ${plant.state} no mês.`}
-              kind="line"
-              kindOptions={LINE_OR_BAR}
-              rows={comparisonRows}
-              unit="%"
-              digits={1}
-              height={260}
-              series={[
-                {
-                  key: "plant",
-                  label: isCluster ? "Este conjunto" : "Esta usina",
-                  color: SERIES.s1,
-                },
-                { key: "stateAverage", label: `Média ${plant.state}`, color: SERIES.s2 },
-              ]}
-            />
-          </Section>
+              <Section
+                id="comparison"
+                title={`Comparação com a média de ${brazilianState?.name ?? plant.state}`}
+                description={comparisonText(visibleLatest, plant.state) ?? undefined}
+              >
+                <MonthlyChart
+                  title="% de corte por mês: esta usina × média do estado (%)"
+                  description={`Média das usinas ${plant.source === "solar" ? "solares" : "eólicas"} de ${plant.state} no mês.`}
+                  kind="line"
+                  kindOptions={LINE_OR_BAR}
+                  periodFilter={false}
+                  rows={comparisonRows}
+                  unit="%"
+                  digits={1}
+                  height={260}
+                  series={[
+                    {
+                      key: "plant",
+                      label: isCluster ? "Este conjunto" : "Esta usina",
+                      color: SERIES.s1,
+                    },
+                    { key: "stateAverage", label: `Média ${plant.state}`, color: SERIES.s2 },
+                  ]}
+                />
+              </Section>
 
-          <Section id="reasons" title="Por que a energia foi cortada">
-            <ReasonBreakdown
-              period={sumReasons(series)}
-              latestMonth={sumReasons([latestRow])}
-              latestMonthLabel={formatShortMonth(latestRow.month)}
-            />
-          </Section>
+              <Section id="reasons" title="Por que a energia foi cortada">
+                <ReasonBreakdown
+                  period={sumReasons(visible)}
+                  latestMonth={sumReasons([visibleLatest])}
+                  latestMonthLabel={formatShortMonth(visibleLatest.month)}
+                />
+              </Section>
+            </>
+          ) : null}
         </>
       )}
 
