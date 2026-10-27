@@ -167,14 +167,15 @@ export async function forgotPasswordAction(email: string): Promise<ActionResult>
     return { ok: false, code: "invalid", message: "Informe um e-mail válido." };
   }
   try {
-    await apiFetch<MessageResponse>("/v1/auth/forgot-password", {
+    const response = await apiFetch<SignupResponse>("/v1/auth/forgot-password", {
       method: "POST",
       body: { email: email.trim().toLowerCase() },
       headers: await ipHeaders(),
     });
     return {
       ok: true,
-      message: "Se o e-mail estiver cadastrado, enviamos um link para criar uma nova senha.",
+      message: "Se o e-mail estiver cadastrado, enviamos um código de 6 dígitos.",
+      devCode: response.dev_code ?? null,
     };
   } catch (error) {
     return failure(error);
@@ -182,7 +183,8 @@ export async function forgotPasswordAction(email: string): Promise<ActionResult>
 }
 
 export async function resetPasswordAction(input: {
-  token: string;
+  email: string;
+  code: string;
   password: string;
 }): Promise<ActionResult> {
   if (input.password.length < MIN_PASSWORD_LENGTH) {
@@ -195,16 +197,16 @@ export async function resetPasswordAction(input: {
   try {
     await apiFetch<MessageResponse>("/v1/auth/reset-password", {
       method: "POST",
-      body: input,
+      body: { ...input, email: input.email.trim().toLowerCase() },
       headers: await ipHeaders(),
     });
     return { ok: true, message: "Senha atualizada. Agora é só entrar." };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 400) {
+    if (error instanceof ApiError && (error.status === 400 || error.status === 422)) {
       return {
         ok: false,
         code: "invalid",
-        message: "Este link venceu ou já foi usado. Peça um novo em “Esqueci a senha”.",
+        message: "Código incorreto ou vencido. Confira os 6 dígitos ou peça um novo código.",
       };
     }
     return failure(error);

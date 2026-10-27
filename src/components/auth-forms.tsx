@@ -74,48 +74,19 @@ export function LoginForm({ next }: { next?: string }) {
   );
 }
 
-export function ForgotPasswordForm() {
+const CODE_LENGTH = 6;
+
+export function RecoverPasswordForm() {
   const [email, setEmail] = useState("");
-  const [result, setResult] = useState<ActionResult | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  return (
-    <form
-      className="space-y-4"
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        startTransition(async () => setResult(await forgotPasswordAction(email)));
-      }}
-    >
-      <Field id="email" label="E-mail do cadastro" required>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          className={inputClass}
-        />
-      </Field>
-      {result ? (
-        <FormMessage status={result.ok ? "success" : "error"}>{result.message}</FormMessage>
-      ) : null}
-      <button type="submit" disabled={pending} className={primaryButton}>
-        {pending ? "Enviando…" : "Enviar link"}
-      </button>
-    </form>
-  );
-}
-
-export function ResetPasswordForm({ token }: { token: string }) {
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [result, setResult] = useState<ActionResult | null>(null);
   const [pending, startTransition] = useTransition();
 
-  if (result?.ok) {
+  if (result?.ok && step === "code") {
     return (
       <div className="space-y-4">
         <FormMessage status="success">{result.message}</FormMessage>
@@ -126,19 +97,84 @@ export function ResetPasswordForm({ token }: { token: string }) {
     );
   }
 
+  if (step === "email") {
+    return (
+      <form
+        className="space-y-4"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          startTransition(async () => {
+            const response = await forgotPasswordAction(email);
+            if (response.ok) {
+              setDevCode(response.devCode ?? null);
+              setResult(null);
+              setStep("code");
+            } else {
+              setResult(response);
+            }
+          });
+        }}
+      >
+        <Field id="email" label="E-mail do cadastro" required>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            className={inputClass}
+          />
+        </Field>
+        {result ? <FormMessage status="error">{result.message}</FormMessage> : null}
+        <button type="submit" disabled={pending} className={primaryButton}>
+          {pending ? "Enviando…" : "Enviar código"}
+        </button>
+      </form>
+    );
+  }
+
   return (
     <form
       className="space-y-4"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
+        if (code.length !== CODE_LENGTH) {
+          setResult({ ok: false, code: "invalid", message: "Digite os 6 dígitos do código." });
+          return;
+        }
         if (password !== confirm) {
           setResult({ ok: false, code: "invalid", message: "As senhas não conferem." });
           return;
         }
-        startTransition(async () => setResult(await resetPasswordAction({ token, password })));
+        startTransition(async () =>
+          setResult(await resetPasswordAction({ email, code, password })),
+        );
       }}
     >
+      <p className="text-ink-2 text-sm">
+        Se <strong>{email}</strong> tiver cadastro, enviamos um código de 6 dígitos. Ele vale por 30
+        minutos.
+      </p>
+      {devCode ? (
+        <FormMessage status="success">
+          Ambiente de teste: o e-mail não é enviado. Seu código é <strong>{devCode}</strong>.
+        </FormMessage>
+      ) : null}
+      <Field id="code" label="Código de 6 dígitos" required>
+        <input
+          id="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={CODE_LENGTH}
+          value={code}
+          onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH))}
+          className={`${inputClass} max-w-56 text-center text-2xl font-semibold tracking-[0.5em]`}
+          placeholder="••••••"
+        />
+      </Field>
       <Field
         id="password"
         label="Nova senha"
@@ -167,9 +203,22 @@ export function ResetPasswordForm({ token }: { token: string }) {
         />
       </Field>
       {result && !result.ok ? <FormMessage status="error">{result.message}</FormMessage> : null}
-      <button type="submit" disabled={pending} className={primaryButton}>
-        {pending ? "Salvando…" : "Salvar nova senha"}
-      </button>
+      <div className="flex flex-wrap items-center gap-4">
+        <button type="submit" disabled={pending} className={primaryButton}>
+          {pending ? "Salvando…" : "Salvar nova senha"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStep("email");
+            setResult(null);
+            setCode("");
+          }}
+          className="text-accent text-sm font-medium underline"
+        >
+          Pedir outro código
+        </button>
+      </div>
     </form>
   );
 }
