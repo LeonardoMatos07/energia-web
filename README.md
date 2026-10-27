@@ -15,6 +15,8 @@ It is one of four repositories; the contract between them is in
 | **`energy-web`** | Next.js: this portal (ISR) and the admin area          |
 | `energy-infra`   | Terraform (AWS `sa-east-1`)                            |
 
+Design decisions shared by the four repositories are recorded as [ADRs](https://github.com/LeonardoMatos07/energy-api/tree/main/docs/adr).
+
 ## Stack
 
 Next.js 15 (App Router) · React 19 · strict TypeScript · Tailwind CSS 4 · Recharts ·
