@@ -5,6 +5,7 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS } from "@/components/charts/palette";
 import type { ChartSeries } from "@/components/charts/types";
 import { JsonLd } from "@/components/json-ld";
+import { MemberCallout } from "@/components/member-callout";
 import { RankingTable } from "@/components/ranking-table";
 import { ReasonBreakdown, sumReasons } from "@/components/reason-breakdown";
 import { DashboardFilters } from "@/components/kpi-filters";
@@ -41,20 +42,16 @@ import { describePeriod, requestedEnd, resolvePeriod } from "@/lib/period";
 import { latest, normalizeMonth, pickEnergyUnit, pivotByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
-export const dynamic = "force-dynamic";
-
-type Params = { uf: string };
-
 const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { uf: stateCode } = await params;
+export function stateMetadata(stateCode: string, periodVariant = false): Metadata {
   const brazilianState = findState(stateCode);
   if (!brazilianState) return { title: "Estado não encontrado" };
   return pageMetadata({
     title: `Curtailment eólico e solar em ${brazilianState.name} (${brazilianState.state})`,
     description: `Energia eólica e solar cortada por restrições do ONS em ${brazilianState.name}, mês a mês, e as usinas mais afetadas.`,
     path: `/estados/${brazilianState.state.toLowerCase()}`,
+    noIndex: periodVariant,
   });
 }
 
@@ -210,15 +207,13 @@ function SourcePanel({
   );
 }
 
-export default async function StatePage({
-  params,
-  searchParams,
+export async function StateView({
+  stateCode,
+  query,
 }: {
-  params: Promise<Params>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  stateCode: string;
+  query: Record<string, string | string[] | undefined>;
 }) {
-  const { uf: stateCode } = await params;
-  const query = await searchParams;
   const brazilianState = findState(stateCode);
   if (!brazilianState) notFound();
 
@@ -324,6 +319,10 @@ export default async function StatePage({
           ]}
         />
       </Section>
+
+      <div className="pb-6">
+        <MemberCallout />
+      </div>
 
       <Notice>
         Dados de usinas solares só existem a partir de abril de 2024. Os meses mais recentes podem

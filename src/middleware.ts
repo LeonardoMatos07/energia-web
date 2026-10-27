@@ -9,22 +9,7 @@ import {
   VISITOR_MAX_AGE_SECONDS,
   type TrackedEvent,
 } from "@/lib/track-core";
-
-const PROTECTED_PREFIXES = [
-  "/painel",
-  "/estados",
-  "/usinas",
-  "/comparar",
-  "/relatorios",
-  "/analises",
-  "/conta",
-];
-
-function isProtected(pathname: string) {
-  return PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
+import { isProtected, periodRewrite } from "@/lib/route-access";
 
 function isPrefetch(request: NextRequest) {
   const headers = request.headers;
@@ -51,7 +36,14 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
     url.search = `?proximo=${encodeURIComponent(`${pathname}${search}`)}`;
     response = NextResponse.redirect(url);
   } else {
-    response = NextResponse.next();
+    const rewritten = periodRewrite(pathname, searchParams);
+    if (rewritten) {
+      const url = request.nextUrl.clone();
+      url.pathname = rewritten;
+      response = NextResponse.rewrite(url);
+    } else {
+      response = NextResponse.next();
+    }
   }
 
   if (request.method !== "GET" || isPrefetch(request)) return response;

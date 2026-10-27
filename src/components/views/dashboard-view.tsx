@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
+import { MemberCallout } from "@/components/member-callout";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
@@ -18,19 +19,9 @@ import {
   mwhToGwh,
 } from "@/lib/format";
 import { STATES, REGIONS, SUBSYSTEMS } from "@/lib/geo";
-import { pageMetadata } from "@/lib/metadata";
 import { defaultPeriod, filterByMonthRange, normalizeMonth, pivotByMonth } from "@/lib/series";
-import { SITE_DESCRIPTION } from "@/lib/site";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 import { subscribeNewsletter } from "@/app/newsletter/actions";
-
-export const revalidate = 3600;
-
-export const metadata = pageMetadata({
-  title: "Painel nacional de curtailment eólico e solar",
-  description: SITE_DESCRIPTION,
-  path: "/painel",
-});
 
 const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
@@ -62,12 +53,7 @@ function parsePeriod(params: SearchParams, firstMonth: string, lastMonth: string
   return valid ? { start: from, end: to } : defaultPeriod(firstMonth, lastMonth);
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const params = await searchParams;
+export async function DashboardView({ params }: { params: SearchParams }) {
   const [total, wind, solar] = await Promise.all([
     getSubsystemCurtailment("total"),
     getSubsystemCurtailment("wind"),
@@ -230,6 +216,10 @@ export default async function DashboardPage({
           </Section>
         </>
       )}
+
+      <div className="py-2">
+        <MemberCallout />
+      </div>
 
       <Section
         id="states"
