@@ -35,23 +35,50 @@ Portuguese, and so are the public URLs, including their query parameters (`/usin
 
 ## Pages
 
-| Route                                               | Content                                                                                                                                                                                                                                                                                                                                            | API                              |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `/`                                                 | National dashboard: monthly curtailment by source and subsystem, latest month, states, newsletter                                                                                                                                                                                                                                                  | `/v1/curtailment/subsystems`     |
-| `/estados`, `/estados/[uf]`                         | State monthly series (total/wind/solar), plant ranking, reasons                                                                                                                                                                                                                                                                                    | `/v1/curtailment/states/{state}` |
-| `/usinas`                                           | Search with state and source filters, paginated                                                                                                                                                                                                                                                                                                    | `/v1/plants`                     |
-| `/usinas/[slug]`                                    | Registry data, history (verified × curtailed), reasons, comparison with the state average, cluster ↔ plants                                                                                                                                                                                                                                        | `/v1/plants/{slug}`              |
-| `/comparar`                                         | Comparador em 3 passos: escolher até 6 itens (estados, subsistemas, usinas), escolher livremente as métricas (geração, energia cortada, perda em R$, % de corte) e ver em linhas, barras ou pizza, comparando os itens ou cada item separado. Tudo fica na URL: `?itens=u:<slug>,e:<UF>,s:<id>&metricas=gerado,cortado,perda,percentual&modo=itens | separado&grafico=linhas          | barras | pizza` | `/v1/plants/{slug}`, `/v1/curtailment/*` |
-| `/relatorios`, `/relatorios/[slug]`                 | Monthly reports (sanitized Markdown)                                                                                                                                                                                                                                                                                                               | `/v1/reports`                    |
-| `/metodologia`                                      | Sources, allocation, BRL loss, limitations, privacy                                                                                                                                                                                                                                                                                                | —                                |
-| `/newsletter/confirmar`, `/newsletter/descadastrar` | Read `?token=` and call the API                                                                                                                                                                                                                                                                                                                    | `/v1/newsletter/*`               |
-| `/admin`                                            | Pipeline loads, create/publish reports, revalidate the cache                                                                                                                                                                                                                                                                                       | `/v1/admin/*`                    |
-| `GET /api/search?q=`                                | Busca de usinas para o seletor da página de comparação                                                                                                                                                                                                                                                                                             | `/v1/plants`                     |
-| `POST /api/revalidate`                              | On-demand revalidation (called by the API)                                                                                                                                                                                                                                                                                                         | —                                |
+Public pages (no account, indexable, rendered with ISR):
 
-SEO: `sitemap.xml` (fixed pages, states, reports and every plant; it tolerates the API being
-down), `robots.txt`, per-page metadata (title, description, canonical, Open Graph) and JSON-LD
-(`Dataset` on the data pages, `Article` on reports).
+| Route                               | Content                                                                                   | API                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
+| `/`                                 | Landing page: headline, national numbers of the latest month, what a free account unlocks | `/v1/curtailment/subsystems`     |
+| `/painel`                           | National dashboard: period filter, indicators, monthly series by source and subsystem     | `/v1/curtailment/subsystems`     |
+| `/estados`, `/estados/[uf]`         | State monthly series (total/wind/solar), plant ranking, reasons                           | `/v1/curtailment/states/{state}` |
+| `/usinas`                           | Search with state and source filters, paginated (dynamic: it reads the query string)      | `/v1/plants`                     |
+| `/usinas/[slug]`                    | Registry data, history (verified × curtailed), reasons, comparison with the state average | `/v1/plants/{slug}`              |
+| `/relatorios`, `/relatorios/[slug]` | Monthly reports (sanitized Markdown), all years in the HTML with a year selector          | `/v1/reports`                    |
+| `/metodologia`, `/privacidade`      | Methodology and privacy policy                                                            | —                                |
+| `/cadastro`, `/entrar`              | Sign-up (profile, 6-digit e-mail code), login, password reset (`/esqueci-a-senha`)        | `/v1/auth/*`                     |
+| `/newsletter/*`                     | Confirm and unsubscribe (`?token=`)                                                       | `/v1/newsletter/*`               |
+
+Pages that need a free account (`src/app/(membros)`):
+
+| Route       | Content                                                                                                                                         | API                                        |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `/comparar` | Up to 6 items (states, subsystems, plants), any metrics, as lines, bars or pie. The whole state is in the URL (`?itens=…&metricas=…&grafico=…`) | `/v1/plants/{slug}`, `/v1/curtailment/*`   |
+| `/analises` | Compensable share of the cut, ranking by company and connection point, hourly profile                                                           | `/v1/rankings/*`, `/v1/curtailment/hourly` |
+| `/conta`    | Profile and account deletion                                                                                                                    | `/v1/auth/me`                              |
+
+Other routes: `/admin` and `/admin/uso` (Cognito admin: loads, reports, cache, usage statistics),
+`GET /api/search?q=` (plant search for the compare page), `GET /api/session`, `POST /api/track`
+(usage events) and `POST /api/revalidate` (called by the API).
+
+Public pages show a call to action ("Crie uma conta grátis para comparar usinas, ver a série
+horária e exportar") to visitors without a session; it disappears when `/api/session` says there is
+one.
+
+### SEO
+
+- `sitemap.xml`: the fixed pages, the 27 states, every report and every plant (paginated through
+  the API). Each source is read independently: if the API is down, the reports and the plants are
+  left out and the sitemap still lists the fixed pages and the states. It is regenerated every
+  hour, so a failure does not stay for long.
+- `robots.txt`: allows everything except `/admin`, `/api/`, the token pages and the pages that
+  need an account.
+- Per-page metadata (title, description, canonical, Open Graph) through `pageMetadata`, and JSON-LD
+  (`Dataset` on the dashboard, state and plant pages, `Article` on reports).
+- A custom period (`?de=2026-01&ate=2026-06`) on `/painel`, `/estados/[uf]` and `/usinas/[slug]`
+  is rendered by a dynamic variant (`…/periodo`, selected by the middleware with a rewrite, the URL
+  does not change). The variant is `noindex` and its canonical URL is the page without a period, so
+  Google only indexes the static page.
 
 ## Running
 
@@ -114,8 +141,8 @@ Every API call goes through `src/lib/api/client.ts`, on the server, with
 - `reports`: reports.
 
 Responses stay in the data cache for up to a day; pages are regenerated at most every hour
-(reusing the cache), so a page generated while the API was down recovers on its own. Dynamic
-pages (`/estados/[uf]`, `/usinas/[slug]`, `/relatorios/[slug]`) are not generated at build
+(reusing the cache), so a page generated while the API was down recovers on its own. The pages
+with a route parameter (`/estados/[uf]`, `/usinas/[slug]`, `/relatorios/[slug]`) are not generated at build
 time: each one is rendered on first access and then cached. That is why the build does not
 depend on the API.
 
@@ -152,8 +179,14 @@ signs in again.
 
 ## Privacy
 
-No public sign-in and no tracking cookies. The newsletter only stores the e-mail address, with
-explicit consent (LGPD), e-mail confirmation (double opt-in) and one-click unsubscribe.
+The data pages are open; comparing, the hourly series and exports need a free account (see below).
+The site stores: the newsletter e-mail (double opt-in, one-click unsubscribe); the account profile
+(password only as a scrypt hash, e-mail verified with a 6-digit code); and a usage log
+(`usage_event`: pages, filters, searches, comparisons, clicks, time on page; IP only as a keyed
+hash). Own cookies only, no third parties: `spillway_vid` (visitor, 1 year), `spillway_sid` (visit,
+30 minutes) and `spillway_session` (login, up to 14 days). Visitors without an account who send
+Do Not Track or Global Privacy Control are not measured. The wording lives in
+`src/app/privacidade/page.tsx` and must be updated with any change to what is collected.
 
 ## CI and deployment
 
@@ -184,14 +217,17 @@ with required reviewers. Set the runtime variables above on Vercel (`API_URL`,
 
 ## Accounts and gated pages
 
-The dashboard, states, plants, compare, reports, analyses and account pages sit in the
-`src/app/(membros)` route group and need a free account. The landing page, sign-up, login,
-methodology and privacy pages are public.
+Only `/comparar`, `/analises` and `/conta` (the `src/app/(membros)` route group) need a free
+account. Everything else, including the dashboard, states, plants and reports, is public and static
+so search engines can index it.
 
-- `src/middleware.ts` redirects to `/entrar?proximo=...` when the `spillway_session` cookie is
-  missing; the group layout then validates the session against the API (`/v1/auth/me`), so a
-  forged cookie is rejected too. Pages in the group are dynamic on purpose.
+- `src/middleware.ts` redirects those three prefixes to `/entrar?proximo=...` when the
+  `spillway_session` cookie is missing (`src/lib/route-access.ts` holds the list); the group layout
+  then validates the session against the API (`/v1/auth/me`), so a forged cookie is rejected too.
+  The group is dynamic on purpose. The middleware also records every page view (`page.view`, or
+  `page.gated` for a blocked visit).
+- Public pages must not read cookies or headers, or they stop being static. The header and the
+  call to action read the session in the browser through `/api/session` (`src/lib/session-store.ts`).
 - Sign-up, login, logout, password reset and account deletion are server actions in
   `src/lib/auth-actions.ts`. The session token lives in an `httpOnly` cookie.
-- The header reads `/api/session` after load, so public pages stay static.
 - Data routes of the API are still public: the gate captures leads, it does not protect the data.

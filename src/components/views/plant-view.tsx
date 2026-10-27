@@ -6,6 +6,7 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { GENERATION_COLORS, SERIES } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { DashboardFilters } from "@/components/kpi-filters";
+import { MemberCallout } from "@/components/member-callout";
 import { ReasonBreakdown, sumReasons } from "@/components/reason-breakdown";
 import {
   Badge,
@@ -36,10 +37,6 @@ import { describePeriod, resolvePeriod } from "@/lib/period";
 import { normalizeMonth, pickEnergyUnit, sortByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
 
-export const dynamic = "force-dynamic";
-
-type Params = { slug: string };
-
 const STACKED_OR_LINE = ["stacked-bar", "line"] as const;
 const LINE_OR_BAR = ["line", "bar"] as const;
 
@@ -50,8 +47,7 @@ const PRICE_BASIS_LABEL: Record<string, string> = {
   CMO_FILLED: "CMO (com lacunas preenchidas)",
 };
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function plantMetadata(slug: string, periodVariant = false): Promise<Metadata> {
   const result = await getPlant(slug);
   if (!result.ok) {
     return result.error.isNotFound
@@ -65,6 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     title: `${plant.name} — curtailment ${formatSource(plant.source).toLowerCase()}`,
     description: `${kind} ${formatSource(plant.source).toLowerCase()} em ${brazilianState?.name ?? plant.state}: energia cortada pelo ONS mês a mês, motivos da restrição e comparação com a média do estado.`,
     path: `/usinas/${plant.slug}`,
+    noIndex: periodVariant,
   });
 }
 
@@ -115,15 +112,13 @@ function comparisonText(latestRow: PlantMonthlyCurtailment, state: string): stri
     : `${formatNumber(-diff, 1)} pontos percentuais abaixo da média das usinas da mesma fonte em ${state}.`;
 }
 
-export default async function PlantPage({
-  params,
-  searchParams,
+export async function PlantView({
+  slug,
+  query,
 }: {
-  params: Promise<Params>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  slug: string;
+  query: Record<string, string | string[] | undefined>;
 }) {
-  const { slug } = await params;
-  const query = await searchParams;
   const result = await getPlant(slug);
 
   if (!result.ok) {
@@ -374,6 +369,10 @@ export default async function PlantPage({
           <DataItem term="Atualizado em">{formatDate(plant.updated_at)}</DataItem>
         </dl>
       </Section>
+
+      <div className="pb-6">
+        <MemberCallout />
+      </div>
 
       <Notice>
         {cluster

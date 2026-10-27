@@ -10,9 +10,13 @@ import { pageMetadata } from "@/lib/metadata";
 import { absoluteUrl } from "@/lib/site";
 import { publisher } from "@/lib/structured-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 type Params = { slug: string };
+
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;

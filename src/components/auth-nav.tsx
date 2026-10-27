@@ -2,28 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { logoutAction } from "@/lib/auth-actions";
-
-type SessionState = { member: { name: string; email: string } | null } | null;
+import { refreshSession, useSession } from "@/lib/session-store";
 
 export function AuthNav() {
-  const [session, setSession] = useState<SessionState>(null);
+  const session = useSession();
   const pathname = usePathname();
 
   useEffect(() => {
-    let active = true;
-    fetch("/api/session", { cache: "no-store" })
-      .then((response) => response.json() as Promise<SessionState>)
-      .then((body) => {
-        if (active) setSession(body);
-      })
-      .catch(() => {
-        if (active) setSession({ member: null });
-      });
-    return () => {
-      active = false;
-    };
+    void refreshSession();
   }, [pathname]);
 
   if (session === null) return <div className="h-9 w-40" aria-hidden />;
