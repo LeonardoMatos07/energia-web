@@ -793,7 +793,8 @@ export interface components {
             password: string;
         };
         PasswordReset: {
-            token: string;
+            email: string;
+            code: string;
             password: string;
         };
         Plant: {
@@ -1731,7 +1732,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["SignupResponse"];
                 };
             };
             422: {
