@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemberNewsletter } from "./member-newsletter";
 
 const setMemberNewsletter = vi.hoisted(() => vi.fn());
@@ -7,6 +7,8 @@ const refresh = vi.hoisted(() => vi.fn());
 
 vi.mock("@/app/newsletter/actions", () => ({ setMemberNewsletter }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+
+afterEach(cleanup);
 
 beforeEach(() => {
   setMemberNewsletter.mockReset();
