@@ -26,21 +26,22 @@ describe("MemberNewsletter", () => {
     fireEvent.click(screen.getByRole("button", { name: /Receber a newsletter mensal/ }));
 
     await waitFor(() => expect(setMemberNewsletter).toHaveBeenCalledWith(true));
-    expect(
-      await screen.findByText(/Você recebe a newsletter mensal no seu e-mail cadastrado/),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByText("Você habilitou a newsletter mensal.")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("lets a subscribed member cancel", async () => {
-    setMemberNewsletter.mockResolvedValue({ ok: true, enabled: false });
+  it("only says so once the member has enabled it, with no way to cancel here", () => {
+    render(<MemberNewsletter enabled />);
+
+    expect(screen.getByText("Você habilitou a newsletter mensal.")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("says so in the card variant too", () => {
     render(<MemberNewsletter enabled variant="card" />);
-
-    fireEvent.click(screen.getByRole("button", { name: /Cancelar/ }));
-
-    await waitFor(() => expect(setMemberNewsletter).toHaveBeenCalledWith(false));
-    expect(await screen.findByRole("button", { name: /Receber/ })).toBeInTheDocument();
+    expect(screen.getByText("Você habilitou a newsletter mensal.")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("shows the problem and keeps the state when saving fails", async () => {

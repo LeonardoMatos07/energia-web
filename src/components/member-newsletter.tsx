@@ -33,23 +33,33 @@ export function MemberNewsletter({
 
   const button =
     "rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-60 disabled:cursor-wait";
+  const message = error ? (
+    <p role="alert" className="text-danger text-sm">
+      {error}
+    </p>
+  ) : null;
+
+  if (enabled) {
+    const done = (
+      <p role="status" className="text-ink flex items-center gap-2 text-sm font-medium">
+        <span aria-hidden="true" className="text-accent">
+          ✓
+        </span>
+        Você habilitou a newsletter mensal.
+      </p>
+    );
+    if (variant === "card") {
+      return <div className="border-grid bg-accent-soft rounded-2xl border p-5 sm:p-6">{done}</div>;
+    }
+    return done;
+  }
+
   const status = (
     <p role="status" className="text-ink-2 text-sm">
-      {enabled
-        ? "Você recebe a newsletter mensal no seu e-mail cadastrado."
-        : "Uma newsletter por mês, grátis, no seu e-mail cadastrado."}
+      Uma newsletter por mês, grátis, no seu e-mail cadastrado.
     </p>
   );
-  const action = enabled ? (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => toggle(false)}
-      className={`${button} border-line bg-surface/80 hover:border-accent border`}
-    >
-      {pending ? "Salvando…" : "Cancelar a newsletter mensal"}
-    </button>
-  ) : (
+  const action = (
     <button
       type="button"
       disabled={pending}
@@ -60,11 +70,6 @@ export function MemberNewsletter({
       {pending ? "Salvando…" : "Receber a newsletter mensal"}
     </button>
   );
-  const message = error ? (
-    <p role="alert" className="text-danger text-sm">
-      {error}
-    </p>
-  ) : null;
 
   if (variant === "card") {
     return (
