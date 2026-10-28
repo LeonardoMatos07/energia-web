@@ -25,7 +25,7 @@ export interface ReliabilitySeries {
 }
 
 // Hex literals (not CSS variables) so both lines stay distinct in every theme.
-export const RELIABILITY_COLORS = { model: "#14b8a6", baseline: "#f59e0b" } as const;
+export const RELIABILITY_COLORS = { model: "#2dd4bf", baseline: "#fbbf24" } as const;
 
 const TICKS = [0, 25, 50, 75, 100];
 
@@ -50,11 +50,10 @@ export function ReliabilityChart({
                 x2="26"
                 y1="6"
                 y2="6"
-                stroke={item.color}
-                strokeWidth="3"
+                style={{ stroke: item.color, strokeWidth: 3 }}
                 strokeDasharray={item.dashed ? "5 3" : undefined}
               />
-              <circle cx="14" cy="6" r="3.5" fill={item.color} />
+              <circle cx="14" cy="6" r="3.5" style={{ fill: item.color }} />
             </svg>
             <span className="text-ink-2">
               <strong className="text-ink">{item.label}.</strong> {item.description}
@@ -68,8 +67,7 @@ export function ReliabilityChart({
               x2="26"
               y1="6"
               y2="6"
-              stroke={CHART_INK.axis}
-              strokeWidth="1.5"
+              style={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
               strokeDasharray="4 3"
             />
           </svg>
@@ -131,8 +129,10 @@ export function ReliabilityChart({
                   { x: 0, y: 0 },
                   { x: 100, y: 100 },
                 ]}
-                stroke={CHART_INK.baseline}
-                strokeDasharray="4 4"
+                stroke="#e2e8f0"
+                strokeOpacity={0.8}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
               />
               <Tooltip
                 content={(props) => {
@@ -161,7 +161,8 @@ export function ReliabilityChart({
                   stroke={item.color}
                   strokeWidth={2.5}
                   strokeDasharray={item.dashed ? "6 4" : undefined}
-                  dot={{ r: 4, fill: item.color, stroke: item.color }}
+                  dot={{ r: 4, fill: item.color, stroke: item.color, strokeWidth: 1 }}
+                  activeDot={{ r: 6, fill: item.color }}
                   isAnimationActive={false}
                 />
               ))}
