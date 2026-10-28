@@ -31,7 +31,10 @@ export async function proxyDownload(path: string): Promise<Response> {
           : "Download indisponível no momento.";
     return Response.json({ detail: message }, { status });
   }
-  const out = new Headers({ "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" });
+  const out = new Headers({
+    "Cache-Control": "private, no-store",
+    "X-Content-Type-Options": "nosniff",
+  });
   for (const name of PASSED_HEADERS) {
     const value = upstream.headers.get(name);
     if (value) out.set(name, value);

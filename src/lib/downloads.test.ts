@@ -41,7 +41,13 @@ describe("parseAnalysisDownload", () => {
 
 describe("analysisApiPath", () => {
   it("maps formats to the API's files", () => {
-    const base = { table: "summary", scope: "SIN", source: "total", start: "2026-01", end: "2026-09" } as const;
+    const base = {
+      table: "summary",
+      scope: "SIN",
+      source: "total",
+      start: "2026-01",
+      end: "2026-09",
+    } as const;
     expect(analysisApiPath({ ...base, format: "pdf" })).toBe(
       "/v1/exports/analysis.pdf?scope=SIN&source=total&start=2026-01&end=2026-09",
     );
@@ -59,8 +65,14 @@ describe("analysisApiPath", () => {
 
 describe("analysisDownloadHref", () => {
   it("carries the filters of the page", () => {
-    const href = analysisDownloadHref("csv", { scope: "NE", source: "wind", start: "2026-01", end: "2026-02" }, "hourly");
-    expect(href).toBe("/api/baixar/analise?formato=csv&fonte=wind&de=2026-01&ate=2026-02&escopo=NE&tabela=hourly");
+    const href = analysisDownloadHref(
+      "csv",
+      { scope: "NE", source: "wind", start: "2026-01", end: "2026-02" },
+      "hourly",
+    );
+    expect(href).toBe(
+      "/api/baixar/analise?formato=csv&fonte=wind&de=2026-01&ate=2026-02&escopo=NE&tabela=hourly",
+    );
   });
 });
 
