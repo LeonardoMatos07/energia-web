@@ -1,6 +1,7 @@
 import { ENTITY_COLORS } from "@/components/charts/palette";
 import { Comparator } from "@/components/compare/comparator";
 import { EntityPicker, type PickerItem } from "@/components/compare/entity-picker";
+import { ExploreTabs } from "@/components/explore-tabs";
 import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
 import type { StateCurtailmentResponse, SubsystemCurtailmentResponse } from "@/lib/api/types";
@@ -146,7 +147,8 @@ export default async function ComparePage({
 
   return (
     <Container>
-      <PageHeader eyebrow="Comparar" title="Compare usinas, estados e subsistemas">
+      <ExploreTabs active="comparar" />
+      <PageHeader title="Compare usinas, estados e subsistemas">
         <p>
           Em três passos: escolha os itens (estados, subsistemas ou usinas), escolha o que medir
           (geração, energia cortada, perda em R$ ou % de corte) e veja o resultado em linhas, barras

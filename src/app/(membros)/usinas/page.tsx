@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExploreTabs } from "@/components/explore-tabs";
 import { Badge, Container, DataUnavailable, PageHeader } from "@/components/ui";
 import { getPlants, type PlantFilters } from "@/lib/api/queries";
 import type { Source } from "@/lib/api/types";
@@ -54,6 +55,7 @@ export default async function PlantsPage({
 
   return (
     <Container>
+      <ExploreTabs active="usinas" />
       <PageHeader title="Usinas e conjuntos">
         <p>
           Busque pelo nome. Conjuntos reúnem várias usinas ligadas ao mesmo ponto da rede — o ONS

@@ -28,7 +28,7 @@ export interface ApiFetchOptions {
   tags?: CacheTag[];
   revalidate?: number;
   noStore?: boolean;
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   accessToken?: string;
   headers?: Record<string, string>;
