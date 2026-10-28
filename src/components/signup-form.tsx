@@ -203,6 +203,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function SignupForm({ source = "cadastro" }: { source?: string }) {
   const [values, setValues] = useState<FormValues>(INITIAL);
   const [error, setError] = useState<string | null>(null);
+  const [exists, setExists] = useState(false);
   const [done, setDone] = useState<{ devCode: string | null } | null>(null);
   const [pending, startTransition] = useTransition();
   const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
@@ -244,7 +245,12 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
     startTransition(async () => {
       const result = await signUpAction(payload);
       if (result.ok) setDone({ devCode: result.devCode ?? null });
-      else {
+      else if (result.code === "exists") {
+        setError(null);
+        setExists(true);
+        trackEvent("signup.exists");
+      } else {
+        setExists(false);
         setError(result.message);
         trackEvent("signup.error", { message: result.message });
       }
@@ -481,6 +487,19 @@ export function SignupForm({ source = "cadastro" }: { source?: string }) {
             <span className="text-danger">*</span>
           </span>
         </label>
+        {exists ? (
+          <FormMessage status="error">
+            Já existe uma conta com este e-mail.{" "}
+            <Link href="/entrar" className="underline">
+              Entrar
+            </Link>{" "}
+            ou{" "}
+            <Link href="/esqueci-a-senha" className="underline">
+              recuperar a senha
+            </Link>
+            .
+          </FormMessage>
+        ) : null}
         {error ? <FormMessage status="error">{error}</FormMessage> : null}
         <div className="flex flex-wrap items-center gap-4">
           <button type="submit" disabled={pending} className={primaryButton}>
