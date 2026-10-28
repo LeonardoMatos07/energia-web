@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CHART_INK, SERIES } from "@/components/charts/palette";
+import { CHART_INK } from "@/components/charts/palette";
 import type { CalibrationPoint } from "@/lib/forecast";
 import { formatNumber } from "@/lib/format";
 
@@ -19,10 +19,13 @@ export interface ReliabilitySeries {
   key: string;
   label: string;
   color: string;
+  description: string;
+  dashed?: boolean;
   points: CalibrationPoint[];
 }
 
-export const RELIABILITY_COLORS = { model: SERIES.s3, baseline: SERIES.s2 } as const;
+// Hex literals (not CSS variables) so both lines stay distinct in every theme.
+export const RELIABILITY_COLORS = { model: "#14b8a6", baseline: "#f59e0b" } as const;
 
 const TICKS = [0, 25, 50, 75, 100];
 
@@ -38,25 +41,43 @@ export function ReliabilityChart({
 
   return (
     <figure className="border-grid bg-surface shadow-card rounded-2xl border p-4 sm:p-6">
-      <figcaption className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+      <figcaption className="mb-4 grid gap-3 sm:grid-cols-3">
         {series.map((item) => (
-          <span key={item.key} className="text-ink-2 flex items-center gap-2 text-sm">
-            <span
-              aria-hidden
-              className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ background: item.color }}
-            />
-            {item.label}
-          </span>
+          <div key={item.key} className="flex items-start gap-3 text-sm">
+            <svg aria-hidden width="28" height="12" className="mt-1.5 shrink-0">
+              <line
+                x1="2"
+                x2="26"
+                y1="6"
+                y2="6"
+                stroke={item.color}
+                strokeWidth="3"
+                strokeDasharray={item.dashed ? "5 3" : undefined}
+              />
+              <circle cx="14" cy="6" r="3.5" fill={item.color} />
+            </svg>
+            <span className="text-ink-2">
+              <strong className="text-ink">{item.label}.</strong> {item.description}
+            </span>
+          </div>
         ))}
-        <span className="text-ink-2 flex items-center gap-2 text-sm">
-          <span
-            aria-hidden
-            className="inline-block h-0.5 w-4"
-            style={{ background: CHART_INK.baseline }}
-          />
-          Previsão perfeita
-        </span>
+        <div className="flex items-start gap-3 text-sm">
+          <svg aria-hidden width="28" height="12" className="mt-1.5 shrink-0">
+            <line
+              x1="2"
+              x2="26"
+              y1="6"
+              y2="6"
+              stroke={CHART_INK.axis}
+              strokeWidth="1.5"
+              strokeDasharray="4 3"
+            />
+          </svg>
+          <span className="text-ink-2">
+            <strong className="text-ink">Previsão perfeita.</strong> Onde ficaria uma linha que
+            acerta sempre: o risco previsto igual ao que aconteceu.
+          </span>
+        </div>
       </figcaption>
       <div
         className="relative"
@@ -66,7 +87,7 @@ export function ReliabilityChart({
       >
         {mounted ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart margin={{ top: 12, right: 16, left: 4, bottom: 24 }}>
+            <LineChart margin={{ top: 12, right: 16, left: 16, bottom: 24 }}>
               <CartesianGrid stroke={CHART_INK.grid} strokeDasharray="3 5" />
               <XAxis
                 type="number"
@@ -78,7 +99,7 @@ export function ReliabilityChart({
                 axisLine={{ stroke: CHART_INK.baseline }}
                 tick={{ fill: CHART_INK.axis, fontSize: 12 }}
                 label={{
-                  value: "Risco previsto",
+                  value: "Risco previsto pelo método (%)",
                   position: "insideBottom",
                   offset: -14,
                   fill: CHART_INK.axis,
@@ -91,6 +112,15 @@ export function ReliabilityChart({
                 domain={[0, 100]}
                 ticks={TICKS}
                 width={48}
+                label={{
+                  value: "Horas com corte de fato (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 4,
+                  fill: CHART_INK.axis,
+                  fontSize: 12,
+                  style: { textAnchor: "middle" },
+                }}
                 tickFormatter={(v: number) => `${v}%`}
                 tickLine={false}
                 axisLine={false}
@@ -130,7 +160,8 @@ export function ReliabilityChart({
                   dataKey="observed"
                   stroke={item.color}
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: item.color }}
+                  strokeDasharray={item.dashed ? "6 4" : undefined}
+                  dot={{ r: 4, fill: item.color, stroke: item.color }}
                   isAnimationActive={false}
                 />
               ))}
