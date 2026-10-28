@@ -3,7 +3,14 @@ import { ForecastResults } from "@/components/forecast/forecast-results";
 import { ForecastView } from "@/components/forecast/forecast-view";
 import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import { getForecast, getForecastModel, getForecastScopes } from "@/lib/api/queries";
-import { groupScopes, parseScope, parseSource, scopeLabel, SOURCE_LABEL } from "@/lib/forecast";
+import {
+  groupScopes,
+  parseScope,
+  parseSource,
+  scopeLabel,
+  SOURCE_LABEL,
+  windowLabel,
+} from "@/lib/forecast";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
@@ -34,7 +41,14 @@ export default async function ForecastPage({
 
   return (
     <Container>
-      <PageHeader eyebrow="Previsão" title="Risco de corte de energia nos próximos 7 dias">
+      <PageHeader
+        eyebrow="Previsão"
+        title={
+          forecast.ok
+            ? `Risco de corte de energia: semana de ${windowLabel(forecast.data.valid_from, forecast.data.valid_to)}`
+            : "Risco de corte de energia nos próximos dias"
+        }
+      >
         <p>
           Quando eólicas e solares costumam ser mandadas a gerar menos do que poderiam? Veja, hora a
           hora, o risco estimado para a região escolhida e, mais abaixo, como o modelo foi treinado

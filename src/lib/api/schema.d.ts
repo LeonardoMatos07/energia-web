@@ -431,6 +431,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/me/newsletter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["set_newsletter_v1_auth_me_newsletter_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -836,6 +852,8 @@ export interface components {
             source: "wind" | "solar";
             risk_definition: string;
             origin_ts: string;
+            valid_from: string;
+            valid_to: string;
             generated_at: string;
             data_through: string;
             stale_days: number;
@@ -892,13 +910,13 @@ export interface components {
             regions: string[];
             plants: string[];
             interests: string[];
+            marketing_opt_in: boolean;
             created_at: string;
             company_size: string | null;
             study_level: string | null;
             phone: string | null;
             referral: string | null;
             signup_source: string | null;
-            marketing_opt_in: boolean;
             email_verified_at: string | null;
             lead_score: number;
             lead_tier: "hot" | "warm" | "cold";
@@ -944,6 +962,7 @@ export interface components {
             regions: string[];
             plants: string[];
             interests: string[];
+            marketing_opt_in: boolean;
             created_at: string;
         };
         MemberSignup: {
@@ -976,6 +995,9 @@ export interface components {
         };
         MonthsResponse: {
             months: string[];
+        };
+        NewsletterPreference: {
+            enabled: boolean;
         };
         NewsletterSignup: {
             email: string;
@@ -1106,10 +1128,10 @@ export interface components {
             published_at: string | null;
         };
         RevalidateInput: {
-            tags?: ("curtailment" | "plants" | "reports")[];
+            tags?: ("curtailment" | "plants" | "reports" | "forecast")[];
         };
         RevalidateResponse: {
-            tags: ("curtailment" | "plants" | "reports")[];
+            tags: ("curtailment" | "plants" | "reports" | "forecast")[];
             cache_cleared: boolean;
             entries_removed: number;
             web_revalidated: boolean;
@@ -2065,6 +2087,45 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberProfile"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_newsletter_v1_auth_me_newsletter_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsletterPreference"];
+            };
+        };
         responses: {
             200: {
                 headers: {

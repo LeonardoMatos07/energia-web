@@ -1,12 +1,21 @@
 import { Notice } from "@/components/ui";
 import type { ForecastPoint, ForecastResponse } from "@/lib/api/types";
-import { groupByDay, scopeLabel, SOURCE_LABEL, summarize } from "@/lib/forecast";
-import { formatDate, formatDateTime, formatPercent } from "@/lib/format";
+import {
+  formatDay,
+  freshnessLabel,
+  groupByDay,
+  scopeLabel,
+  SOURCE_LABEL,
+  summarize,
+} from "@/lib/forecast";
+import { formatPercent } from "@/lib/format";
 import { ForecastChart } from "./forecast-chart";
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const LEVEL_LABEL = { baixo: "baixo", medio: "médio", alto: "alto" } as const;
-const STALE_AFTER_DAYS = 2;
+const STALE_AFTER_DAYS = 3;
+/** The ONS publishes monthly, so data older than this means the publication itself is late. */
+export const VERY_STALE_AFTER_DAYS = 45;
 
 function cellStyle(point: ForecastPoint | undefined) {
   if (!point || !point.applicable) return { background: "transparent" };
@@ -16,7 +25,13 @@ function cellStyle(point: ForecastPoint | undefined) {
   };
 }
 
-export function ForecastView({ forecast }: { forecast: ForecastResponse }) {
+export function ForecastView({
+  forecast,
+  now = Date.now(),
+}: {
+  forecast: ForecastResponse;
+  now?: number;
+}) {
   const days = groupByDay(forecast.points);
   const { applicableHours, highHours, peak, meanExpectedPct } = summarize(forecast.points);
   const place = `${SOURCE_LABEL[forecast.source].toLowerCase()}, ${scopeLabel(forecast.scope)}`;
@@ -38,7 +53,7 @@ export function ForecastView({ forecast }: { forecast: ForecastResponse }) {
           </p>
           <p className="text-ink-2 mt-1 text-sm">
             {peak
-              ? `${formatDate(peak.ts)} às ${peak.ts.slice(11, 13)}h, corte esperado de ${formatPercent(peak.expected_curtailment_pct, 0)}`
+              ? `${formatDay(peak.ts)} às ${peak.ts.slice(11, 13)}h, corte esperado de ${formatPercent(peak.expected_curtailment_pct, 0)}`
               : "Sem horas aplicáveis"}
           </p>
         </div>
@@ -59,7 +74,7 @@ export function ForecastView({ forecast }: { forecast: ForecastResponse }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-separate border-spacing-0.5 text-xs">
             <caption className="sr-only">
-              Risco de corte por dia e hora, {place}, a partir de {formatDate(forecast.origin_ts)}
+              Risco de corte por dia e hora, {place}, a partir de {formatDay(forecast.origin_ts)}
             </caption>
             <thead>
               <tr>
@@ -75,13 +90,13 @@ export function ForecastView({ forecast }: { forecast: ForecastResponse }) {
               {days.map(([day, hours]) => (
                 <tr key={day}>
                   <th scope="row" className="text-ink-2 pr-2 text-left font-medium">
-                    {formatDate(day)}
+                    {formatDay(day)}
                   </th>
                   {HOURS.map((hour) => {
                     const point = hours.get(hour);
                     const label = point?.applicable
-                      ? `${formatDate(day)} ${hour}h: risco ${LEVEL_LABEL[point.level]} (${formatPercent(point.risk_probability * 100, 0)})`
-                      : `${formatDate(day)} ${hour}h: não se aplica`;
+                      ? `${formatDay(day)} ${hour}h: risco ${LEVEL_LABEL[point.level]} (${formatPercent(point.risk_probability * 100, 0)})`
+                      : `${formatDay(day)} ${hour}h: não se aplica`;
                     return (
                       <td
                         key={hour}
@@ -101,17 +116,28 @@ export function ForecastView({ forecast }: { forecast: ForecastResponse }) {
 
       <ForecastChart points={forecast.points} />
 
-      {forecast.stale_days > STALE_AFTER_DAYS ? (
+      <p className="text-ink-2 text-sm">
+        <strong>Dados do ONS até {formatDay(forecast.data_through, "full")}.</strong> Previsão{" "}
+        {freshnessLabel(forecast.generated_at, now)}.
+      </p>
+      {forecast.stale_days > VERY_STALE_AFTER_DAYS ? (
+        <Notice>
+          Os dados do ONS estão atrasados: o último dia disponível é{" "}
+          {formatDay(forecast.data_through, "full")}, há {forecast.stale_days} dias. O ONS publica
+          os dados uma vez por mês, com defasagem, por isso a previsão começa em{" "}
+          {formatDay(forecast.origin_ts)} e pode não refletir o que mudou desde então. Ela é
+          atualizada sozinha assim que novos dados chegam.
+        </Notice>
+      ) : forecast.stale_days > STALE_AFTER_DAYS ? (
         <Notice>
           Os dados mais recentes do ONS usados nesta previsão vão até{" "}
-          {formatDate(forecast.data_through)} ({forecast.stale_days} dias atrás), então a previsão
-          começa em {formatDate(forecast.origin_ts)} e não reflete o que aconteceu depois. Os dados
-          são publicados uma vez por mês.
+          {formatDay(forecast.data_through, "full")} ({forecast.stale_days} dias atrás), então a
+          previsão começa em {formatDay(forecast.origin_ts)} e não reflete o que aconteceu depois.
+          Os dados são publicados uma vez por mês.
         </Notice>
       ) : null}
       <p className="text-muted max-w-3xl text-xs leading-5">
-        Previsão gerada em {formatDateTime(forecast.generated_at)} pelo modelo{" "}
-        {forecast.model_version}. É um indicador de risco, não uma garantia.
+        Modelo {forecast.model_version}. É um indicador de risco, não uma garantia.
       </p>
     </div>
   );

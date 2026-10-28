@@ -212,7 +212,7 @@ export interface ApiErrorBody {
   detail: string | unknown;
 }
 
-export const CACHE_TAGS = ["curtailment", "plants", "reports"] as const;
+export const CACHE_TAGS = ["curtailment", "plants", "reports", "forecast"] as const;
 export type CacheTag = (typeof CACHE_TAGS)[number];
 
 export type MemberRole =
@@ -357,6 +357,8 @@ export interface ForecastResponse {
   source: Source;
   risk_definition: string;
   origin_ts: string;
+  valid_from: string;
+  valid_to: string;
   generated_at: string;
   data_through: string;
   stale_days: number;

@@ -3,12 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 import type { ForecastModelMeta, ForecastResponse } from "@/lib/api/types";
 import {
   calibrationPoints,
+  formatDay,
+  freshnessLabel,
   gainSentence,
   groupScopes,
   parseScope,
   parseSource,
   summarize,
   topFeatures,
+  windowLabel,
 } from "@/lib/forecast";
 import { ForecastResults } from "./forecast-results";
 import { ForecastView } from "./forecast-view";
@@ -40,6 +43,8 @@ function buildForecast(overrides: Partial<ForecastResponse> = {}): ForecastRespo
     source: "wind",
     risk_definition: "hour with curtailment >= 10% of potential output",
     origin_ts: "2026-10-01T00:00:00",
+    valid_from: "2026-10-01T00:00:00",
+    valid_to: "2026-10-02T23:00:00",
     generated_at: "2026-10-28T12:00:00Z",
     data_through: "2026-09-30",
     stale_days: 28,
@@ -106,10 +111,23 @@ describe("ForecastView", () => {
   });
 
   it("warns that the data are stale and shows when the forecast was generated", () => {
-    render(<ForecastView forecast={buildForecast()} />);
+    render(<ForecastView forecast={buildForecast()} now={new Date("2026-12-01").getTime()} />);
     expect(screen.getByText(/28 dias atrás/)).toBeInTheDocument();
-    expect(screen.getByText(/Previsão gerada em/)).toBeInTheDocument();
+    expect(screen.getByText(/atualizada em 28\/10 às/)).toBeInTheDocument();
     expect(screen.getByText(/hgb-20261028-abc12345/)).toBeInTheDocument();
+  });
+
+  it("always states how old the ONS data are and when the forecast was generated", () => {
+    render(<ForecastView forecast={buildForecast({ stale_days: 1 })} />);
+    expect(screen.getByText(/Dados do ONS até 30\/09\/2026/)).toBeInTheDocument();
+    expect(screen.getByText(/atualizada/)).toBeInTheDocument();
+  });
+
+  it("explains the ONS lag when the data are older than 45 days", () => {
+    render(<ForecastView forecast={buildForecast({ stale_days: 60 })} />);
+    expect(screen.getByText(/Os dados do ONS estão atrasados/)).toBeInTheDocument();
+    expect(screen.getByText(/há 60 dias/)).toBeInTheDocument();
+    expect(screen.queryByText(/dias atrás/)).not.toBeInTheDocument();
   });
 
   it("does not warn when the data are fresh", () => {
@@ -200,5 +218,38 @@ describe("forecast helpers", () => {
     ]);
     expect(topFeatures({ a: 2, b: 1, c: 0 }).map((f) => f.share)).toEqual([1, 0.5]);
     expect(gainSentence(buildMeta())).toMatch(/3,8 pontos percentuais menor/);
+  });
+});
+
+describe("date helpers", () => {
+  it("formats calendar dates without shifting the day across time zones", () => {
+    expect(formatDay("2026-10-01")).toBe("01/10");
+    expect(formatDay("2026-09-30T00:00:00", "full")).toBe("30/09/2026");
+    expect(formatDay(null)).toBe("—");
+    expect(windowLabel("2026-10-28T14:00:00", "2026-11-03T23:00:00")).toBe("28/10 a 03/11");
+  });
+
+  it("says when the forecast was updated, in Brasilia time", () => {
+    const now = new Date("2026-10-28T18:00:00Z").getTime(); // 15:00 in Sao Paulo
+    expect(freshnessLabel("2026-10-28T09:10:00Z", now)).toBe("atualizada hoje às 06:10");
+    expect(freshnessLabel("2026-10-27T20:00:00Z", now)).toBe("atualizada ontem às 17:00");
+    expect(freshnessLabel("2026-10-20T20:00:00Z", now)).toBe("atualizada em 20/10 às 17:00");
+  });
+
+  it("states the real week and a fresh forecast without any staleness notice", () => {
+    const now = new Date("2026-10-28T18:00:00Z").getTime();
+    render(
+      <ForecastView
+        forecast={buildForecast({
+          stale_days: 1,
+          data_through: "2026-10-27",
+          generated_at: "2026-10-28T09:10:00Z",
+        })}
+        now={now}
+      />,
+    );
+    expect(screen.getByText(/Dados do ONS até 27\/10\/2026/)).toBeInTheDocument();
+    expect(screen.getByText(/atualizada hoje às 06:10/)).toBeInTheDocument();
+    expect(screen.queryByText(/dias atrás/)).not.toBeInTheDocument();
   });
 });
