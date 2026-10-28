@@ -12,7 +12,6 @@ describe("parseAnalysisDownload", () => {
   it("accepts a PDF of the screen the person is on", () => {
     expect(parse("formato=pdf&escopo=NE&fonte=wind&de=2026-01&ate=2026-09")).toEqual({
       format: "pdf",
-      table: "summary",
       scope: "NE",
       source: "wind",
       start: "2026-01",
@@ -24,11 +23,10 @@ describe("parseAnalysisDownload", () => {
     expect(parse("formato=xlsx")).toMatchObject({ scope: "SIN", source: "total" });
   });
 
-  it("refuses anything that is not a known format, table, scope, source or month", () => {
+  it("refuses anything that is not a known format, scope, source or month", () => {
     for (const query of [
       "",
       "formato=exe",
-      "formato=csv&tabela=users",
       "formato=pdf&escopo=ZZ",
       "formato=pdf&fonte=coal",
       "formato=pdf&de=2026-13",
@@ -42,7 +40,6 @@ describe("parseAnalysisDownload", () => {
 describe("analysisApiPath", () => {
   it("maps formats to the API's files", () => {
     const base = {
-      table: "summary",
       scope: "SIN",
       source: "total",
       start: "2026-01",
@@ -52,26 +49,25 @@ describe("analysisApiPath", () => {
       "/v1/exports/analysis.pdf?scope=SIN&source=total&start=2026-01&end=2026-09",
     );
     expect(analysisApiPath({ ...base, format: "xlsx" })).toContain("/v1/exports/analysis.xlsx?");
-    expect(analysisApiPath({ ...base, format: "csv", table: "connection-points" })).toContain(
-      "/v1/exports/connection-points.csv?",
-    );
+    expect(analysisApiPath({ ...base, format: "csv" })).toContain("/v1/exports/analysis-csv.zip?");
   });
 
   it("leaves out an open-ended period", () => {
-    const path = analysisApiPath({ format: "pdf", table: "summary", scope: "S", source: "solar" });
+    const path = analysisApiPath({ format: "pdf", scope: "S", source: "solar" });
     expect(path).toBe("/v1/exports/analysis.pdf?scope=S&source=solar");
   });
 });
 
 describe("analysisDownloadHref", () => {
   it("carries the filters of the page", () => {
-    const href = analysisDownloadHref(
-      "csv",
-      { scope: "NE", source: "wind", start: "2026-01", end: "2026-02" },
-      "hourly",
-    );
+    const href = analysisDownloadHref("csv", {
+      scope: "NE",
+      source: "wind",
+      start: "2026-01",
+      end: "2026-02",
+    });
     expect(href).toBe(
-      "/api/baixar/analise?formato=csv&fonte=wind&de=2026-01&ate=2026-02&escopo=NE&tabela=hourly",
+      "/api/baixar/analise?formato=csv&fonte=wind&de=2026-01&ate=2026-02&escopo=NE",
     );
   });
 });
