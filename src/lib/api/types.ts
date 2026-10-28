@@ -340,3 +340,77 @@ export interface SignupResponse {
   message: string;
   dev_code: string | null;
 }
+
+export type ForecastLevel = "baixo" | "medio" | "alto";
+
+export interface ForecastPoint {
+  ts: string;
+  risk_probability: number;
+  expected_curtailment_pct: number;
+  level: ForecastLevel;
+  applicable: boolean;
+}
+
+export interface ForecastResponse {
+  scope: string;
+  source: Source;
+  risk_definition: string;
+  origin_ts: string;
+  generated_at: string;
+  data_through: string;
+  stale_days: number;
+  model_version: string;
+  model_trained_at: string;
+  points: ForecastPoint[];
+}
+
+export interface ForecastScope {
+  scope: string;
+  source: Source;
+}
+
+/** Metrics of one model on the untouched test period. `mae_pp` is in percentage points. */
+export interface ForecastModelMetrics {
+  mae_pp: number;
+  rmse_pp: number;
+  roc_auc: number;
+  pr_auc: number;
+  brier: number;
+  ece: number;
+  brier_skill?: number;
+}
+
+export interface ForecastInterval {
+  delta: number;
+  ci_low: number;
+  ci_high: number;
+}
+
+export interface ForecastCalibrationBin {
+  mean_pred: number;
+  obs: number;
+  n: number;
+}
+
+export interface ForecastModelMeta {
+  model_version: string;
+  trained_at: string;
+  data_period: Record<string, { start: string; end: string; n_series: number }>;
+  n_series: number;
+  n_rows: number;
+  metrics: {
+    test?: Record<string, ForecastModelMetrics>;
+    test_bootstrap_vs_baseline?: Record<
+      string,
+      { abs_error?: ForecastInterval; brier?: ForecastInterval }
+    >;
+    test_start?: string;
+    test_rows?: number;
+    test_base_rate?: number;
+  };
+  calibration: { bins?: Record<string, ForecastCalibrationBin[]> };
+  feature_importance: Record<string, number>;
+  model_card: { limitations?: string[]; protocol?: string };
+  last_run_at: string | null;
+  last_data_through: string | null;
+}

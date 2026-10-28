@@ -61,6 +61,7 @@ const GATED = [
   "/relatorios/curtailment-em-setembro-de-2026",
   "/comparar",
   "/analises",
+  "/previsao",
   "/conta",
 ];
 
