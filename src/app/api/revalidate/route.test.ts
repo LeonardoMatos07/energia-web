@@ -52,7 +52,12 @@ describe("POST /api/revalidate", () => {
   it("defaults to all tags when the body is empty", async () => {
     const res = await POST(request(undefined, "test-s3cret"));
     expect(res.status).toBe(200);
-    expect(revalidateTag.mock.calls.map((c) => c[0])).toEqual(["curtailment", "plants", "reports"]);
+    expect(revalidateTag.mock.calls.map((c) => c[0])).toEqual([
+      "curtailment",
+      "plants",
+      "reports",
+      "forecast",
+    ]);
   });
 
   it("rejects unknown tags and invalid JSON", async () => {

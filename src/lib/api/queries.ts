@@ -110,22 +110,25 @@ export function getReport(slug: string) {
 }
 
 // The forecast is published in batches (at most daily), so a short fixed cache is enough.
-const FORECAST_REVALIDATE_SECONDS = 1_800;
+const FORECAST_REVALIDATE_SECONDS = 600;
 
 export function getForecast(scope: string, source: Source = "wind", days = 7) {
   return apiTry<ForecastResponse>(withQuery("/v1/forecast", { scope, source, days }), {
+    tags: ["forecast"],
     revalidate: FORECAST_REVALIDATE_SECONDS,
   });
 }
 
 export function getForecastScopes() {
   return apiTry<ForecastScope[]>("/v1/forecast/scopes", {
+    tags: ["forecast"],
     revalidate: FORECAST_REVALIDATE_SECONDS,
   });
 }
 
 export function getForecastModel() {
   return apiTry<ForecastModelMeta>("/v1/forecast/model", {
+    tags: ["forecast"],
     revalidate: FORECAST_REVALIDATE_SECONDS,
   });
 }

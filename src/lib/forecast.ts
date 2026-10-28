@@ -208,3 +208,47 @@ export function gainSentence(meta: ForecastModelMeta): string | null {
     ? `O erro médio do modelo é ${pp.toFixed(1).replace(".", ",")} pontos percentuais menor que o da média histórica (intervalo de 95%: de ${low.toFixed(1).replace(".", ",")} a ${high.toFixed(1).replace(".", ",")}).`
     : "Neste período de teste, o modelo não ficou claramente melhor que a média histórica.";
 }
+
+/** "dd/mm" or "dd/mm/aaaa" from an ISO date or naive timestamp, without any timezone shift. */
+export function formatDay(iso: string | null | undefined, style: "short" | "full" = "short") {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? "");
+  if (!match) return "—";
+  const [, year, month, day] = match;
+  return style === "full" ? `${day}/${month}/${year}` : `${day}/${month}`;
+}
+
+const SAO_PAULO = "America/Sao_Paulo";
+
+function saoPauloParts(instant: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SAO_PAULO,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    time: `${get("hour")}:${get("minute")}`,
+  };
+}
+
+/** "atualizada hoje às 06:10", "atualizada ontem às 06:10" or "atualizada em 25/10 às 06:10". */
+export function freshnessLabel(generatedAt: string, now: number = Date.now()): string {
+  const instant = new Date(generatedAt);
+  if (Number.isNaN(instant.getTime())) return "gerada em data desconhecida";
+  const then = saoPauloParts(instant);
+  const today = saoPauloParts(new Date(now));
+  const yesterday = saoPauloParts(new Date(now - 86_400_000));
+  if (then.date === today.date) return `atualizada hoje às ${then.time}`;
+  if (then.date === yesterday.date) return `atualizada ontem às ${then.time}`;
+  return `atualizada em ${formatDay(then.date)} às ${then.time}`;
+}
+
+/** "28/10 a 03/11" from the first and last hour of the window. */
+export function windowLabel(validFrom: string, validTo: string): string {
+  return `${formatDay(validFrom)} a ${formatDay(validTo)}`;
+}

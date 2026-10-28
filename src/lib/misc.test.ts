@@ -22,10 +22,13 @@ describe("safeCompare", () => {
 
 describe("parseTags", () => {
   it("defaults to every tag", () => {
-    expect(parseTags(null)).toEqual({ ok: true, tags: ["curtailment", "plants", "reports"] });
+    expect(parseTags(null)).toEqual({
+      ok: true,
+      tags: ["curtailment", "plants", "reports", "forecast"],
+    });
     expect(parseTags({ tags: [] })).toEqual({
       ok: true,
-      tags: ["curtailment", "plants", "reports"],
+      tags: ["curtailment", "plants", "reports", "forecast"],
     });
   });
   it("deduplicates and validates", () => {

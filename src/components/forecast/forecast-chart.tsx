@@ -13,8 +13,8 @@ import {
 } from "recharts";
 import { CHART_INK, SERIES } from "@/components/charts/palette";
 import type { ForecastPoint } from "@/lib/api/types";
-import { chartRows } from "@/lib/forecast";
-import { formatDate, formatPercent } from "@/lib/format";
+import { chartRows, formatDay } from "@/lib/forecast";
+import { formatPercent } from "@/lib/format";
 
 export function ForecastChart({
   points,
@@ -55,7 +55,7 @@ export function ForecastChart({
               ))}
               <XAxis
                 dataKey="ts"
-                tickFormatter={(ts: string) => formatDate(ts.slice(0, 10)).slice(0, 5)}
+                tickFormatter={(ts: string) => formatDay(ts)}
                 ticks={midnights}
                 tickLine={false}
                 axisLine={{ stroke: CHART_INK.baseline }}
@@ -78,7 +78,7 @@ export function ForecastChart({
                   return (
                     <div className="border-grid bg-surface min-w-44 rounded-xl border px-4 py-3 text-sm shadow-lg">
                       <p className="mb-1 font-semibold">
-                        {formatDate(row.ts.slice(0, 10))} às {row.ts.slice(11, 13)}h
+                        {formatDay(row.ts)} às {row.ts.slice(11, 13)}h
                       </p>
                       <p className="tabular text-ink-2">
                         Corte esperado:{" "}

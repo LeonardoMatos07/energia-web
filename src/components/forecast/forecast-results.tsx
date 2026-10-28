@@ -2,6 +2,7 @@ import { Card, Notice, Section } from "@/components/ui";
 import type { ForecastModelMeta } from "@/lib/api/types";
 import {
   calibrationPoints,
+  formatDay,
   gainSentence,
   intervalVs,
   resultRows,
@@ -11,7 +12,7 @@ import {
 import { formatDate, formatNumber } from "@/lib/format";
 import { RELIABILITY_COLORS, ReliabilityChart } from "./reliability-chart";
 
-const STALE_MODEL_DAYS = 90;
+const STALE_MODEL_DAYS = 45;
 
 function daysSince(iso: string, now: number): number {
   return Math.floor((now - new Date(iso).getTime()) / 86_400_000);
@@ -80,8 +81,8 @@ export function ForecastResults({
                   {SOURCE_LABEL[source as keyof typeof SOURCE_LABEL] ?? source}
                 </p>
                 <p className="text-ink-2 text-sm">
-                  De {formatDate(period.start.slice(0, 10))} a {formatDate(period.end.slice(0, 10))}
-                  , {period.n_series} séries (estados, subsistemas e Brasil).
+                  De {formatDay(period.start, "full")} a {formatDay(period.end, "full")},{" "}
+                  {period.n_series} séries (estados, subsistemas e Brasil).
                 </p>
               </li>
             ))}
@@ -103,7 +104,7 @@ export function ForecastResults({
             cada uma prevista só com o que veio antes (com uma folga de 7 dias). Depois, um período
             final
             {meta.metrics.test_start
-              ? ` (a partir de ${formatDate(meta.metrics.test_start)})`
+              ? ` (a partir de ${formatDay(meta.metrics.test_start, "full")})`
               : ""}{" "}
             ficou guardado e foi usado uma única vez, sem ajustes.
             {meta.metrics.test_rows
@@ -241,8 +242,9 @@ export function ForecastResults({
           <Notice>
             Modelo treinado em {formatDate(meta.trained_at)} ({trainedDays} dias atrás)
             {meta.last_data_through
-              ? `, com dados até ${formatDate(meta.last_data_through)}`
-              : ""}.{" "}
+              ? `, com dados até ${formatDay(meta.last_data_through, "full")}`
+              : ""}
+            .{" "}
             {trainedDays > STALE_MODEL_DAYS
               ? "O treino já está desatualizado e deve ser refeito."
               : "O treino é refeito manualmente, em geral uma vez por mês."}
