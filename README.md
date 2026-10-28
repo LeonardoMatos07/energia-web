@@ -8,8 +8,8 @@ monthly reports.
 It is one of four repositories; the contract between them is in
 [`spillway-api/docs/phase1-contract.md`](https://github.com/LeonardoMatos07/spillway-api/blob/main/docs/phase1-contract.md).
 
-| Repository       | Role                                                   |
-| ---------------- | ------------------------------------------------------ |
+| Repository         | Role                                                   |
+| ------------------ | ------------------------------------------------------ |
 | `spillway-data`    | Airflow: ingests ONS data and writes the aggregates    |
 | `spillway-api`     | FastAPI: schema owner, public reads, newsletter, admin |
 | **`spillway-web`** | Next.js: this portal (ISR) and the admin area          |
@@ -105,7 +105,7 @@ generates `src/lib/api/schema.d.ts` with `openapi-typescript`, reading (in this 
 
 | Variable                                                        | Purpose                                                                 |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `API_URL`                                                       | `spillway-api` URL (server only). Default `http://127.0.0.1:8000`         |
+| `API_URL`                                                       | `spillway-api` URL (server only). Default `http://127.0.0.1:8000`       |
 | `NEXT_PUBLIC_SITE_URL`                                          | Public URL (canonical, OG, sitemap)                                     |
 | `NEXT_PUBLIC_CONTACT_EMAIL`                                     | Privacy contact (LGPD) shown on `/privacidade`                          |
 | `REVALIDATE_SECRET`                                             | Secret of `POST /api/revalidate`; the same value configured in the API  |
