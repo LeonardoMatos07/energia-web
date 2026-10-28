@@ -1,7 +1,8 @@
-import { ANALYSIS_TABLES, analysisDownloadHref, type DownloadFilters } from "@/lib/downloads";
+import { analysisDownloadHref, type DownloadFilters } from "@/lib/downloads";
 
 const linkClass =
   "text-accent-strong hover:bg-surface-2 block rounded px-3 py-2 text-sm font-medium underline-offset-2 hover:underline";
+const groupClass = "text-muted px-3 pt-2 text-xs font-semibold uppercase";
 
 export function AnalysisDownloads({ filters }: { filters: DownloadFilters }) {
   return (
@@ -10,23 +11,17 @@ export function AnalysisDownloads({ filters }: { filters: DownloadFilters }) {
         Baixar
       </summary>
       <div className="border-line bg-surface absolute right-0 z-10 mt-2 w-64 rounded-md border p-2 shadow-lg">
+        <p className={groupClass}>Relatório</p>
         <a className={linkClass} href={analysisDownloadHref("pdf", filters)} download>
-          Relatório em PDF
+          PDF
         </a>
+        <p className={groupClass}>Dados completos</p>
         <a className={linkClass} href={analysisDownloadHref("xlsx", filters)} download>
-          Dados em Excel (todas as tabelas)
+          Excel (.xlsx)
         </a>
-        <p className="text-muted px-3 pt-2 text-xs font-semibold uppercase">Dados em CSV</p>
-        {ANALYSIS_TABLES.map((table) => (
-          <a
-            key={table.key}
-            className={linkClass}
-            href={analysisDownloadHref("csv", filters, table.key)}
-            download
-          >
-            {table.label}
-          </a>
-        ))}
+        <a className={linkClass} href={analysisDownloadHref("csv", filters)} download>
+          CSV (.zip)
+        </a>
       </div>
     </details>
   );
