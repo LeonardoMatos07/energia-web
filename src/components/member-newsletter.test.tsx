@@ -16,14 +16,16 @@ beforeEach(() => {
 describe("MemberNewsletter", () => {
   it("offers to turn the e-mail on for the member's own address and does it in one click", async () => {
     setMemberNewsletter.mockResolvedValue({ ok: true, enabled: true });
-    render(<MemberNewsletter email="ana@example.org" enabled={false} />);
+    render(<MemberNewsletter enabled={false} />);
 
-    expect(screen.getByText(/para ana@example.org/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Receber o resumo mensal/ }));
+    expect(
+      screen.getByText(/Uma newsletter por mês, grátis, no seu e-mail cadastrado/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Receber a newsletter mensal/ }));
 
     await waitFor(() => expect(setMemberNewsletter).toHaveBeenCalledWith(true));
     expect(
-      await screen.findByText(/Você recebe o resumo mensal em ana@example.org/),
+      await screen.findByText(/Você recebe a newsletter mensal no seu e-mail cadastrado/),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
     expect(refresh).toHaveBeenCalled();
@@ -31,7 +33,7 @@ describe("MemberNewsletter", () => {
 
   it("lets a subscribed member cancel", async () => {
     setMemberNewsletter.mockResolvedValue({ ok: true, enabled: false });
-    render(<MemberNewsletter email="ana@example.org" enabled variant="card" />);
+    render(<MemberNewsletter enabled variant="card" />);
 
     fireEvent.click(screen.getByRole("button", { name: /Cancelar/ }));
 
@@ -44,7 +46,7 @@ describe("MemberNewsletter", () => {
       ok: false,
       message: "Sua sessão expirou. Entre de novo.",
     });
-    render(<MemberNewsletter email="ana@example.org" enabled={false} />);
+    render(<MemberNewsletter enabled={false} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Receber/ }));
 

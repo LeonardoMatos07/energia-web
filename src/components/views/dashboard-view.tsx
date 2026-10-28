@@ -277,7 +277,7 @@ export async function DashboardView({ params }: { params: SearchParams }) {
 
       {member ? (
         <div id="newsletter" className="py-6 sm:py-8">
-          <MemberNewsletter variant="card" email={member.email} enabled={member.marketing_opt_in} />
+          <MemberNewsletter variant="card" enabled={member.marketing_opt_in} />
         </div>
       ) : null}
     </Container>

@@ -81,7 +81,7 @@ export default async function LandingPage() {
               style={{ animationDelay: "0.4s" }}
             >
               {member ? (
-                <MemberNewsletter email={member.email} enabled={member.marketing_opt_in} />
+                <MemberNewsletter enabled={member.marketing_opt_in} />
               ) : (
                 <>
                   <Link

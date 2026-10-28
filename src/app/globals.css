@@ -66,6 +66,39 @@ html[data-theme="dark"] {
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
 }
 
+/* Same palette before the theme script has set data-theme: no flash for people on a dark OS. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    color-scheme: dark;
+    --color-page: #0a1420;
+    --color-surface: #0e1b2c;
+    --color-surface-2: #13243a;
+    --color-ink: #e8f0f4;
+    --color-ink-2: #b3c3cf;
+    --color-muted: #8da0b0;
+    --color-grid: #1e3046;
+    --color-line: #2c4258;
+    --color-accent: #5eead4;
+    --color-accent-strong: #99f6e4;
+    --color-accent-soft: #123b3f;
+    --color-on-accent: #062a28;
+    --color-danger: #f97066;
+    --color-success: #47cd89;
+    --color-success-soft: #173a29;
+    --color-series-1: #14a898;
+    --color-series-2: #3987e5;
+    --color-series-3: #d95926;
+    --color-series-4: #9085e9;
+    --color-series-5: #d55181;
+    --color-series-6: #c98500;
+    --color-series-7: #008300;
+    --color-brand-tile: #0f766e;
+    --color-brand-flow: #ffffff;
+    --color-brand-drop: #f59e0b;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
+  }
+}
+
 h1,
 h2,
 h3 {

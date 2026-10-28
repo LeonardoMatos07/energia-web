@@ -7,11 +7,9 @@ import { setMemberNewsletter } from "@/app/newsletter/actions";
 /** The monthly e-mail for someone who is already signed in: one click, no form, no e-mail to
  * confirm. `hero` is the home page's call to action; `card` sits at the end of a page. */
 export function MemberNewsletter({
-  email,
   enabled: initial,
   variant = "hero",
 }: {
-  email: string;
   enabled: boolean;
   variant?: "hero" | "card";
 }) {
@@ -38,8 +36,8 @@ export function MemberNewsletter({
   const status = (
     <p role="status" className="text-ink-2 text-sm">
       {enabled
-        ? `Você recebe o resumo mensal em ${email}.`
-        : `Um e-mail por mês, grátis, para ${email}. Sem propaganda.`}
+        ? "Você recebe a newsletter mensal no seu e-mail cadastrado."
+        : "Uma newsletter por mês, grátis, no seu e-mail cadastrado."}
     </p>
   );
   const action = enabled ? (
@@ -49,7 +47,7 @@ export function MemberNewsletter({
       onClick={() => toggle(false)}
       className={`${button} border-line bg-surface/80 hover:border-accent border`}
     >
-      {pending ? "Salvando…" : "Cancelar o e-mail mensal"}
+      {pending ? "Salvando…" : "Cancelar a newsletter mensal"}
     </button>
   ) : (
     <button
@@ -59,7 +57,7 @@ export function MemberNewsletter({
       data-track="landing.member_newsletter"
       className={`${button} bg-accent text-on-accent shadow-card hover:opacity-90`}
     >
-      {pending ? "Salvando…" : "Receber o resumo mensal por e-mail"}
+      {pending ? "Salvando…" : "Receber a newsletter mensal"}
     </button>
   );
   const message = error ? (
@@ -72,7 +70,7 @@ export function MemberNewsletter({
     return (
       <div className="border-grid bg-accent-soft flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-5 sm:p-6">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">Resumo mensal por e-mail</h2>
+          <h2 className="text-lg font-bold tracking-tight">Newsletter mensal</h2>
           {status}
           {message}
         </div>
