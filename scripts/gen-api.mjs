@@ -7,7 +7,7 @@ import ts from "typescript";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = resolve(root, "src/lib/api/schema.d.ts");
-const localFile = resolve(root, "../energy-api/openapi.json");
+const localFile = resolve(root, "../spillway-api/openapi.json");
 
 function pickSource() {
   const fromEnv = process.env.OPENAPI_SOURCE;
@@ -31,7 +31,7 @@ try {
 } catch (error) {
   console.error(`Failed to generate the types: ${error instanceof Error ? error.message : error}`);
   console.error(
-    "Export the schema in energy-api (uv run python -m app.export_openapi openapi.json) or start the API on http://localhost:8000.",
+    "Export the schema in spillway-api (uv run python -m app.export_openapi openapi.json) or start the API on http://localhost:8000.",
   );
   process.exit(1);
 }

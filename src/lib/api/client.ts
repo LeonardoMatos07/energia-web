@@ -128,7 +128,7 @@ export async function apiTry<T>(path: string, options?: ApiFetchOptions): Promis
     return { ok: true, data: await apiFetch<T>(path, options) };
   } catch (error) {
     if (error instanceof ApiError) {
-      if (error.isUnavailable) console.warn(`[energy-api] ${path}: ${error.detail}`);
+      if (error.isUnavailable) console.warn(`[spillway-api] ${path}: ${error.detail}`);
       return { ok: false, error };
     }
     throw error;
