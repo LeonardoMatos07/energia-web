@@ -2,36 +2,37 @@ import { describe, expect, it } from "vitest";
 import { isProtected, periodRewrite } from "./route-access";
 
 describe("isProtected", () => {
-  it.each(["/comparar", "/comparar/x", "/analises", "/analises/horario", "/conta", "/conta/dados"])(
-    "requires an account for %s",
-    (path) => {
-      expect(isProtected(path)).toBe(true);
-    },
-  );
-
   it.each([
-    "/",
     "/painel",
+    "/painel/periodo",
     "/estados",
     "/estados/ba",
     "/usinas",
     "/usinas/sao-fernando-4-rnesf4",
     "/relatorios",
     "/relatorios/curtailment-em-setembro-de-2026",
-    "/metodologia",
-    "/privacidade",
-    "/cadastro",
-    "/entrar",
-    "/comparar-usinas",
-  ])("keeps %s public", (path) => {
-    expect(isProtected(path)).toBe(false);
+    "/comparar",
+    "/comparar/x",
+    "/analises",
+    "/analises/horario",
+    "/conta",
+    "/conta/dados",
+  ])("requires an account for %s", (path) => {
+    expect(isProtected(path)).toBe(true);
   });
+
+  it.each(["/", "/metodologia", "/privacidade", "/cadastro", "/entrar", "/comparar-usinas"])(
+    "keeps %s public",
+    (path) => {
+      expect(isProtected(path)).toBe(false);
+    },
+  );
 });
 
 describe("periodRewrite", () => {
   const params = (query: string) => new URLSearchParams(query);
 
-  it("sends a custom period on the public pages to the dynamic variant", () => {
+  it("sends a custom period on the pages that have one to the dynamic variant", () => {
     expect(periodRewrite("/painel", params("de=2026-01&ate=2026-06"))).toBe("/painel/periodo");
     expect(periodRewrite("/estados/rn", params("de=2026-01&ate=2026-06"))).toBe(
       "/estados/rn/periodo",

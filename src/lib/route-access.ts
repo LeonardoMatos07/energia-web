@@ -1,4 +1,12 @@
-export const PROTECTED_PREFIXES = ["/comparar", "/analises", "/conta"] as const;
+export const PROTECTED_PREFIXES = [
+  "/painel",
+  "/estados",
+  "/usinas",
+  "/relatorios",
+  "/comparar",
+  "/analises",
+  "/conta",
+] as const;
 
 const PERIOD_SEGMENT = "periodo";
 const PERIOD_PARAMS = ["de", "ate"] as const;

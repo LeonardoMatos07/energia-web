@@ -8,8 +8,8 @@ monthly reports.
 It is one of four repositories; the contract between them is in
 [`energy-api/docs/phase1-contract.md`](https://github.com/LeonardoMatos07/energy-api/blob/main/docs/phase1-contract.md).
 
-| Repository        | Role                                                   |
-| ----------------- | ------------------------------------------------------ |
+| Repository       | Role                                                   |
+| ---------------- | ------------------------------------------------------ |
 | `energy-data`    | Airflow: ingests ONS data and writes the aggregates    |
 | `energy-api`     | FastAPI: schema owner, public reads, newsletter, admin |
 | **`energy-web`** | Next.js: this portal (ISR) and the admin area          |
@@ -35,44 +35,32 @@ Portuguese, and so are the public URLs, including their query parameters (`/usin
 
 ## Pages
 
-Public pages (no account, indexable, rendered with ISR):
+Open to anyone (no account):
+
+| Route                          | Content                                                                               | API                          |
+| ------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------- |
+| `/`                            | Landing page: headline, national numbers of the latest month, what an account unlocks | `/v1/curtailment/subsystems` |
+| `/metodologia`, `/privacidade` | Methodology and privacy policy                                                        | —                            |
+| `/cadastro`, `/entrar`         | Sign-up (profile, 6-digit e-mail code), login, password reset (`/esqueci-a-senha`)    | `/v1/auth/*`                 |
+| `/newsletter/*`                | Confirm and unsubscribe (`?token=`)                                                   | `/v1/newsletter/*`           |
+
+Pages that need a free account (`src/app/(membros)`, the middleware sends visitors to `/entrar`
+and the layout checks the session):
 
 | Route                               | Content                                                                                   | API                              |
 | ----------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
-| `/`                                 | Landing page: headline, national numbers of the latest month, what a free account unlocks | `/v1/curtailment/subsystems`     |
 | `/painel`                           | National dashboard: period filter, indicators, monthly series by source and subsystem     | `/v1/curtailment/subsystems`     |
 | `/estados`, `/estados/[uf]`         | State monthly series (total/wind/solar), plant ranking, reasons                           | `/v1/curtailment/states/{state}` |
-| `/usinas`                           | Search with state and source filters, paginated (dynamic: it reads the query string)      | `/v1/plants`                     |
-| `/usinas/[slug]`                    | Registry data, history (verified × curtailed), reasons, comparison with the state average | `/v1/plants/{slug}`              |
-| `/relatorios`, `/relatorios/[slug]` | Monthly reports (sanitized Markdown), all years in the HTML with a year selector          | `/v1/reports`                    |
-| `/metodologia`, `/privacidade`      | Methodology and privacy policy                                                            | —                                |
-| `/cadastro`, `/entrar`              | Sign-up (profile, 6-digit e-mail code), login, password reset (`/esqueci-a-senha`)        | `/v1/auth/*`                     |
-| `/newsletter/*`                     | Confirm and unsubscribe (`?token=`)                                                       | `/v1/newsletter/*`               |
-
-Pages that need a free account (`src/app/(membros)`):
-
-| Route       | Content                                                                                                                                         | API                                        |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `/comparar` | Up to 6 items (states, subsystems, plants), any metrics, as lines, bars or pie. The whole state is in the URL (`?itens=…&metricas=…&grafico=…`) | `/v1/plants/{slug}`, `/v1/curtailment/*`   |
-| `/analises` | Compensable share of the cut, ranking by company and connection point, hourly profile                                                           | `/v1/rankings/*`, `/v1/curtailment/hourly` |
-| `/conta`    | Profile and account deletion                                                                                                                    | `/v1/auth/me`                              |
-
-Other routes: `/admin` and `/admin/uso` (Cognito admin: loads, reports, cache, usage statistics),
-`GET /api/search?q=` (plant search for the compare page), `GET /api/session`, `POST /api/track`
-(usage events) and `POST /api/revalidate` (called by the API).
-
-Public pages show a call to action ("Crie uma conta grátis para comparar usinas, ver a série
-horária e exportar") to visitors without a session; it disappears when `/api/session` says there is
-one.
+| `/usinas`, `/usinas/[slug]`         | Plant search and registry data, history, reasons, comparison with the state average       | `/v1/plants`                     |
+| `/relatorios`, `/relatorios/[slug]` | Monthly reports (sanitized Markdown), with a PDF download                                 | `/v1/reports`                    |
+| `/analises`                         | Compensable curtailment, companies and connection points, hourly profile; PDF, Excel, CSV | `/v1/exports/*`                  |
+| `/comparar`, `/conta`               | Plant comparison and the member's own account                                             | —                                |
 
 ### SEO
 
-- `sitemap.xml`: the fixed pages, the 27 states, every report and every plant (paginated through
-  the API). Each source is read independently: if the API is down, the reports and the plants are
-  left out and the sitemap still lists the fixed pages and the states. It is regenerated every
-  hour, so a failure does not stay for long.
-- `robots.txt`: allows everything except `/admin`, `/api/`, the token pages and the pages that
-  need an account.
+- `sitemap.xml`: only the pages open to anyone (home, method, sign-up, privacy).
+- `robots.txt`: allows everything except `/admin`, `/api/`, the token pages and every page that
+  needs an account.
 - Per-page metadata (title, description, canonical, Open Graph) through `pageMetadata`, and JSON-LD
   (`Dataset` on the dashboard, state and plant pages, `Article` on reports).
 - A custom period (`?de=2026-01&ate=2026-06`) on `/painel`, `/estados/[uf]` and `/usinas/[slug]`
@@ -117,7 +105,7 @@ generates `src/lib/api/schema.d.ts` with `openapi-typescript`, reading (in this 
 
 | Variable                                                        | Purpose                                                                 |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `API_URL`                                                       | `energy-api` URL (server only). Default `http://127.0.0.1:8000`        |
+| `API_URL`                                                       | `energy-api` URL (server only). Default `http://127.0.0.1:8000`         |
 | `NEXT_PUBLIC_SITE_URL`                                          | Public URL (canonical, OG, sitemap)                                     |
 | `NEXT_PUBLIC_CONTACT_EMAIL`                                     | Privacy contact (LGPD) shown on `/privacidade`                          |
 | `REVALIDATE_SECRET`                                             | Secret of `POST /api/revalidate`; the same value configured in the API  |

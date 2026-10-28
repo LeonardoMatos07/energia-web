@@ -36,28 +36,36 @@ afterEach(() => {
 });
 
 describe("middleware: public pages", () => {
-  it.each([
-    "/painel",
-    "/estados",
-    "/estados/ba",
-    "/usinas",
-    "/usinas/sao-fernando-4-rnesf4",
-    "/relatorios",
-    "/relatorios/curtailment-em-setembro-de-2026",
-  ])("serves %s without a session", (path) => {
-    const { response } = run(path);
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-  });
+  it.each(["/", "/metodologia", "/privacidade", "/cadastro"])(
+    "serves %s without a session",
+    (path) => {
+      const { response } = run(path);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    },
+  );
 
   it("records a page view, not a gated one", async () => {
-    const { waitUntil } = run("/estados/ba");
+    const { waitUntil } = run("/metodologia");
     expect(await sentActions(waitUntil)).toEqual(["page.view"]);
   });
 });
 
+const GATED = [
+  "/painel",
+  "/estados",
+  "/estados/ba",
+  "/usinas",
+  "/usinas/sao-fernando-4-rnesf4",
+  "/relatorios",
+  "/relatorios/curtailment-em-setembro-de-2026",
+  "/comparar",
+  "/analises",
+  "/conta",
+];
+
 describe("middleware: pages that need an account", () => {
-  it.each(["/comparar", "/analises", "/conta"])("sends %s to the login", (path) => {
+  it.each(GATED)("sends %s to the login", (path) => {
     const { response } = run(`${path}?x=1`);
     expect(response.status).toBe(307);
     const location = new URL(response.headers.get("location") ?? "");
@@ -66,11 +74,11 @@ describe("middleware: pages that need an account", () => {
   });
 
   it("records the blocked visit as page.gated", async () => {
-    const { waitUntil } = run("/comparar");
+    const { waitUntil } = run("/estados/ba");
     expect(await sentActions(waitUntil)).toEqual(["page.gated"]);
   });
 
-  it.each(["/comparar", "/analises", "/conta"])("lets a member into %s", (path) => {
+  it.each(GATED)("lets a member into %s", (path) => {
     const { response } = run(path, { cookie: "spillway_session=token" });
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
@@ -78,15 +86,17 @@ describe("middleware: pages that need an account", () => {
 });
 
 describe("middleware: custom periods", () => {
-  it("rewrites a period on a public page to its dynamic variant, keeping the URL", () => {
-    const { response } = run("/estados/rn?de=2026-01&ate=2026-06");
+  it("rewrites a period for a member to the dynamic variant, keeping the URL", () => {
+    const { response } = run("/estados/rn?de=2026-01&ate=2026-06", {
+      cookie: "spillway_session=token",
+    });
     const target = new URL(response.headers.get("x-middleware-rewrite") ?? "");
     expect(target.pathname).toBe("/estados/rn/periodo");
     expect(target.search).toBe("?de=2026-01&ate=2026-06");
   });
 
   it("does not rewrite a page without a period", () => {
-    const { response } = run("/estados/rn");
+    const { response } = run("/estados/rn", { cookie: "spillway_session=token" });
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();
   });
 
@@ -99,15 +109,15 @@ describe("middleware: custom periods", () => {
 
 describe("middleware: measurement", () => {
   it("skips prefetches and honours Do Not Track for visitors", async () => {
-    const prefetch = run("/painel", { headers: { "next-router-prefetch": "1" } });
-    const dnt = run("/painel", { headers: { dnt: "1" } });
+    const prefetch = run("/metodologia", { headers: { "next-router-prefetch": "1" } });
+    const dnt = run("/metodologia", { headers: { dnt: "1" } });
     expect(prefetch.waitUntil).not.toHaveBeenCalled();
     expect(dnt.waitUntil).not.toHaveBeenCalled();
     expect(dnt.response.headers.get("set-cookie")).toBeNull();
   });
 
   it("sets the first-party cookies on a normal visit", () => {
-    const { response } = run("/painel");
+    const { response } = run("/metodologia");
     const cookies = response.headers.get("set-cookie") ?? "";
     expect(cookies).toContain("spillway_vid=");
     expect(cookies).toContain("spillway_sid=");
