@@ -10,7 +10,8 @@ import {
   topFeatures,
 } from "@/lib/forecast";
 import { formatDate, formatNumber } from "@/lib/format";
-import { RELIABILITY_COLORS, ReliabilityChart } from "./reliability-chart";
+import { RELIABILITY_COLORS } from "@/components/charts/palette";
+import { ReliabilityChart } from "./reliability-chart";
 
 const STALE_MODEL_DAYS = 45;
 

@@ -24,8 +24,6 @@ export interface ReliabilitySeries {
   points: CalibrationPoint[];
 }
 
-// Hex literals (not CSS variables) so both lines stay distinct in every theme.
-export const RELIABILITY_COLORS = { model: "#2dd4bf", baseline: "#fbbf24" } as const;
 
 const TICKS = [0, 25, 50, 75, 100];
 
@@ -67,7 +65,7 @@ export function ReliabilityChart({
               x2="26"
               y1="6"
               y2="6"
-              style={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
+              style={{ stroke: "var(--color-ink-2)", strokeWidth: 1.5 }}
               strokeDasharray="4 3"
             />
           </svg>
@@ -129,7 +127,7 @@ export function ReliabilityChart({
                   { x: 0, y: 0 },
                   { x: 100, y: 100 },
                 ]}
-                stroke="#e2e8f0"
+                stroke="var(--color-ink-2)"
                 strokeOpacity={0.8}
                 strokeWidth={1.5}
                 strokeDasharray="4 3"
