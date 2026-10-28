@@ -16,9 +16,10 @@ import { visitorIpHeaders } from "@/lib/newsletter";
 
 export type ActionResult =
   | { ok: true; message: string; devCode?: string | null }
-  | { ok: false; code: "invalid" | "unverified" | "rate" | "error"; message: string };
+  | { ok: false; code: "invalid" | "unverified" | "rate" | "exists" | "error"; message: string };
 
 const GENERIC_ERROR = "Não conseguimos concluir agora. Tente novamente em alguns minutos.";
+const ACCOUNT_EXISTS = "Já existe uma conta com este e-mail.";
 const RATE_ERROR = "Muitas tentativas. Aguarde um minuto e tente de novo.";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -71,6 +72,9 @@ export async function signUpAction(payload: SignupPayload): Promise<ActionResult
   } catch (error) {
     if (error instanceof ApiError && error.status === 422) {
       return { ok: false, code: "invalid", message: validationMessage(error.detail) };
+    }
+    if (error instanceof ApiError && error.status === 409) {
+      return { ok: false, code: "exists", message: ACCOUNT_EXISTS };
     }
     return failure(error);
   }
