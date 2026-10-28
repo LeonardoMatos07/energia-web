@@ -3,6 +3,9 @@ import { apiTry, withQuery } from "./client";
 import type {
   AggregateSource,
   CurtailmentSummary,
+  ForecastModelMeta,
+  ForecastResponse,
+  ForecastScope,
   GroupRankingResponse,
   HourlyProfileResponse,
   MonthsResponse,
@@ -103,5 +106,26 @@ export function getReports() {
 export function getReport(slug: string) {
   return apiTry<Report>(`/v1/reports/${encodeURIComponent(slug)}`, {
     tags: ["reports"],
+  });
+}
+
+// The forecast is published in batches (at most daily), so a short fixed cache is enough.
+const FORECAST_REVALIDATE_SECONDS = 1_800;
+
+export function getForecast(scope: string, source: Source = "wind", days = 7) {
+  return apiTry<ForecastResponse>(withQuery("/v1/forecast", { scope, source, days }), {
+    revalidate: FORECAST_REVALIDATE_SECONDS,
+  });
+}
+
+export function getForecastScopes() {
+  return apiTry<ForecastScope[]>("/v1/forecast/scopes", {
+    revalidate: FORECAST_REVALIDATE_SECONDS,
+  });
+}
+
+export function getForecastModel() {
+  return apiTry<ForecastModelMeta>("/v1/forecast/model", {
+    revalidate: FORECAST_REVALIDATE_SECONDS,
   });
 }

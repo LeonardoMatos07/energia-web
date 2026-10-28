@@ -29,6 +29,9 @@ export type ResponseChecks = [
   Assert<Fits<S["PlantCurtailment"], T.PlantMonthlyCurtailment>>,
   Assert<Fits<S["Plant"], T.Plant>>,
   Assert<Fits<S["RankedPlant"], T.RankedPlant>>,
+  Assert<Fits<S["ForecastResponse"], T.ForecastResponse>>,
+  Assert<Fits<S["ForecastPoint"], T.ForecastPoint>>,
+  Assert<Fits<S["ForecastScope"], T.ForecastScope>>,
 ];
 
 export type RequestChecks = [

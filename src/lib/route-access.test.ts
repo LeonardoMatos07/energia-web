@@ -15,6 +15,8 @@ describe("isProtected", () => {
     "/comparar/x",
     "/analises",
     "/analises/horario",
+    "/previsao",
+    "/previsao/x",
     "/conta",
     "/conta/dados",
   ])("requires an account for %s", (path) => {

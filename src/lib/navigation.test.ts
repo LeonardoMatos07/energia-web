@@ -7,8 +7,14 @@ const active = (pathname: string) =>
   NAV.filter((i) => isNavActive(pathname, i.matches)).map((i) => i.label);
 
 describe("main menu", () => {
-  it("has the four sections and nothing else", () => {
-    expect(NAV.map((item) => item.label)).toEqual(["Painel", "Explorar", "Análises", "Relatórios"]);
+  it("has the five sections and nothing else", () => {
+    expect(NAV.map((item) => item.label)).toEqual([
+      "Painel",
+      "Explorar",
+      "Análises",
+      "Previsão",
+      "Relatórios",
+    ]);
   });
 
   it("keeps Explorar lit on states, plants and the comparison", () => {

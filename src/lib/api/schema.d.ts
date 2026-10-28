@@ -191,6 +191,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/{slug}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_report_pdf_v1_reports__slug__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exports/analysis.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["analysis_pdf_file_v1_exports_analysis_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exports/analysis.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["analysis_xlsx_file_v1_exports_analysis_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exports/analysis-csv.zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["analysis_csv_file_v1_exports_analysis_csv_zip_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["forecast_v1_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/forecast/scopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["forecast_scopes_v1_forecast_scopes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/forecast/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["forecast_model_v1_forecast_model_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/newsletter": {
         parameters: {
             query?: never;
@@ -431,6 +543,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/dispatches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_dispatches_v1_admin_dispatches_get"];
+        put?: never;
+        post: operations["start_dispatch_v1_admin_dispatches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/revalidate": {
         parameters: {
             query?: never;
@@ -616,6 +744,25 @@ export interface components {
             interactions: number;
             members: number;
         };
+        Dispatch: {
+            id: number;
+            kind: "report" | "analysis";
+            month: string;
+            status: "running" | "done" | "partial";
+            recipients: number;
+            sent: number;
+            failed: number;
+            started_at: string;
+            finished_at: string | null;
+        };
+        DispatchInput: {
+            kind: "report" | "analysis";
+            month?: string | null;
+            retry: boolean;
+        };
+        DispatchListResponse: {
+            items: components["schemas"]["Dispatch"][];
+        };
         EmailOnly: {
             email: string;
         };
@@ -653,6 +800,52 @@ export interface components {
         };
         EventsAccepted: {
             accepted: number;
+        };
+        ForecastModelResponse: {
+            model_version: string;
+            trained_at: string;
+            data_period: {
+                [key: string]: unknown;
+            };
+            n_series: number;
+            n_rows: number;
+            metrics: {
+                [key: string]: unknown;
+            };
+            calibration: {
+                [key: string]: unknown;
+            };
+            feature_importance: {
+                [key: string]: unknown;
+            };
+            model_card: {
+                [key: string]: unknown;
+            };
+            last_run_at: string | null;
+            last_data_through: string | null;
+        };
+        ForecastPoint: {
+            ts: string;
+            risk_probability: number;
+            expected_curtailment_pct: number;
+            level: "baixo" | "medio" | "alto";
+            applicable: boolean;
+        };
+        ForecastResponse: {
+            scope: string;
+            source: "wind" | "solar";
+            risk_definition: string;
+            origin_ts: string;
+            generated_at: string;
+            data_through: string;
+            stale_days: number;
+            model_version: string;
+            model_trained_at: string;
+            points: components["schemas"]["ForecastPoint"][];
+        };
+        ForecastScope: {
+            scope: string;
+            source: "wind" | "solar";
         };
         FunnelStep: {
             step: string;
@@ -1401,6 +1594,212 @@ export interface operations {
             };
         };
     };
+    get_report_pdf_v1_reports__slug__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analysis_pdf_file_v1_exports_analysis_pdf_get: {
+        parameters: {
+            query?: {
+                scope?: "N" | "NE" | "S" | "SE" | "SIN";
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analysis_xlsx_file_v1_exports_analysis_xlsx_get: {
+        parameters: {
+            query?: {
+                scope?: "N" | "NE" | "S" | "SE" | "SIN";
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analysis_csv_file_v1_exports_analysis_csv_zip_get: {
+        parameters: {
+            query?: {
+                scope?: "N" | "NE" | "S" | "SE" | "SIN";
+                source?: "wind" | "solar" | "total";
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_v1_forecast_get: {
+        parameters: {
+            query: {
+                scope: string;
+                source?: "wind" | "solar";
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_scopes_v1_forecast_scopes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastScope"][];
+                };
+            };
+        };
+    };
+    forecast_model_v1_forecast_model_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastModelResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     subscribe_v1_newsletter_post: {
         parameters: {
             query?: never;
@@ -1528,6 +1927,12 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SignupResponse"];
                 };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             422: {
                 headers: {
@@ -1915,6 +2320,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminReport"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_dispatches_v1_admin_dispatches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchListResponse"];
+                };
+            };
+        };
+    };
+    start_dispatch_v1_admin_dispatches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DispatchInput"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dispatch"];
                 };
             };
             422: {
