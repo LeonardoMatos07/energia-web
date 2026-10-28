@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReportDownload } from "@/components/download-menu";
 import { JsonLd } from "@/components/json-ld";
 import { Markdown } from "@/components/markdown";
 import { Container, DataUnavailable, PageHeader } from "@/components/ui";
@@ -82,6 +83,9 @@ export default async function ReportPage({ params }: { params: Promise<Params> }
             </p>
           ) : null}
         </PageHeader>
+        <div className="pb-6">
+          <ReportDownload slug={r.slug} />
+        </div>
         <Markdown>{r.content}</Markdown>
       </article>
     </Container>
