@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnalysisFilters } from "@/components/analysis-filters";
+import { AnalysisDownloads } from "@/components/download-menu";
 import { HourlyChart } from "@/components/charts/hourly-chart";
 import { REASON_COLORS } from "@/components/charts/palette";
 import { Container, DataUnavailable, Notice } from "@/components/ui";
@@ -390,6 +391,11 @@ export default async function AnalysesPage({
           source={source}
           scope={tab === "horario" ? scope : undefined}
         />
+      ) : null}
+      {firstMonth ? (
+        <div className="flex justify-end pb-4">
+          <AnalysisDownloads filters={{ scope, source, start, end }} />
+        </div>
       ) : null}
       <div className="pb-12">{content}</div>
     </Container>

@@ -145,8 +145,12 @@ export default function MethodologyPage() {
 
         <H2 id="privacidade">Privacidade</H2>
         <p>
-          Não há login público nem cookies de rastreamento. O único dado pessoal que guardamos é o
-          e-mail de quem assina a newsletter. Veja os detalhes na{" "}
+          O painel, as páginas de estados e de usinas e os relatórios são abertos, sem conta. Para
+          comparar usinas, ver a série horária e exportar dados, é preciso criar uma conta grátis, e
+          para isso guardamos os dados do cadastro. Também guardamos o e-mail de quem assina a
+          newsletter e registramos, com cookies próprios e sem terceiros, as páginas visitadas e o
+          uso do site para melhorar o produto (respeitando o sinal “Não rastrear” de quem não tem
+          conta). Veja o que é tratado, por quê e como pedir a exclusão na{" "}
           <Link href="/privacidade">política de privacidade</Link>.
         </p>
       </div>

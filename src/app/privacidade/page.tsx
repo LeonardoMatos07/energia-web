@@ -9,7 +9,7 @@ export const metadata = pageMetadata({
   path: "/privacidade",
 });
 
-const UPDATED_AT = "21 de outubro de 2026";
+const UPDATED_AT = "27 de outubro de 2026";
 
 export default function PrivacyPage() {
   const contact = getContactEmail();
@@ -22,9 +22,11 @@ export default function PrivacyPage() {
 
       <div className="prose prose-site max-w-3xl">
         <p>
-          O {SITE_NAME} é um portal aberto: você não precisa de conta para ver nenhum dado. O único
-          dado pessoal que tratamos é o e-mail de quem assina a newsletter. Esta página explica esse
-          tratamento conforme a Lei Geral de Proteção de Dados (Lei 13.709/2018, LGPD).
+          No {SITE_NAME}, o painel, as páginas de estados e de usinas e os relatórios mensais são
+          abertos: você os vê sem conta. Comparar usinas, ver a série horária e exportar dados
+          exigem uma conta gratuita. Tratamos dados pessoais em três situações: quando você assina a
+          newsletter, quando cria uma conta e quando usa o site (registro de uso). Esta página
+          explica cada uma conforme a Lei Geral de Proteção de Dados (Lei 13.709/2018, LGPD).
         </p>
 
         <h2 id="controlador">Quem é o controlador</h2>
@@ -61,50 +63,83 @@ export default function PrivacyPage() {
             consentimento é separado e pode ser retirado a qualquer momento.
           </li>
           <li>
-            <strong>Uso do site:</strong> quando você está logado, registramos as páginas que abre,
-            os filtros e períodos que escolhe, as consultas que faz (por exemplo, um estado, uma
-            usina ou uma comparação), as buscas, os cliques em botões e o tempo de permanência, com
-            data e hora, o tipo de dispositivo e navegador e o endereço IP apenas em forma de código
-            irreversível (hash). Visitantes sem login também têm as páginas registradas, a menos que
-            o navegador envie o sinal “Não rastrear” (DNT) ou Global Privacy Control, que
-            respeitamos. A finalidade é medir o que as pessoas usam e melhorar o produto, e é
-            tratada como legítimo interesse (art. 7º, IX) e, para quem tem conta, também com base no
-            consentimento dado no cadastro. Os registros ficam ligados à sua conta por até 24 meses;
-            ao excluir a conta, eles deixam de apontar para você.
+            <strong>Uso do site, com conta:</strong> registramos as páginas que você abre, os
+            filtros e períodos que escolhe, as consultas que faz (por exemplo, um estado, uma usina
+            ou uma comparação), as buscas, os cliques em botões e o tempo de permanência, com data e
+            hora, o tipo de dispositivo e navegador, a página de origem e o endereço IP apenas em
+            forma de código irreversível (hash). Esses registros ficam ligados à sua conta, porque
+            medir o uso por perfil é parte do serviço gratuito descrito no cadastro. A finalidade é
+            entender o que as pessoas usam e melhorar o produto, com base no consentimento dado no
+            cadastro (art. 7º, I) e no legítimo interesse (art. 7º, IX). Nossa meta é guardá-los por
+            até 24 meses; ao excluir a conta, eles deixam de apontar para você.
           </li>
           <li>
-            <strong>Proteção contra abuso:</strong> o endereço IP de quem envia o formulário da
-            newsletter é usado na hora, em memória, para limitar tentativas repetidas. Ele não é
-            gravado em banco de dados (legítimo interesse, art. 7º, IX).
+            <strong>Uso do site, sem conta:</strong> as páginas que você abre e as ações na tela são
+            registradas com um identificador aleatório de visitante e de visita (cookies próprios,
+            veja abaixo), o tipo de dispositivo e navegador, a página de origem e o IP em forma de
+            hash. Esse registro não aponta para o seu nome nem para o seu e-mail, e só passa a se
+            ligar a você se você criar uma conta depois. Se o seu navegador enviar o sinal “Não
+            rastrear” (DNT) ou Global Privacy Control, não fazemos esse registro. A base legal é o
+            legítimo interesse (art. 7º, IX), de saber quais páginas e dados são úteis.
           </li>
           <li>
-            <strong>Estatísticas de visitas:</strong> quando ativas, são agregadas, sem cookies e
-            sem identificar visitantes.
+            <strong>Proteção contra abuso:</strong> o endereço IP de quem envia os formulários de
+            newsletter, cadastro, login e recuperação de senha é usado na hora, em memória, para
+            limitar tentativas repetidas. Para esse fim ele não é gravado em banco de dados
+            (legítimo interesse, art. 7º, IX).
+          </li>
+          <li>
+            <strong>Estatísticas agregadas:</strong> quando uma ferramenta de estatísticas sem
+            cookies (como Plausible ou Umami) está ativa, ela conta visitas de forma agregada, sem
+            identificar visitantes. É separada do registro de uso descrito acima.
           </li>
         </ul>
         <p>Não vendemos, alugamos nem compartilhamos e-mails para fins de marketing.</p>
 
         <h2 id="armazenamento">O que fica no seu navegador</h2>
         <p>
-          Não usamos cookies de rastreamento. O site guarda no seu navegador apenas a preferência de
-          tema claro ou escuro (<code>localStorage</code>). Quando você entra na sua conta, o site
-          grava um cookie de sessão estritamente necessário (<code>spillway_session</code>), que
-          vale por até 14 dias e é apagado quando você sai. Também usamos dois cookies próprios de
-          medição de uso, sem terceiros: um identificador de visitante (<code>spillway_vid</code>, 1
-          ano) e um de visita (<code>spillway_sid</code>, 30 minutos). A área administrativa, de uso
-          interno, também usa um cookie de sessão para o login.
+          Não usamos cookies de publicidade nem de terceiros. O que o site guarda no seu navegador:
+        </p>
+        <ul>
+          <li>
+            <strong>Cookies próprios de medição de uso</strong>, que não saem do nosso domínio: um
+            identificador aleatório de visitante (<code>spillway_vid</code>, dura 1 ano) e um de
+            visita (<code>spillway_sid</code>, dura 30 minutos). Servem para contar visitas e ligar
+            os passos de uma mesma visita, e não são gravados se o seu navegador enviar “Não
+            rastrear” ou Global Privacy Control e você não estiver logado.
+          </li>
+          <li>
+            <strong>Cookie de sessão</strong> (<code>spillway_session</code>), estritamente
+            necessário: só existe depois que você entra na conta, vale por até 14 dias e é apagado
+            quando você sai. A área administrativa, de uso interno, também usa um cookie de sessão
+            para o login.
+          </li>
+          <li>
+            <strong>Preferência de tema</strong> claro ou escuro, guardada no{" "}
+            <code>localStorage</code>.
+          </li>
+        </ul>
+        <p>
+          Se você quiser, pode apagar esses dados nas configurações do navegador; o site continua
+          funcionando, e você só precisará entrar de novo na conta.
         </p>
 
         <h2 id="retencao">Por quanto tempo guardamos</h2>
         <ul>
           <li>
-            Inscrição não confirmada: apagada depois que o link de confirmação expira (48 horas).
+            Inscrição na newsletter não confirmada: apagada depois que o link de confirmação expira
+            (48 horas).
           </li>
           <li>Assinatura ativa: enquanto você quiser receber a newsletter.</li>
           <li>
             Conta gratuita: enquanto ela existir. Você pode excluí-la a qualquer momento em “Minha
-            conta”, e seus dados de cadastro são apagados. Cadastros cujo e-mail não foi confirmado
-            em 48 horas deixam de ter validade.
+            conta”, e seus dados de cadastro são apagados. O código de confirmação do e-mail vale 30
+            minutos; um cadastro sem confirmação não dá acesso e pode ser refeito ou excluído a seu
+            pedido pelo contato acima.
+          </li>
+          <li>
+            Registro de uso: por até 24 meses (meta de retenção). Ao excluir a conta, os registros
+            deixam de apontar para você (conta, visitante, IP e navegador são desvinculados).
           </li>
           <li>
             Depois do descadastro: o registro é apagado em até 30 dias. Nesse intervalo ele serve só
@@ -163,8 +198,9 @@ export default function PrivacyPage() {
 
         <h2 id="seguranca">Segurança</h2>
         <p>
-          A conexão com o site é criptografada (HTTPS). O banco de dados fica em rede privada, e os
-          links de confirmação e de descadastro são guardados apenas como hash.
+          A conexão com o site é criptografada (HTTPS). O banco de dados fica em rede privada. As
+          senhas são guardadas só como hash com sal (scrypt), e os códigos de confirmação, os links
+          de descadastro e as chaves de sessão são guardados apenas como hash.
         </p>
 
         <h2 id="mudancas">Mudanças nesta política</h2>
