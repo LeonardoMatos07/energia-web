@@ -1,4 +1,4 @@
-# energy-web
+# spillway-web
 
 Public portal of **Spillway** (Phase 1), the curtailment monitor: how much wind and solar energy ONS
 ordered Brazilian plants not to generate, per month, subsystem, state and plant, with the
@@ -6,16 +6,16 @@ estimated loss in BRL. It includes an admin area to follow the pipeline loads an
 monthly reports.
 
 It is one of four repositories; the contract between them is in
-[`energy-api/docs/phase1-contract.md`](https://github.com/LeonardoMatos07/energy-api/blob/main/docs/phase1-contract.md).
+[`spillway-api/docs/phase1-contract.md`](https://github.com/LeonardoMatos07/spillway-api/blob/main/docs/phase1-contract.md).
 
 | Repository       | Role                                                   |
 | ---------------- | ------------------------------------------------------ |
-| `energy-data`    | Airflow: ingests ONS data and writes the aggregates    |
-| `energy-api`     | FastAPI: schema owner, public reads, newsletter, admin |
-| **`energy-web`** | Next.js: this portal (ISR) and the admin area          |
-| `energy-infra`   | Terraform (AWS `sa-east-1`)                            |
+| `spillway-data`    | Airflow: ingests ONS data and writes the aggregates    |
+| `spillway-api`     | FastAPI: schema owner, public reads, newsletter, admin |
+| **`spillway-web`** | Next.js: this portal (ISR) and the admin area          |
+| `spillway-infra`   | Terraform (AWS `sa-east-1`)                            |
 
-Design decisions shared by the four repositories are recorded as [ADRs](https://github.com/LeonardoMatos07/energy-api/tree/main/docs/adr).
+Design decisions shared by the four repositories are recorded as [ADRs](https://github.com/LeonardoMatos07/spillway-api/tree/main/docs/adr).
 
 ## Stack
 
@@ -80,7 +80,7 @@ pnpm dev
 ```
 
 Adjust `API_URL` and the other variables in `.env.local`. The site runs on
-`http://localhost:3000`. With `energy-api` running on `http://127.0.0.1:8000` the pages show
+`http://localhost:3000`. With `spillway-api` running on `http://127.0.0.1:8000` the pages show
 real data; without it they show "dados indisponíveis" and nothing breaks.
 
 | Command                                  | What it does                                             |
@@ -96,8 +96,8 @@ real data; without it they show "dados indisponíveis" and nothing breaks.
 
 `src/lib/api/types.ts` holds the hand-written types from the contract. `pnpm gen:api`
 generates `src/lib/api/schema.d.ts` with `openapi-typescript`, reading (in this order)
-`OPENAPI_SOURCE`, `../energy-api/openapi.json` or `http://localhost:8000/openapi.json`. In
-`energy-api`, `uv run python -m app.export_openapi openapi.json` exports the file.
+`OPENAPI_SOURCE`, `../spillway-api/openapi.json` or `http://localhost:8000/openapi.json`. In
+`spillway-api`, `uv run python -m app.export_openapi openapi.json` exports the file.
 `src/lib/api/schema-compat.ts` compares both at compile time: if the API changes a payload,
 `pnpm typecheck` fails.
 
@@ -105,7 +105,7 @@ generates `src/lib/api/schema.d.ts` with `openapi-typescript`, reading (in this 
 
 | Variable                                                        | Purpose                                                                 |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `API_URL`                                                       | `energy-api` URL (server only). Default `http://127.0.0.1:8000`         |
+| `API_URL`                                                       | `spillway-api` URL (server only). Default `http://127.0.0.1:8000`         |
 | `NEXT_PUBLIC_SITE_URL`                                          | Public URL (canonical, OG, sitemap)                                     |
 | `NEXT_PUBLIC_CONTACT_EMAIL`                                     | Privacy contact (LGPD) shown on `/privacidade`                          |
 | `REVALIDATE_SECRET`                                             | Secret of `POST /api/revalidate`; the same value configured in the API  |
@@ -138,7 +138,7 @@ Admin and newsletter calls use `cache: "no-store"`.
 
 ## How revalidation works
 
-1. After each load, `energy-data` calls `POST {API_URL}/v1/admin/revalidate` with
+1. After each load, `spillway-data` calls `POST {API_URL}/v1/admin/revalidate` with
    `{"tags": ["curtailment", "plants"]}`.
 2. The API clears its own cache and calls `POST {WEB_URL}/api/revalidate` with the
    `x-revalidate-secret` header and the same body.
