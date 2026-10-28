@@ -230,6 +230,7 @@ export interface MemberProfile {
   regions: string[];
   plants: string[];
   interests: string[];
+  marketing_opt_in: boolean;
   created_at: Timestamp;
 }
 

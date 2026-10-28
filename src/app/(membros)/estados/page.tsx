@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExploreTabs } from "@/components/explore-tabs";
 import { Container, PageHeader, Section } from "@/components/ui";
 import { STATES, REGIONS } from "@/lib/geo";
 import { pageMetadata } from "@/lib/metadata";
@@ -13,6 +14,7 @@ export const metadata = pageMetadata({
 export default function StatesPage() {
   return (
     <Container>
+      <ExploreTabs active="estados" />
       <PageHeader title="Curtailment por estado">
         <p>
           A maior parte dos parques eólicos e solares fica no Nordeste, mas há usinas em quase todo

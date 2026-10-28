@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS } from "@/components/charts/palette";
 import type { ChartSeries } from "@/components/charts/types";
+import { CompareAction } from "@/components/compare-action";
 import { JsonLd } from "@/components/json-ld";
 import { MemberCallout } from "@/components/member-callout";
 import { RankingTable } from "@/components/ranking-table";
@@ -254,6 +255,9 @@ export async function StateView({
         title={`${brazilianState.name} (${brazilianState.state})`}
       >
         <p>Energia eólica e solar que deixou de ser gerada por ordem do ONS, mês a mês.</p>
+        <div className="mt-4">
+          <CompareAction entity={{ kind: "state", id: brazilianState.state }} />
+        </div>
       </PageHeader>
 
       <Section id="series" title="Série mensal">

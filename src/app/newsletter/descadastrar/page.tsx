@@ -1,4 +1,8 @@
+import Link from "next/link";
+import { MemberUnsubscribe } from "@/components/member-unsubscribe";
+import { Container, PageHeader } from "@/components/ui";
 import type { UnsubscribedResponse } from "@/lib/api/types";
+import { getCurrentMember } from "@/lib/members";
 import { pageMetadata } from "@/lib/metadata";
 import { callTokenEndpoint, first, TokenResultPage } from "../token-result";
 
@@ -17,6 +21,20 @@ export default async function UnsubscribePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const token = first((await searchParams).token);
+  const member = token ? null : await getCurrentMember();
+  if (member) {
+    return (
+      <Container>
+        <PageHeader title="Cancelar newsletter" />
+        <MemberUnsubscribe enabled={member.marketing_opt_in} />
+        <p className="mt-6">
+          <Link href="/" className="text-[var(--color-accent)] underline">
+            Voltar ao início
+          </Link>
+        </p>
+      </Container>
+    );
+  }
   const outcome = await callTokenEndpoint<UnsubscribedResponse>(
     "/v1/newsletter/unsubscribe",
     token,
