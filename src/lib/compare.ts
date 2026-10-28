@@ -19,6 +19,11 @@ export function entityToken(ref: EntityRef): string {
   return `${TOKEN_PREFIX[ref.kind]}:${ref.id}`;
 }
 
+/** A comparison that starts with the page's own state, plant or subsystem already chosen. */
+export function compareHref(ref: EntityRef): string {
+  return `/comparar?itens=${encodeURIComponent(entityToken(ref))}`;
+}
+
 export function serializeEntities(refs: readonly EntityRef[]): string {
   return refs.map(entityToken).join(",");
 }

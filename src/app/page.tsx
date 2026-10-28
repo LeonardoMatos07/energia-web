@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { subscribeNewsletter } from "@/app/newsletter/actions";
 import { HeroBackdrop, HeroChart } from "@/components/hero-visual";
 import { JsonLd } from "@/components/json-ld";
-import { NewsletterForm } from "@/components/newsletter-form";
+import { MemberNewsletter } from "@/components/member-newsletter";
 import { Card, Container, Section, StatGrid, StatTile } from "@/components/ui";
 import { getSubsystemCurtailment } from "@/lib/api/queries";
 import {
@@ -15,11 +14,10 @@ import {
   mwhToGwh,
 } from "@/lib/format";
 import { pageMetadata } from "@/lib/metadata";
+import { getCurrentMember } from "@/lib/members";
 import { latest, normalizeMonth } from "@/lib/series";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { publisher } from "@/lib/structured-data";
-
-export const revalidate = 3600;
 
 export const metadata = pageMetadata({
   title: `${SITE_NAME}: ${SITE_TAGLINE}`,
@@ -31,15 +29,13 @@ const HERO_MONTHS = 24;
 
 const INCLUDED = [
   { href: "/painel", title: "Painel", text: "Números do país por período." },
-  { href: "/estados", title: "Estados", text: "O corte em cada estado." },
-  { href: "/usinas", title: "Usinas", text: "Histórico de cada usina." },
-  { href: "/comparar", title: "Comparar", text: "Usinas e estados lado a lado." },
+  { href: "/estados", title: "Explorar", text: "Estados, usinas e comparação lado a lado." },
+  { href: "/analises", title: "Análises", text: "Compensação, empresas, horários e previsão." },
   { href: "/relatorios", title: "Relatórios", text: "Um por mês, desde 2021." },
-  { href: "/analises", title: "Análises", text: "Compensação, empresas e horários." },
 ] as const;
 
 export default async function LandingPage() {
-  const total = await getSubsystemCurtailment("total");
+  const [total, member] = await Promise.all([getSubsystemCurtailment("total"), getCurrentMember()]);
   const sinTotal = total.ok ? total.data.items.filter((row) => row.subsystem === "SIN") : [];
   const latestRow = latest(sinTotal);
   const month = latestRow ? normalizeMonth(latestRow.month) : null;
@@ -84,20 +80,26 @@ export default async function LandingPage() {
               className="hero-rise mt-8 flex flex-wrap items-center gap-3"
               style={{ animationDelay: "0.4s" }}
             >
-              <Link
-                href="/cadastro"
-                data-track="landing.hero_signup"
-                className="bg-accent text-on-accent shadow-card rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
-              >
-                Criar conta gratuita
-              </Link>
-              <Link
-                href="/entrar"
-                data-track="landing.hero_login"
-                className="border-line bg-surface/80 hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold backdrop-blur"
-              >
-                Entrar
-              </Link>
+              {member ? (
+                <MemberNewsletter email={member.email} enabled={member.marketing_opt_in} />
+              ) : (
+                <>
+                  <Link
+                    href="/cadastro"
+                    data-track="landing.hero_signup"
+                    className="bg-accent text-on-accent shadow-card rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
+                  >
+                    Criar conta gratuita
+                  </Link>
+                  <Link
+                    href="/entrar"
+                    data-track="landing.hero_login"
+                    className="border-line bg-surface/80 hover:border-accent hover:bg-accent-soft rounded-full border px-5 py-2.5 text-sm font-semibold backdrop-blur"
+                  >
+                    Entrar
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           <div className="hero-rise" style={{ animationDelay: "0.55s" }}>
@@ -131,10 +133,10 @@ export default async function LandingPage() {
 
       <Section
         id="included"
-        title="Tudo liberado com uma conta gratuita"
+        title={member ? "Tudo liberado na sua conta" : "Tudo liberado com uma conta gratuita"}
         description="Dados oficiais do ONS, metodologia aberta."
       >
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {INCLUDED.map((item) => (
             <li key={item.href}>
               <Link
@@ -150,23 +152,21 @@ export default async function LandingPage() {
             </li>
           ))}
         </ul>
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link
-            href="/cadastro"
-            data-track="landing.bottom_signup"
-            className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
-          >
-            Criar conta gratuita
-          </Link>
-          <p className="text-muted text-sm">
-            Em breve: download de dados, relatórios em PDF e API.
-          </p>
-        </div>
+        {member ? null : (
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              href="/cadastro"
+              data-track="landing.bottom_signup"
+              className="bg-accent text-on-accent rounded-full px-5 py-2.5 text-sm font-semibold hover:opacity-90"
+            >
+              Criar conta gratuita
+            </Link>
+            <p className="text-muted text-sm">
+              Inclui download dos dados em Excel e CSV e dos relatórios e análises em PDF.
+            </p>
+          </div>
+        )}
       </Section>
-
-      <div id="newsletter" className="py-6 sm:py-8">
-        <NewsletterForm action={subscribeNewsletter} signupSource="landing" />
-      </div>
     </Container>
   );
 }

@@ -3,11 +3,12 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { MemberCallout } from "@/components/member-callout";
-import { NewsletterForm } from "@/components/newsletter-form";
+import { MemberNewsletter } from "@/components/member-newsletter";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import { Container, DataUnavailable, Notice, Section, StatGrid, StatTile } from "@/components/ui";
-import { getCurtailmentSummary, getSubsystemCurtailment } from "@/lib/api/queries";
+import { getCurtailmentSummary, getReports, getSubsystemCurtailment } from "@/lib/api/queries";
+import { reportForMonth } from "@/lib/month-report";
 import type { SubsystemMonthlyCurtailment } from "@/lib/api/types";
 import {
   formatBRLCompact,
@@ -21,7 +22,7 @@ import {
 import { STATES, REGIONS, SUBSYSTEMS } from "@/lib/geo";
 import { defaultPeriod, filterByMonthRange, normalizeMonth, pivotByMonth } from "@/lib/series";
 import { datasetJsonLd, temporalCoverage } from "@/lib/structured-data";
-import { subscribeNewsletter } from "@/app/newsletter/actions";
+import { getCurrentMember } from "@/lib/members";
 
 const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
@@ -54,10 +55,12 @@ function parsePeriod(params: SearchParams, firstMonth: string, lastMonth: string
 }
 
 export async function DashboardView({ params }: { params: SearchParams }) {
-  const [total, wind, solar] = await Promise.all([
+  const [total, wind, solar, reports, member] = await Promise.all([
     getSubsystemCurtailment("total"),
     getSubsystemCurtailment("wind"),
     getSubsystemCurtailment("solar"),
+    getReports(),
+    getCurrentMember(),
   ]);
 
   const totalRows = total.ok ? total.data.items : [];
@@ -83,6 +86,7 @@ export async function DashboardView({ params }: { params: SearchParams }) {
   const subsystemRows = filterByMonthRange(bySubsystem, start, end);
   const summary = hasData ? await getCurtailmentSummary(NATIONAL_SCOPE, start, end) : null;
   const kpi = summary?.ok ? summary.data : null;
+  const monthReport = reportForMonth(reports.ok ? reports.data.items : undefined, end);
   const periodLabel =
     start === end
       ? formatLongMonth(start)
@@ -106,6 +110,25 @@ export async function DashboardView({ params }: { params: SearchParams }) {
         </p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Painel nacional</h1>
       </header>
+
+      {monthReport ? (
+        <aside className="border-grid bg-surface mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm">
+          <p className="text-ink-2">
+            <span className="text-ink font-semibold">
+              Relatório de {formatLongMonth(monthReport.month)}:
+            </span>{" "}
+            {monthReport.title}
+          </p>
+          <span className="flex items-center gap-4 font-medium">
+            <Link href={`/relatorios/${monthReport.slug}`} className="text-accent underline">
+              Ler o relatório
+            </Link>
+            <Link href="/relatorios" className="text-ink-2 hover:text-accent underline">
+              Todos os relatórios
+            </Link>
+          </span>
+        </aside>
+      ) : null}
 
       {!hasData ? (
         <DataUnavailable />
@@ -252,9 +275,11 @@ export async function DashboardView({ params }: { params: SearchParams }) {
         </div>
       </Section>
 
-      <div id="newsletter" className="py-6 sm:py-8">
-        <NewsletterForm action={subscribeNewsletter} signupSource="home" />
-      </div>
+      {member ? (
+        <div id="newsletter" className="py-6 sm:py-8">
+          <MemberNewsletter variant="card" email={member.email} enabled={member.marketing_opt_in} />
+        </div>
+      ) : null}
     </Container>
   );
 }

@@ -3,19 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [
-  { href: "/painel", label: "Painel" },
-  { href: "/estados", label: "Estados" },
-  { href: "/usinas", label: "Usinas" },
-  { href: "/comparar", label: "Comparar" },
-  { href: "/analises", label: "Análises" },
-  { href: "/relatorios", label: "Relatórios" },
-  { href: "/metodologia", label: "Metodologia" },
-];
-
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+import { isNavActive, NAV } from "@/lib/navigation";
 
 export function NavLinks() {
   const pathname = usePathname() ?? "/";
@@ -23,7 +11,7 @@ export function NavLinks() {
     <nav aria-label="Principal" className="-mx-1 [scrollbar-width:none] overflow-x-auto">
       <ul className="flex gap-1 px-1 text-sm font-medium whitespace-nowrap">
         {NAV.map((item) => {
-          const active = isActive(pathname, item.href);
+          const active = isNavActive(pathname, item.matches);
           return (
             <li key={item.href}>
               <Link

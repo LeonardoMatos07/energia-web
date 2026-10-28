@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { AuthNav } from "./auth-nav";
+import { FOOTER_LINKS } from "@/lib/navigation";
 import { NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 import { Container } from "./ui";
@@ -22,16 +23,6 @@ export function BrandMark({ className = "size-8" }: { className?: string }) {
     </svg>
   );
 }
-
-const FOOTER_LINKS = [
-  { href: "/estados", label: "Estados" },
-  { href: "/usinas", label: "Usinas" },
-  { href: "/comparar", label: "Comparar" },
-  { href: "/relatorios", label: "Relatórios" },
-  { href: "/metodologia", label: "Metodologia" },
-  { href: "/privacidade", label: "Privacidade" },
-  { href: "/newsletter/descadastrar", label: "Cancelar newsletter" },
-];
 
 export function SiteHeader() {
   return (

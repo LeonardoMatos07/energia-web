@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { GENERATION_COLORS, SERIES } from "@/components/charts/palette";
+import { CompareAction } from "@/components/compare-action";
 import { JsonLd } from "@/components/json-ld";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { MemberCallout } from "@/components/member-callout";
@@ -219,6 +220,9 @@ export async function PlantView({
             . O corte desta usina é uma parte do corte oficial do conjunto.
           </p>
         ) : null}
+        <div className="mt-4">
+          <CompareAction entity={{ kind: "plant", id: plant.slug }} />
+        </div>
       </PageHeader>
 
       {!latestRow ? (
