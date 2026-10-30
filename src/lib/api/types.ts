@@ -212,7 +212,15 @@ export interface ApiErrorBody {
   detail: string | unknown;
 }
 
-export const CACHE_TAGS = ["curtailment", "plants", "reports", "forecast", "news"] as const;
+export const CACHE_TAGS = [
+  "curtailment",
+  "plants",
+  "reports",
+  "forecast",
+  "news",
+  "market",
+  "reliability",
+] as const;
 export type CacheTag = (typeof CACHE_TAGS)[number];
 
 export type MemberRole =
@@ -500,4 +508,87 @@ export interface RegulatoryActDetail extends RegulatoryAct {
 export interface RegulatoryActListResponse {
   items: RegulatoryAct[];
   next_cursor: string | null;
+}
+
+export interface DataSourceInfo {
+  slug: string;
+  publisher_name: string;
+  dataset_name: string;
+  dataset_url: string;
+  license_code: string;
+  license_url: string;
+  license_verified_at: string;
+  attribution_text: string;
+  update_frequency: string;
+}
+
+export type PldGranularity = "hourly" | "daily" | "weekly" | "monthly";
+
+export interface PldPoint {
+  period: string;
+  subsystem: Subsystem;
+  pld_avg_brl_per_mwh: number;
+  pld_min_brl_per_mwh: number | null;
+  pld_max_brl_per_mwh: number | null;
+  pld_std_brl_per_mwh: number | null;
+  hours_at_floor: number | null;
+  hours_at_cap: number | null;
+  hours: number | null;
+}
+
+export interface PldResponse {
+  granularity: PldGranularity;
+  variant: "official" | "shadow";
+  date_from: string;
+  date_to: string;
+  source: DataSourceInfo;
+  points: PldPoint[];
+}
+
+export interface ReliabilityDistributor {
+  cnpj: string;
+  acronym: string;
+  consumers: number;
+  dec_hours: number;
+  fec_count: number;
+  dec_limit_hours: number | null;
+  fec_limit_count: number | null;
+  months_with_data: number;
+  sets: number;
+}
+
+export interface ReliabilityResponse {
+  year: number;
+  years: number[];
+  months_with_data: number;
+  source: DataSourceInfo;
+  items: ReliabilityDistributor[];
+}
+
+export interface ReliabilityMonthPoint {
+  month: string;
+  consumers: number;
+  dec_hours: number;
+  fec_count: number;
+}
+
+export interface ReliabilityDetailResponse {
+  year: number;
+  years: number[];
+  distributor: ReliabilityDistributor;
+  source: DataSourceInfo;
+  points: ReliabilityMonthPoint[];
+}
+
+export interface HydroSubsystemPoint {
+  day: string;
+  subsystem: Subsystem;
+  storage_pct: number | null;
+  ena_storable_pct_mlt: number | null;
+}
+
+export interface HydroSubsystemsResponse {
+  date_from: string;
+  date_to: string;
+  points: HydroSubsystemPoint[];
 }

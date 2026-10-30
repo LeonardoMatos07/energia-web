@@ -8,6 +8,7 @@ export const NAV = [
   { href: "/estados", label: "Explorar", matches: ["/estados", "/usinas", "/comparar"] },
   { href: "/analises", label: "Análises", matches: ["/analises"] },
   { href: "/previsao", label: "Previsão", matches: ["/previsao"] },
+  { href: "/mercado/pld", label: "Mercado", matches: ["/mercado", "/qualidade"] },
   { href: "/relatorios", label: "Relatórios", matches: ["/relatorios"] },
   { href: "/noticias", label: "Notícias", matches: ["/noticias"] },
 ] as const;
@@ -25,6 +26,8 @@ export const FOOTER_LINKS = [
   { href: "/estados", label: "Explorar" },
   { href: "/analises", label: "Análises" },
   { href: "/previsao", label: "Previsão" },
+  { href: "/mercado/pld", label: "Mercado" },
+  { href: "/qualidade", label: "Qualidade" },
   { href: "/relatorios", label: "Relatórios" },
   { href: "/noticias", label: "Notícias" },
   { href: "/metodologia", label: "Metodologia" },

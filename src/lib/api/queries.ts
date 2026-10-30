@@ -8,6 +8,7 @@ import type {
   ForecastScope,
   GroupRankingResponse,
   HourlyProfileResponse,
+  HydroSubsystemsResponse,
   MonthsResponse,
   NewsItemDetail,
   NewsListResponse,
@@ -15,12 +16,17 @@ import type {
   PlantDetailResponse,
   PlantKind,
   PlantListResponse,
+  PldGranularity,
+  PldResponse,
+  ReliabilityDetailResponse,
+  ReliabilityResponse,
   RegulatoryActDetail,
   RegulatoryActListResponse,
   Report,
   ReportListResponse,
   Source,
   StateCurtailmentResponse,
+  Subsystem,
   SubsystemCurtailmentResponse,
 } from "./types";
 
@@ -185,4 +191,40 @@ export function getRegulatoryAct(id: number) {
     tags: ["news"],
     revalidate: NEWS_REVALIDATE_SECONDS,
   });
+}
+
+// Prices change at most daily and DEC/FEC monthly, so a longer fixed cache is fine; the pipelines
+// also revalidate the "market" and "reliability" tags after each load.
+const MARKET_REVALIDATE_SECONDS = 3600;
+
+export function getPld(
+  granularity: PldGranularity,
+  range: { from?: string; to?: string } = {},
+  subsystem?: Subsystem,
+) {
+  return apiTry<PldResponse>(
+    withQuery("/v1/market/pld", { granularity, subsystem, from: range.from, to: range.to }),
+    { tags: ["market"], revalidate: MARKET_REVALIDATE_SECONDS },
+  );
+}
+
+export function getHydroSubsystems(subsystem: Subsystem, from: string, to: string) {
+  return apiTry<HydroSubsystemsResponse>(
+    withQuery("/v1/hydro/subsystems", { subsystem, from, to }),
+    { tags: ["curtailment"], revalidate: MARKET_REVALIDATE_SECONDS },
+  );
+}
+
+export function getReliability(year?: number) {
+  return apiTry<ReliabilityResponse>(withQuery("/v1/reliability", { year }), {
+    tags: ["reliability"],
+    revalidate: MARKET_REVALIDATE_SECONDS,
+  });
+}
+
+export function getReliabilityDetail(cnpj: string, year?: number) {
+  return apiTry<ReliabilityDetailResponse>(
+    withQuery(`/v1/reliability/${encodeURIComponent(cnpj)}`, { year }),
+    { tags: ["reliability"], revalidate: MARKET_REVALIDATE_SECONDS },
+  );
 }
