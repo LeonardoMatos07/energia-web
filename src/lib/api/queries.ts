@@ -8,6 +8,7 @@ import type {
   ForecastScope,
   GroupRankingResponse,
   HourlyProfileResponse,
+  GenerationMixResponse,
   HydroSubsystemsResponse,
   MarketConsumptionResponse,
   MonthsResponse,
@@ -208,6 +209,13 @@ export function getPld(
     withQuery("/v1/market/pld", { granularity, subsystem, from: range.from, to: range.to }),
     { tags: ["market"], revalidate: MARKET_REVALIDATE_SECONDS },
   );
+}
+
+export function getGenerationMix() {
+  return apiTry<GenerationMixResponse>("/v1/system/generation", {
+    tags: ["curtailment"],
+    revalidate: MARKET_REVALIDATE_SECONDS,
+  });
 }
 
 export function getHydroSubsystems(subsystem: Subsystem, from: string, to: string) {
