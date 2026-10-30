@@ -5,7 +5,6 @@ import { NewsBlock } from "@/components/blocks/news-block";
 import { GenerationMixPie } from "@/components/generation-mix-pie";
 import { HeroBackdrop, HeroChart, type HeroPoint } from "@/components/hero-visual";
 import { JsonLd } from "@/components/json-ld";
-import { MemberNewsletter } from "@/components/member-newsletter";
 import { TodayStrip } from "@/components/today-strip";
 import { ToolCard } from "@/components/tool-card";
 import { Card, Container, Section } from "@/components/ui";
@@ -136,9 +135,7 @@ export default async function LandingPage() {
               >
                 Explorar o Painel
               </Link>
-              {member ? (
-                <MemberNewsletter enabled={member.marketing_opt_in} />
-              ) : (
+              {member ? null : (
                 <Link
                   href="/cadastro"
                   data-track="landing.hero_signup"
