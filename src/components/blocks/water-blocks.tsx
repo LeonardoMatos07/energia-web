@@ -57,6 +57,12 @@ export async function StorageBlock({ filters }: { filters: Filters }) {
   const rangeText = `${formatDate(`${range.from}T12:00:00-03:00`)} a ${formatDate(`${range.to}T12:00:00-03:00`)}`;
   const latest = (id: string) =>
     points.find((point) => point.day === lastDay && point.subsystem === id);
+  const average = (id: string) => {
+    const values = points
+      .filter((point) => point.subsystem === id && point.storage_pct !== null)
+      .map((point) => point.storage_pct as number);
+    return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+  };
   return (
     <>
       <StatGrid>
@@ -65,13 +71,14 @@ export async function StorageBlock({ filters }: { filters: Filters }) {
             key={item.id}
             highlight={item.id === "SE"}
             label={item.name}
-            value={formatPercent(latest(item.id)?.storage_pct ?? null, 1)}
-            note="energia armazenada"
+            value={formatPercent(average(item.id), 1)}
+            note={`média no período · fim: ${formatPercent(latest(item.id)?.storage_pct ?? null, 1)}`}
           />
         ))}
       </StatGrid>
       <p className="text-muted mt-2 text-xs">
-        Posição em {formatDate(`${lastDay}T12:00:00-03:00`)}.
+        Energia armazenada média no período ({rangeText}); “fim” é a posição em{" "}
+        {formatDate(`${lastDay}T12:00:00-03:00`)}.
       </p>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <SeriesChart
