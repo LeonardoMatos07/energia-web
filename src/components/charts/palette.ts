@@ -40,3 +40,6 @@ export const CHART_INK = {
   baseline: "var(--color-line)",
   surface: "var(--color-surface)",
 } as const;
+
+// Hex literals (not CSS variables) so both lines stay distinct in every theme.
+export const RELIABILITY_COLORS = { model: "#0f9d8f", baseline: "#d97706" } as const;
