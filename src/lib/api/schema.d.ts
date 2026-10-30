@@ -479,6 +479,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hydro/subsystems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hydro_subsystems_v1_hydro_subsystems_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hydro/reservoirs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hydro_reservoirs_v1_hydro_reservoirs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hydro/reservoirs/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hydro_reservoir_v1_hydro_reservoirs__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hydro/spilled-energy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hydro_spilled_energy_v1_hydro_spilled_energy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/grid/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["grid_lines_v1_grid_lines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/grid/substations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["grid_substations_v1_grid_substations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/market/pld": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["market_pld_v1_market_pld_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reliability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reliability_v1_reliability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reliability/{cnpj}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reliability_detail_v1_reliability__cnpj__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/newsletter": {
         parameters: {
             query?: never;
@@ -1023,6 +1167,17 @@ export interface components {
             interactions: number;
             members: number;
         };
+        DataSourceInfo: {
+            slug: string;
+            publisher_name: string;
+            dataset_name: string;
+            dataset_url: string;
+            license_code: string;
+            license_url: string;
+            license_verified_at: string;
+            attribution_text: string;
+            update_frequency: string;
+        };
         Dispatch: {
             id: number;
             kind: "report" | "analysis";
@@ -1437,6 +1592,25 @@ export interface components {
             subsystem: string;
             capacity_mw: number | null;
         };
+        PldPoint: {
+            period: string;
+            subsystem: "N" | "NE" | "S" | "SE";
+            pld_avg_brl_per_mwh: number;
+            pld_min_brl_per_mwh?: number | null;
+            pld_max_brl_per_mwh?: number | null;
+            pld_std_brl_per_mwh?: number | null;
+            hours_at_floor?: number | null;
+            hours_at_cap?: number | null;
+            hours?: number | null;
+        };
+        PldResponse: {
+            granularity: "hourly" | "daily" | "weekly" | "monthly";
+            variant: "official" | "shadow";
+            date_from: string;
+            date_to: string;
+            source: components["schemas"]["DataSourceInfo"];
+            points: components["schemas"]["PldPoint"][];
+        };
         PowerPlantInfo: {
             id: string;
             name: string;
@@ -1523,6 +1697,37 @@ export interface components {
             label: string;
             href: string;
         };
+        ReliabilityDetailResponse: {
+            year: number;
+            years: number[];
+            distributor: components["schemas"]["ReliabilityDistributor"];
+            source: components["schemas"]["DataSourceInfo"];
+            points: components["schemas"]["ReliabilityMonthPoint"][];
+        };
+        ReliabilityDistributor: {
+            cnpj: string;
+            acronym: string;
+            consumers: number;
+            dec_hours: number;
+            fec_count: number;
+            dec_limit_hours: number | null;
+            fec_limit_count: number | null;
+            months_with_data: number;
+            sets: number;
+        };
+        ReliabilityMonthPoint: {
+            month: string;
+            consumers: number;
+            dec_hours: number;
+            fec_count: number;
+        };
+        ReliabilityResponse: {
+            year: number;
+            years: number[];
+            months_with_data: number;
+            source: components["schemas"]["DataSourceInfo"];
+            items: components["schemas"]["ReliabilityDistributor"][];
+        };
         Report: {
             month: string;
             title: string;
@@ -1549,11 +1754,78 @@ export interface components {
             summary: string | null;
             published_at: string | null;
         };
+        ReservoirDailyPoint: {
+            day: string;
+            storage_mw_month: number | null;
+            storage_max_mw_month: number | null;
+            storage_pct: number | null;
+            useful_volume_pct: number | null;
+            ena_gross_mw_avg: number | null;
+            ena_gross_pct_mlt: number | null;
+            ena_storable_mw_avg: number | null;
+            ena_storable_pct_mlt: number | null;
+            inflow_m3s: number | null;
+            natural_inflow_m3s: number | null;
+            outflow_m3s: number | null;
+            turbined_m3s: number | null;
+            spilled_m3s: number | null;
+            upstream_level_m: number | null;
+            downstream_level_m: number | null;
+        };
+        ReservoirDetailResponse: {
+            date_from: string;
+            date_to: string;
+            reservoir: components["schemas"]["ReservoirInfo"];
+            points: components["schemas"]["ReservoirDailyPoint"][];
+        };
+        ReservoirInfo: {
+            id: string;
+            name: string;
+            slug: string;
+            reservoir_type: string | null;
+            plant_name: string | null;
+            ceg: string | null;
+            subsystem: string | null;
+            ree: string | null;
+            basin: string | null;
+            river: string | null;
+            commissioned_on: string | null;
+            useful_volume_hm3: number | null;
+            max_level_m: number | null;
+            min_level_m: number | null;
+            latitude: number | null;
+            longitude: number | null;
+        };
+        ReservoirListResponse: {
+            latest_day: string | null;
+            items: components["schemas"]["ReservoirSummary"][];
+        };
+        ReservoirSummary: {
+            id: string;
+            name: string;
+            slug: string;
+            reservoir_type: string | null;
+            plant_name: string | null;
+            ceg: string | null;
+            subsystem: string | null;
+            ree: string | null;
+            basin: string | null;
+            river: string | null;
+            commissioned_on: string | null;
+            useful_volume_hm3: number | null;
+            max_level_m: number | null;
+            min_level_m: number | null;
+            latitude: number | null;
+            longitude: number | null;
+            latest_day: string | null;
+            storage_pct: number | null;
+            ena_storable_pct_mlt: number | null;
+        };
         RevalidateInput: {
-            tags?: ("curtailment" | "plants" | "reports" | "forecast" | "news")[];
+            tags?: ("curtailment" | "plants" | "reports" | "forecast" | "news" | "market" | "reliability")[];
         };
         RevalidateResponse: {
-            tags: ("curtailment" | "plants" | "reports" | "forecast" | "news")[];
+            tags: ("curtailment" | "plants" | "reports" | "forecast" | "news" | "market" | "reliability")[];
             cache_cleared: boolean;
             entries_removed: number;
             web_revalidated: boolean;
@@ -1573,6 +1845,20 @@ export interface components {
         SignupResponse: {
             message: string;
             dev_code?: string | null;
+        };
+        SpilledEnergyPoint: {
+            month: string;
+            plant_code: string;
+            plant_name: string;
+            subsystem: string | null;
+            basin: string | null;
+            river: string | null;
+            agent: string | null;
+            spilled_energy_mwh: number;
+            spilled_turbinable_energy_mwh: number;
+        };
+        SpilledEnergyResponse: {
+            points: components["schemas"]["SpilledEnergyPoint"][];
         };
         StateCurtailment: {
             source: "wind" | "solar" | "total";
@@ -1594,6 +1880,27 @@ export interface components {
             ranking: components["schemas"]["RankedPlant"][];
             ranking_month: string | null;
         };
+        SubstationItem: {
+            valid_from: string;
+            valid_to: string | null;
+            station_id: string;
+            substation_id: string | null;
+            name: string | null;
+            voltage_kv: number | null;
+            subsystem: string | null;
+            state: string | null;
+            main_agent: string | null;
+            bus_number: number | null;
+            latitude: number | null;
+            longitude: number | null;
+        };
+        SubstationListResponse: {
+            as_of: string | null;
+            total: number;
+            page: number;
+            page_size: number;
+            items: components["schemas"]["SubstationItem"][];
+        };
         SubsystemCurtailment: {
             source: "wind" | "solar" | "total";
             month: string;
@@ -1612,6 +1919,22 @@ export interface components {
         SubsystemCurtailmentResponse: {
             items: components["schemas"]["SubsystemCurtailment"][];
         };
+        SubsystemStoragePoint: {
+            day: string;
+            subsystem: "N" | "NE" | "S" | "SE";
+            storage_max_mw_month: number | null;
+            storage_mw_month: number | null;
+            storage_pct: number | null;
+            ena_gross_mw_avg: number | null;
+            ena_gross_pct_mlt: number | null;
+            ena_storable_mw_avg: number | null;
+            ena_storable_pct_mlt: number | null;
+        };
+        SubsystemStorageResponse: {
+            date_from: string;
+            date_to: string;
+            points: components["schemas"]["SubsystemStoragePoint"][];
+        };
         ThermalDispatchPoint: {
             month: string;
             reason: string;
@@ -1624,6 +1947,40 @@ export interface components {
         };
         ThermalDispatchResponse: {
             points: components["schemas"]["ThermalDispatchPoint"][];
+        };
+        TransmissionLineItem: {
+            valid_from: string;
+            valid_to: string | null;
+            equipment_code: string;
+            name: string | null;
+            voltage_kv: number | null;
+            line_type: string | null;
+            network_type: string | null;
+            owner_agent: string | null;
+            from_substation: string | null;
+            to_substation: string | null;
+            from_subsystem: string | null;
+            to_subsystem: string | null;
+            from_state: string | null;
+            to_state: string | null;
+            length_km: number | null;
+            capacity_long_no_limit_a: number | null;
+            capacity_long_with_limit_a: number | null;
+            capacity_short_no_limit_a: number | null;
+            capacity_short_with_limit_a: number | null;
+            positive_seq_resistance: number | null;
+            positive_seq_reactance: number | null;
+            positive_seq_shunt: number | null;
+            commissioned_on: string | null;
+            decommissioned_on: string | null;
+            planned_on: string | null;
+        };
+        TransmissionLineListResponse: {
+            as_of: string | null;
+            total: number;
+            page: number;
+            page_size: number;
+            items: components["schemas"]["TransmissionLineItem"][];
         };
         UnsubscribedResponse: {
             unsubscribed: boolean;
@@ -2582,6 +2939,300 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThermalDispatchResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hydro_subsystems_v1_hydro_subsystems_get: {
+        parameters: {
+            query?: {
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubsystemStorageResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hydro_reservoirs_v1_hydro_reservoirs_get: {
+        parameters: {
+            query?: {
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                basin?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservoirListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hydro_reservoir_v1_hydro_reservoirs__slug__get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservoirDetailResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hydro_spilled_energy_v1_hydro_spilled_energy_get: {
+        parameters: {
+            query?: {
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                plant?: string | null;
+                month?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpilledEnergyResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grid_lines_v1_grid_lines_get: {
+        parameters: {
+            query?: {
+                voltage_kv?: number | null;
+                min_voltage_kv?: number | null;
+                state?: string | null;
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                as_of?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransmissionLineListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grid_substations_v1_grid_substations_get: {
+        parameters: {
+            query?: {
+                voltage_kv?: number | null;
+                min_voltage_kv?: number | null;
+                state?: string | null;
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                as_of?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubstationListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    market_pld_v1_market_pld_get: {
+        parameters: {
+            query?: {
+                granularity?: "hourly" | "daily" | "weekly" | "monthly";
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                variant?: "official" | "shadow";
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PldResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reliability_v1_reliability_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReliabilityResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reliability_detail_v1_reliability__cnpj__get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path: {
+                cnpj: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReliabilityDetailResponse"];
                 };
             };
             422: {

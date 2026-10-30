@@ -13,9 +13,16 @@ describe("main menu", () => {
       "Explorar",
       "Análises",
       "Previsão",
+      "Mercado",
       "Relatórios",
       "Notícias",
     ]);
+  });
+
+  it("keeps Mercado lit on prices and quality of supply", () => {
+    for (const path of ["/mercado/pld", "/qualidade", "/qualidade/123"]) {
+      expect(active(path), path).toEqual(["Mercado"]);
+    }
   });
 
   it("keeps Explorar lit on states, plants and the comparison", () => {
