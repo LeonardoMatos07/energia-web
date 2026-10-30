@@ -14,7 +14,10 @@ export default function ToolsPage() {
   return (
     <Container>
       <PageHeader eyebrow="Ferramentas" title="Ferramentas gratuitas">
-        <p>Tudo roda no seu navegador: sem conta e sem enviar seus dados.</p>
+        <p>
+          O plotador roda no seu navegador, sem conta e sem enviar seus dados. As ferramentas
+          marcadas pedem uma conta gratuita.
+        </p>
       </PageHeader>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {TOOLS.map((tool) => (

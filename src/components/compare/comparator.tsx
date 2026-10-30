@@ -13,9 +13,12 @@ import {
   entityToken,
   groupMetrics,
   groupUnit,
+  isCurtailmentSource,
+  metricsFor,
   METRIC_ORDER,
   METRICS,
   metricUnit,
+  reconcileMetrics,
   SCALE_DISPARITY_RATIO,
   scaleDisparity,
   SOURCE_FILTERS,
@@ -55,6 +58,8 @@ const METRIC_COLORS: Record<MetricKey, string> = {
   curtailed: GENERATION_COLORS.curtailed,
   loss: SERIES.s2,
   pct: SERIES.s4,
+  share: SERIES.s5,
+  cf: SERIES.s7,
 };
 
 const METRIC_HELP: Record<MetricKey, string> = {
@@ -62,6 +67,8 @@ const METRIC_HELP: Record<MetricKey, string> = {
   curtailed: "A energia perdida: deixou de ser gerada por ordem do ONS.",
   loss: "O corte valorado em reais pelo PLD (estimativa).",
   pct: "Corte dividido pela geração possível, para comparar itens de tamanhos diferentes.",
+  share: "Quanto da geração do subsistema vem da fonte escolhida (só para subsistemas).",
+  cf: "Quanto da capacidade instalada foi aproveitada no mês (só para usinas com dados de geração).",
 };
 
 const PIE_NOTE = " A pizza não se aplica a este gráfico; mostrando barras.";
@@ -192,7 +199,8 @@ export function Comparator({
     layout === "items" &&
     disparity > SCALE_DISPARITY_RATIO &&
     metrics.some((metric) => METRICS[metric].additive) &&
-    !metrics.includes("pct");
+    !metrics.includes("pct") &&
+    isCurtailmentSource(source);
 
   function toggleMetric(metric: MetricKey) {
     setMetrics((current) => {
@@ -205,11 +213,19 @@ export function Comparator({
 
   function changeSource(next: SourceFilter) {
     setSource(next);
+    setMetrics((current) => reconcileMetrics(current, next));
     setRange(null);
   }
 
   const sourceControl = (
     <Segmented label="Fonte" options={SOURCE_FILTERS} value={source} onChange={changeSource} />
+  );
+  const scopeNote = (
+    <p className="text-muted text-sm">
+      {isCurtailmentSource(source)
+        ? "Curtailment (energia cortada, perda e % de corte) existe só para eólica e solar. A participação na matriz vem da geração de todo o sistema."
+        : "Aqui a comparação é de geração, não de curtailment: hidrelétrica, termelétrica e nuclear não têm corte. Geração por fonte existe por subsistema; estados só têm dados de curtailment, e a nuclear está dentro da termelétrica no total do sistema."}
+    </p>
   );
   const sourceNote =
     source === "solar" ? (
@@ -220,7 +236,7 @@ export function Comparator({
   const missingNote =
     withoutData.length > 0 ? (
       <p className="bg-accent-soft text-ink rounded-xl px-4 py-3 text-sm">
-        Sem dados de fonte {sourceLabel.toLowerCase()} para:{" "}
+        Sem dados de {sourceLabel.toLowerCase()} para:{" "}
         <strong>{withoutData.map((entity) => entity.label).join(", ")}</strong>. Esses itens ficam
         de fora dos gráficos; escolha outra fonte para vê-los.
       </p>
@@ -231,6 +247,7 @@ export function Comparator({
       <Section id="metricas" title="2. O que medir">
         <div className="space-y-4">
           {sourceControl}
+          {scopeNote}
           {sourceNote}
           {missingNote}
           <p className="text-ink-2 text-sm">
@@ -250,6 +267,7 @@ export function Comparator({
         <div className="space-y-5">
           <div className="space-y-2">
             {sourceControl}
+            {scopeNote}
             {sourceNote}
           </div>
 
@@ -258,33 +276,35 @@ export function Comparator({
               Métricas (escolha uma ou várias)
             </legend>
             <div className="flex flex-wrap gap-2">
-              {METRIC_ORDER.map((metric) => {
-                const on = metrics.includes(metric);
-                return (
-                  <button
-                    key={metric}
-                    type="button"
-                    aria-pressed={on}
-                    title={METRIC_HELP[metric]}
-                    onClick={() => toggleMetric(metric)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                      on
-                        ? "border-accent bg-accent-soft text-ink"
-                        : "border-line bg-surface text-ink-2 hover:border-accent"
-                    }`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`inline-flex size-4 items-center justify-center rounded border text-[10px] leading-none ${
-                        on ? "border-accent bg-accent text-on-accent" : "border-line"
+              {METRIC_ORDER.filter((metric) => metricsFor(source).includes(metric)).map(
+                (metric) => {
+                  const on = metrics.includes(metric);
+                  return (
+                    <button
+                      key={metric}
+                      type="button"
+                      aria-pressed={on}
+                      title={METRIC_HELP[metric]}
+                      onClick={() => toggleMetric(metric)}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                        on
+                          ? "border-accent bg-accent-soft text-ink"
+                          : "border-line bg-surface text-ink-2 hover:border-accent"
                       }`}
                     >
-                      {on ? "✓" : ""}
-                    </span>
-                    {METRICS[metric].label}
-                  </button>
-                );
-              })}
+                      <span
+                        aria-hidden
+                        className={`inline-flex size-4 items-center justify-center rounded border text-[10px] leading-none ${
+                          on ? "border-accent bg-accent text-on-accent" : "border-line"
+                        }`}
+                      >
+                        {on ? "✓" : ""}
+                      </span>
+                      {METRICS[metric].label}
+                    </button>
+                  );
+                },
+              )}
             </div>
             <ul className="text-muted space-y-0.5 text-xs">
               {metrics.map((metric) => (

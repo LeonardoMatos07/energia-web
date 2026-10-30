@@ -1,6 +1,7 @@
 import type { ChartRow } from "@/components/charts/types";
+import type { GenerationMixPoint, GenerationSource } from "./api/types";
 import { findState } from "./geo";
-import { pickEnergyUnit } from "./series";
+import { normalizeMonth, pickEnergyUnit } from "./series";
 
 export type EntityKind = "plant" | "state" | "subsystem";
 
@@ -67,32 +68,60 @@ export interface MonthValues {
   curtailed: number;
   pct: number | null;
   loss: number | null;
+  /** Share of the grid generation (%), when known: subsystems only. */
+  share?: number | null;
+  /** Capacity factor (%), when known: plants with generation data only. */
+  cf?: number | null;
 }
 
-export type SourceFilter = "all" | "wind" | "solar";
+/**
+ * "all", "wind" and "solar" are the curtailment sources (curtailment exists only for wind and
+ * solar). The others are generation only: hydro, thermal, nuclear and every source together.
+ */
+export type SourceFilter =
+  "all" | "wind" | "solar" | "hydro" | "thermal" | "nuclear" | "generation";
 
 export const SOURCE_FILTERS: { value: SourceFilter; label: string; param: string }[] = [
-  { value: "all", label: "Todas", param: "todas" },
+  { value: "all", label: "Eólica + solar", param: "todas" },
   { value: "wind", label: "Eólica", param: "eolica" },
   { value: "solar", label: "Solar", param: "solar" },
+  { value: "hydro", label: "Hidrelétrica", param: "hidreletrica" },
+  { value: "thermal", label: "Termelétrica", param: "termeletrica" },
+  { value: "nuclear", label: "Nuclear", param: "nuclear" },
+  { value: "generation", label: "Todas as fontes", param: "geral" },
 ];
+
+const CURTAILMENT_SOURCES: readonly SourceFilter[] = ["all", "wind", "solar"];
+
+/** True for the sources that have curtailment (wind and solar); false for generation-only ones. */
+export function isCurtailmentSource(source: SourceFilter): boolean {
+  return CURTAILMENT_SOURCES.includes(source);
+}
 
 export interface CompareEntity extends EntityRef {
   key: string;
   label: string;
   color: string;
   rows: MonthValues[];
-  bySource: Record<SourceFilter, MonthValues[]>;
+  /** Rows per source; a source that is missing has no data for this entity. */
+  bySource: Partial<Record<SourceFilter, MonthValues[]>>;
 }
 
 export function withSource(entity: CompareEntity, source: SourceFilter): CompareEntity {
-  return { ...entity, rows: entity.bySource[source] };
+  return { ...entity, rows: entity.bySource[source] ?? [] };
 }
 
-export type MetricKey = "verified" | "curtailed" | "loss" | "pct";
+export type MetricKey = "verified" | "curtailed" | "loss" | "pct" | "share" | "cf";
 export type UnitGroup = "energy" | "money" | "percent";
 
-export const METRIC_ORDER: readonly MetricKey[] = ["verified", "curtailed", "loss", "pct"];
+export const METRIC_ORDER: readonly MetricKey[] = [
+  "verified",
+  "curtailed",
+  "loss",
+  "pct",
+  "share",
+  "cf",
+];
 
 export const METRICS: Record<
   MetricKey,
@@ -102,7 +131,34 @@ export const METRICS: Record<
   curtailed: { label: "Energia cortada", additive: true, group: "energy", param: "cortado" },
   loss: { label: "Perda estimada (R$)", additive: true, group: "money", param: "perda" },
   pct: { label: "% de corte", additive: false, group: "percent", param: "percentual" },
+  share: {
+    label: "Participação na matriz",
+    additive: false,
+    group: "percent",
+    param: "participacao",
+  },
+  cf: { label: "Fator de capacidade", additive: false, group: "percent", param: "fator" },
 };
+
+/** Metrics that make sense for a source: curtailment ones only for wind and solar. */
+export function metricsFor(source: SourceFilter): MetricKey[] {
+  return isCurtailmentSource(source)
+    ? ["verified", "curtailed", "loss", "pct", "share"]
+    : ["verified", "share", "cf"];
+}
+
+export function defaultMetrics(source: SourceFilter): MetricKey[] {
+  return isCurtailmentSource(source) ? [...DEFAULT_METRICS] : ["verified", "share"];
+}
+
+/** Keeps the chosen metrics that exist for the source; if none is left, the source defaults. */
+export function reconcileMetrics(metrics: readonly MetricKey[], source: SourceFilter): MetricKey[] {
+  const allowed = metricsFor(source);
+  const kept = METRIC_ORDER.filter(
+    (metric) => metrics.includes(metric) && allowed.includes(metric),
+  );
+  return kept.length > 0 ? kept : defaultMetrics(source);
+}
 
 export type Layout = "items" | "separate";
 export type KindChoice = "line" | "bar" | "pie";
@@ -130,20 +186,22 @@ export function parseView(params: {
   fonte?: string | undefined;
 }): ViewState {
   const wanted = new Set((params.metricas ?? "").split(",").map((part) => part.trim()));
+  const source = SOURCE_FILTERS.find((option) => option.param === params.fonte)?.value ?? "all";
   const metrics = METRIC_ORDER.filter((metric) => wanted.has(METRICS[metric].param));
   return {
-    metrics: metrics.length > 0 ? metrics : [...DEFAULT_METRICS],
+    metrics: reconcileMetrics(metrics, source),
     layout: paramToKey(LAYOUT_PARAM, params.modo) ?? null,
     kind: paramToKey(KIND_PARAM, params.grafico) ?? "line",
-    source: SOURCE_FILTERS.find((option) => option.param === params.fonte)?.value ?? "all",
+    source,
   };
 }
 
 export function applyViewParams(search: URLSearchParams, view: ViewState): URLSearchParams {
   const next = new URLSearchParams(search);
+  const defaults = defaultMetrics(view.source);
   const isDefaultMetrics =
-    view.metrics.length === DEFAULT_METRICS.length &&
-    DEFAULT_METRICS.every((metric) => view.metrics.includes(metric));
+    view.metrics.length === defaults.length &&
+    defaults.every((metric) => view.metrics.includes(metric));
   if (isDefaultMetrics) next.delete("metricas");
   else next.set("metricas", view.metrics.map((metric) => METRICS[metric].param).join(","));
   if (view.layout) next.set("modo", LAYOUT_PARAM[view.layout]);
@@ -172,11 +230,15 @@ function metricValue(row: MonthValues, metric: MetricKey): number | null {
       return row.pct;
     case "loss":
       return row.loss;
+    case "share":
+      return row.share ?? null;
+    case "cf":
+      return row.cf ?? null;
   }
 }
 
 export function metricUnit(entities: readonly CompareEntity[], metric: MetricKey): MetricUnit {
-  if (metric === "pct") return { unit: "%", divisor: 1, digits: 1 };
+  if (METRICS[metric].group === "percent") return { unit: "%", divisor: 1, digits: 1 };
   const max = Math.max(
     0,
     ...entities.flatMap((entity) => entity.rows.map((row) => metricValue(row, metric) ?? 0)),
@@ -266,4 +328,52 @@ export function groupMetrics(
       ),
     }))
     .filter((entry) => entry.metrics.length > 0);
+}
+
+const GENERATION_KEYS: Record<GenerationSource, true> = {
+  hydro: true,
+  thermal: true,
+  wind: true,
+  solar: true,
+};
+
+/** Monthly generation of one source (or of all of them) from the system mix, as comparable rows. */
+export function mixSourceRows(
+  points: readonly GenerationMixPoint[],
+  source: GenerationSource | "generation",
+): MonthValues[] {
+  const byMonth = new Map<string, MonthValues>();
+  for (const point of points) {
+    if (!(point.source in GENERATION_KEYS)) continue;
+    if (source !== "generation" && point.source !== source) continue;
+    const month = normalizeMonth(point.month);
+    const row = byMonth.get(month) ?? {
+      month,
+      verified: 0,
+      curtailed: 0,
+      pct: null,
+      loss: null,
+      share: source === "generation" ? null : 0,
+      cf: null,
+    };
+    row.verified += point.energy_mwh;
+    if (row.share != null) row.share += point.share_pct ?? 0;
+    byMonth.set(month, row);
+  }
+  return [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
+}
+
+/** Fills the share of the grid generation into curtailment rows, month by month. */
+export function attachShare(
+  rows: readonly MonthValues[],
+  points: readonly GenerationMixPoint[],
+  sources: readonly GenerationSource[],
+): MonthValues[] {
+  const share = new Map<string, number>();
+  for (const point of points) {
+    if (!sources.includes(point.source) || point.share_pct === null) continue;
+    const month = normalizeMonth(point.month);
+    share.set(month, (share.get(month) ?? 0) + point.share_pct);
+  }
+  return rows.map((row) => ({ ...row, share: share.get(row.month) ?? row.share }));
 }
