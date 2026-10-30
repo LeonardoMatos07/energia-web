@@ -121,7 +121,6 @@ export async function WaterSummary() {
         {rows.map(({ item, last }) => (
           <StatTile
             key={item.id}
-            highlight={item.id === "SE"}
             label={`EAR ${item.name}`}
             value={formatPercent(last!.storage_pct, 1)}
             note={

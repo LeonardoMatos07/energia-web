@@ -80,7 +80,6 @@ export async function StorageBlock({ filters }: { filters: Filters }) {
         {selected(filters).map((item) => (
           <StatTile
             key={item.id}
-            highlight={item.id === "SE"}
             label={item.name}
             value={formatPercent(average(item.id), 1)}
             note={`média no período · fim: ${formatPercent(latest(item.id)?.storage_pct ?? null, 1)}`}
