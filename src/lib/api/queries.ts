@@ -9,6 +9,7 @@ import type {
   GroupRankingResponse,
   HourlyProfileResponse,
   HydroSubsystemsResponse,
+  MarketConsumptionResponse,
   MonthsResponse,
   NewsItemDetail,
   NewsListResponse,
@@ -28,6 +29,7 @@ import type {
   StateCurtailmentResponse,
   Subsystem,
   SubsystemCurtailmentResponse,
+  TariffFlagsResponse,
 } from "./types";
 
 export function getSubsystemCurtailment(
@@ -227,4 +229,18 @@ export function getReliabilityDetail(cnpj: string, year?: number) {
     withQuery(`/v1/reliability/${encodeURIComponent(cnpj)}`, { year }),
     { tags: ["reliability"], revalidate: MARKET_REVALIDATE_SECONDS },
   );
+}
+
+export function getTariffFlags(from?: string) {
+  return apiTry<TariffFlagsResponse>(withQuery("/v1/tariffs/flags", { from }), {
+    tags: ["market"],
+    revalidate: MARKET_REVALIDATE_SECONDS,
+  });
+}
+
+export function getMarketConsumption() {
+  return apiTry<MarketConsumptionResponse>("/v1/market/consumption", {
+    tags: ["market"],
+    revalidate: MARKET_REVALIDATE_SECONDS,
+  });
 }
