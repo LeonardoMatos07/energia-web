@@ -24,7 +24,6 @@ export interface ReliabilitySeries {
   points: CalibrationPoint[];
 }
 
-
 const TICKS = [0, 25, 50, 75, 100];
 
 export function ReliabilityChart({
