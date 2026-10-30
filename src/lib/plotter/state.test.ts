@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { buildFigure } from "./figure";
 import {
   createHistory,
   emptyState,
@@ -63,44 +62,5 @@ describe("plotter reducer", () => {
     const history = run([{ type: "addRow" }]);
     const loaded = plotterReducer(history, { type: "load", state: emptyState() });
     expect(loaded.past).toHaveLength(0);
-  });
-});
-
-describe("buildFigure", () => {
-  const state = (): PlotterState => {
-    const base = emptyState();
-    return {
-      ...base,
-      columns: [...base.columns, { id: "e", name: "erro", kind: "number" }],
-      rows: [
-        ["1", "10", "0,5"],
-        ["10", "100", "5"],
-        ["100", "abc", "50"],
-        ["", "5", "1"],
-      ],
-      chart: { ...base.chart, xLog: true, yLog: true, yErrorColumn: "e" },
-    };
-  };
-
-  it("uses log axes and keeps error bars aligned with the kept points", () => {
-    const figure = buildFigure(state());
-    const trace = figure.data[0] as Record<string, unknown>;
-
-    expect((figure.layout.xaxis as { type: string }).type).toBe("log");
-    expect((figure.layout.yaxis as { type: string }).type).toBe("log");
-    expect(trace.x).toEqual([1, 10]);
-    expect(trace.y).toEqual([10, 100]);
-    expect((trace.error_y as { array: number[] }).array).toEqual([0.5, 5]);
-  });
-
-  it("drops non-positive values on a log axis", () => {
-    const figure = buildFigure({
-      ...state(),
-      rows: [
-        ["0", "10", "1"],
-        ["5", "10", "1"],
-      ],
-    });
-    expect((figure.data[0] as { x: number[] }).x).toEqual([5]);
   });
 });

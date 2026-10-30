@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type Dispatch, type RefObject } from "react";
+import { useState, type Dispatch } from "react";
+import { renderPng, renderSvg } from "@/lib/plotter/export";
+import type { FitResult } from "@/lib/plotter/fit";
 import {
   clearLocal,
   encodeHash,
@@ -10,33 +12,31 @@ import {
   toPlotJson,
 } from "@/lib/plotter/share";
 import { emptyState, type PlotterAction, type PlotterState } from "@/lib/plotter/state";
-import type { PlotlyApi } from "./plotly-chart";
 
 const BUTTON = "border-grid hover:bg-surface-2 rounded-full border px-3 py-1.5 text-sm font-medium";
 
-function download(name: string, content: BlobPart, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
+function download(name: string, href: string) {
   const link = document.createElement("a");
-  link.href = url;
+  link.href = href;
   link.download = name;
   link.click();
-  URL.revokeObjectURL(url);
 }
 
-export interface ChartHandle {
-  element: HTMLElement;
-  plotly: PlotlyApi;
+function downloadBlob(name: string, content: BlobPart, type: string) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  download(name, url);
+  URL.revokeObjectURL(url);
 }
 
 /** Save, share and export. The data never leaves the browser: links carry it in the #hash. */
 export function ShareBar({
   state,
+  fit,
   dispatch,
-  chartRef,
 }: {
   state: PlotterState;
+  fit: FitResult | null;
   dispatch: Dispatch<PlotterAction>;
-  chartRef: RefObject<ChartHandle | null>;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [scale, setScale] = useState(2);
@@ -59,22 +59,12 @@ export function ShareBar({
   }
 
   async function exportImage(format: "png" | "svg") {
-    const handle = chartRef.current;
-    if (!handle) return;
-    const layout = (handle.element as unknown as { layout?: Record<string, unknown> }).layout;
-    const options: Record<string, unknown> = {
-      format,
-      width: 900,
-      height: 560,
-      scale: format === "png" ? scale : 1,
-    };
-    if (!transparent && layout) options.setBackground = "#ffffff";
     try {
-      const url = await handle.plotly.toImage(handle.element, options);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `grafico.${format}`;
-      link.click();
+      if (format === "png") {
+        download("grafico.png", await renderPng(state, scale, fit, transparent));
+      } else {
+        downloadBlob("grafico.svg", await renderSvg(state, fit, transparent), "image/svg+xml");
+      }
     } catch {
       setMessage("Não foi possível exportar a imagem neste navegador.");
     }
@@ -99,7 +89,7 @@ export function ShareBar({
         <button
           type="button"
           className={BUTTON}
-          onClick={() => download("grafico.plot.json", toPlotJson(state), "application/json")}
+          onClick={() => downloadBlob("grafico.plot.json", toPlotJson(state), "application/json")}
         >
           Baixar .plot.json
         </button>
@@ -115,7 +105,7 @@ export function ShareBar({
         <button
           type="button"
           className={BUTTON}
-          onClick={() => download("dados.csv", toCsv(state), "text/csv;charset=utf-8")}
+          onClick={() => downloadBlob("dados.csv", toCsv(state), "text/csv;charset=utf-8")}
         >
           Baixar CSV
         </button>

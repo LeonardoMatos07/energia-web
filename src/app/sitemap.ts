@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getNews } from "@/lib/api/queries";
+import { EXAMPLES } from "@/lib/plotter/examples";
 import { absoluteUrl } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -16,6 +17,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/cadastro"), changeFrequency: "yearly", priority: 0.6 },
     { url: absoluteUrl("/ferramentas"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/ferramentas/plotador"), changeFrequency: "monthly", priority: 0.7 },
+    ...EXAMPLES.map((example) => ({
+      url: absoluteUrl(`/ferramentas/plotador/exemplos/${example.slug}`),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
     { url: absoluteUrl("/privacidade"), changeFrequency: "yearly", priority: 0.2 },
     { url: absoluteUrl("/noticias"), changeFrequency: "hourly", priority: 0.7 },
     { url: absoluteUrl("/noticias/atos"), changeFrequency: "daily", priority: 0.5 },
