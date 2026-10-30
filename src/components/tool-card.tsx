@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Tool } from "@/lib/tools";
 
-/** Card of a free tool, with the forecasting model highlighted when the tool has one. */
+/** Card of a free tool, with the forecasting model shown discreetly when the tool has one. */
 export function ToolCard({ tool }: { tool: Tool }) {
   return (
     <Link
@@ -25,10 +25,7 @@ export function ToolCard({ tool }: { tool: Tool }) {
       <span className="text-lg font-semibold group-hover:underline">{tool.title}</span>
       <span className="text-ink-2 text-sm leading-6">{tool.description}</span>
       {tool.model ? (
-        <span className="border-accent bg-accent-soft text-accent-strong mt-auto rounded-xl border px-3 py-2 text-sm">
-          <span className="block text-xs font-semibold tracking-wide uppercase">Modelo</span>
-          <span className="font-semibold">{tool.model}</span>
-        </span>
+        <span className="text-accent-strong mt-auto text-xs font-medium">Modelo: {tool.model}</span>
       ) : null}
     </Link>
   );
