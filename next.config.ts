@@ -17,7 +17,14 @@ const nextConfig: NextConfig = {
     staleTimes: { dynamic: 30, static: 180 },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Outlines carry their year in the file name: a new year is a new file.
+      {
+        source: "/geo/:file*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
   },
 };
 

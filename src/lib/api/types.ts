@@ -129,6 +129,33 @@ export interface StateCurtailmentResponse {
   ranking_month: Month | null;
 }
 
+export interface GeoStateCurtailment {
+  state: string;
+  curtailment_pct: number | null;
+  curtailed_mwh: number;
+  verified_generation_mwh: number;
+  estimated_loss_brl: number | null;
+  affected_plants: number;
+}
+
+export interface GeoStatesMeta {
+  source_name: string;
+  source_url: string;
+  license: string;
+  data_source: AggregateSource;
+  month: Month | null;
+  months: Month[];
+  updated_at: Timestamp | null;
+  warnings: string[];
+  omitted: number;
+  omitted_states: string[];
+}
+
+export interface GeoStatesResponse {
+  meta: GeoStatesMeta;
+  items: GeoStateCurtailment[];
+}
+
 export interface PlantListResponse {
   items: PlantSummary[];
   total: number;

@@ -17,8 +17,8 @@ export interface NavItem {
 /**
  * The main menu has six groups: five to read (Painel, Mercado, Curtailment, Notícias,
  * Previsões) and one to use (Ferramentas: Plotador, Comparar). All forecasts live in Previsões,
- * built from src/lib/forecasts.ts. Painel holds the overview and the two
- * physical systems (Sistema, Água); a map group joins it when the maps exist. Each group has at
+ * built from src/lib/forecasts.ts. Painel holds the overview, the maps and the two
+ * physical systems (Sistema, Água). Each group has at
  * most MAX_NAV_CHILDREN pages and no page is in two groups. The method lives in the footer.
  */
 export const MAX_NAV_CHILDREN = 5;
@@ -27,12 +27,17 @@ export const NAV: readonly NavItem[] = [
   {
     href: "/painel",
     label: "Painel",
-    matches: ["/painel", "/sistema", "/agua"],
+    matches: ["/painel", "/mapas", "/sistema", "/agua"],
     children: [
       {
         href: "/painel",
         label: "Visão geral do setor",
         description: "O setor elétrico em resumo.",
+      },
+      {
+        href: "/mapas",
+        label: "Mapas",
+        description: "Estados no mapa do Brasil; outras camadas virão.",
       },
       {
         href: "/sistema",
