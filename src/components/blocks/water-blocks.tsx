@@ -9,7 +9,7 @@ import { formatDate, formatGWh, formatLongMonth, formatPercent } from "@/lib/for
 import { SUBSYSTEMS } from "@/lib/geo";
 import { normalizeMonth } from "@/lib/series";
 
-const HISTORY_DAYS = 400;
+const HISTORY_DAYS = 365;
 const SUBSYSTEM_IDS = SUBSYSTEMS.map((item) => item.id);
 
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
