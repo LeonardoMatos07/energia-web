@@ -37,6 +37,8 @@ describe("sitemap", () => {
         "/",
         "/metodologia",
         "/cadastro",
+        "/ferramentas",
+        "/ferramentas/plotador",
         "/privacidade",
         "/noticias",
         "/noticias/atos",

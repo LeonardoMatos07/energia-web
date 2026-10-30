@@ -16,6 +16,7 @@ describe("main menu", () => {
       "Mercado",
       "Relatórios",
       "Notícias",
+      "Ferramentas",
     ]);
   });
 
@@ -45,9 +46,11 @@ describe("main menu", () => {
     expect(active("/comparar-usinas")).toEqual([]);
   });
 
-  it("links members-area routes the middleware protects, except the open news section", () => {
+  it("links members-area routes the middleware protects, except the open news section and the free tools", () => {
     for (const item of NAV) {
-      expect(isProtected(item.href), item.href).toBe(item.href !== "/noticias");
+      expect(isProtected(item.href), item.href).toBe(
+        item.href !== "/noticias" && item.href !== "/ferramentas",
+      );
     }
   });
 });
