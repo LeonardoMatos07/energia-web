@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
+import { EXAMPLES } from "@/lib/plotter/examples";
 import { isProtected } from "@/lib/route-access";
 import sitemap from "./sitemap";
 
@@ -37,6 +38,9 @@ describe("sitemap", () => {
         "/",
         "/metodologia",
         "/cadastro",
+        "/ferramentas",
+        "/ferramentas/plotador",
+        ...EXAMPLES.map((example) => `/ferramentas/plotador/exemplos/${example.slug}`),
         "/privacidade",
         "/noticias",
         "/noticias/atos",
