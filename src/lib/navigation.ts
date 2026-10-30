@@ -9,6 +9,7 @@ export const NAV = [
   { href: "/analises", label: "Análises", matches: ["/analises"] },
   { href: "/previsao", label: "Previsão", matches: ["/previsao"] },
   { href: "/relatorios", label: "Relatórios", matches: ["/relatorios"] },
+  { href: "/noticias", label: "Notícias", matches: ["/noticias"] },
 ] as const;
 
 export const EXPLORE_TABS = [
@@ -25,6 +26,7 @@ export const FOOTER_LINKS = [
   { href: "/analises", label: "Análises" },
   { href: "/previsao", label: "Previsão" },
   { href: "/relatorios", label: "Relatórios" },
+  { href: "/noticias", label: "Notícias" },
   { href: "/metodologia", label: "Metodologia" },
   { href: "/privacidade", label: "Privacidade" },
   { href: "/newsletter/descadastrar", label: "Cancelar newsletter" },

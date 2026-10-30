@@ -7,19 +7,26 @@ const active = (pathname: string) =>
   NAV.filter((i) => isNavActive(pathname, i.matches)).map((i) => i.label);
 
 describe("main menu", () => {
-  it("has the five sections and nothing else", () => {
+  it("has the six sections and nothing else", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Painel",
       "Explorar",
       "Análises",
       "Previsão",
       "Relatórios",
+      "Notícias",
     ]);
   });
 
   it("keeps Explorar lit on states, plants and the comparison", () => {
     for (const path of ["/estados", "/estados/ba", "/usinas", "/usinas/cumaru-i", "/comparar"]) {
       expect(active(path), path).toEqual(["Explorar"]);
+    }
+  });
+
+  it("lights Notícias on the list, the acts and a single item", () => {
+    for (const path of ["/noticias", "/noticias/atos", "/noticias/12"]) {
+      expect(active(path), path).toEqual(["Notícias"]);
     }
   });
 
@@ -31,8 +38,10 @@ describe("main menu", () => {
     expect(active("/comparar-usinas")).toEqual([]);
   });
 
-  it("only links members-area routes the middleware protects", () => {
-    for (const item of NAV) expect(isProtected(item.href), item.href).toBe(true);
+  it("links members-area routes the middleware protects, except the open news section", () => {
+    for (const item of NAV) {
+      expect(isProtected(item.href), item.href).toBe(item.href !== "/noticias");
+    }
   });
 });
 

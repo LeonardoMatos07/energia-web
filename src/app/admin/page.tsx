@@ -99,6 +99,9 @@ export default async function AdminPage() {
           <Link href="/admin/uso" className="underline">
             Uso do site
           </Link>
+          <Link href="/admin/noticias" className="underline">
+            Moderação de notícias
+          </Link>
           <form action={logoutAction}>
             <button type="submit" className="underline">
               Sair

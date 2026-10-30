@@ -303,6 +303,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/news/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_sources_v1_news_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_news_v1_news_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/news/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_news_v1_news__item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/regulatory-acts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_acts_v1_regulatory_acts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/regulatory-acts/{act_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_act_v1_regulatory_acts__act_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["system_balance_v1_system_balance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["system_generation_v1_system_generation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plants/{slug}/generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["plant_generation_v1_plants__slug__generation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/interchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["system_interchange_v1_system_interchange_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/interchange/hourly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["system_interchange_hourly_v1_system_interchange_hourly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/thermal-dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["system_thermal_dispatch_v1_system_thermal_dispatch_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/newsletter": {
         parameters: {
             query?: never;
@@ -703,6 +879,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_list_news_v1_admin_news_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/news/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["admin_patch_news_v1_admin_news__item_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/regulatory-acts/{act_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["admin_patch_act_v1_admin_regulatory_acts__act_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -718,6 +942,29 @@ export interface components {
             events: number;
             last_seen: string | null;
         };
+        AdminNewsItem: {
+            id: number;
+            source: string;
+            publisher_name: string;
+            license_code: string;
+            license_url: string;
+            url: string;
+            title: string;
+            summary: string | null;
+            published_at: string;
+            source_updated_at: string | null;
+            topics: string[];
+            has_editor_note: boolean;
+            editor_note: string | null;
+            editor_note_by: string | null;
+            editor_note_at: string | null;
+            related_links: components["schemas"]["RelatedLink"][];
+            status: "published" | "hidden" | "removed_on_request";
+        };
+        AdminNewsList: {
+            items: components["schemas"]["AdminNewsItem"][];
+            next_cursor: string | null;
+        };
         AdminReport: {
             month: string;
             title: string;
@@ -730,6 +977,22 @@ export interface components {
         };
         AdminReportListResponse: {
             items: components["schemas"]["AdminReport"][];
+        };
+        BalancePoint: {
+            hour: string;
+            hour_utc: string;
+            subsystem: "N" | "NE" | "S" | "SE";
+            hydro_mw_avg: number | null;
+            thermal_mw_avg: number | null;
+            wind_mw_avg: number | null;
+            solar_mw_avg: number | null;
+            load_mw_avg: number | null;
+            net_interchange_mw_avg: number | null;
+        };
+        BalanceResponse: {
+            date_from: string;
+            date_to: string;
+            points: components["schemas"]["BalancePoint"][];
         };
         ConfirmedResponse: {
             confirmed: boolean;
@@ -898,6 +1161,34 @@ export interface components {
             months: number;
             points: components["schemas"]["HourlyPoint"][];
         };
+        InterchangeHourlyPoint: {
+            hour: string;
+            hour_utc: string;
+            origin: string;
+            destination: string;
+            scope: "national" | "international";
+            flow_mw_avg: number | null;
+            scheduled_mw_avg: number | null;
+        };
+        InterchangeHourlyResponse: {
+            date_from: string;
+            date_to: string;
+            points: components["schemas"]["InterchangeHourlyPoint"][];
+        };
+        InterchangeMonthlyPoint: {
+            month: string;
+            origin: string;
+            destination: string;
+            scope: "national" | "international";
+            energy_mwh: number;
+            scheduled_energy_mwh: number | null;
+            avg_mw: number;
+            peak_mw: number;
+            min_mw: number;
+        };
+        InterchangeMonthlyResponse: {
+            points: components["schemas"]["InterchangeMonthlyPoint"][];
+        };
         Lead: {
             id: string;
             email: string;
@@ -993,8 +1284,76 @@ export interface components {
         MessageResponse: {
             message: string;
         };
+        MonthlyGenerationPoint: {
+            month: string;
+            subsystem: "N" | "NE" | "S" | "SE" | "SIN";
+            source: "hydro" | "thermal" | "wind" | "solar";
+            energy_mwh: number;
+            avg_mw: number;
+            peak_mw: number;
+            share_pct: number | null;
+        };
+        MonthlyGenerationResponse: {
+            points: components["schemas"]["MonthlyGenerationPoint"][];
+        };
         MonthsResponse: {
             months: string[];
+        };
+        NewsItem: {
+            id: number;
+            source: string;
+            publisher_name: string;
+            license_code: string;
+            license_url: string;
+            url: string;
+            title: string;
+            summary: string | null;
+            published_at: string;
+            source_updated_at: string | null;
+            topics: string[];
+            has_editor_note: boolean;
+        };
+        NewsItemDetail: {
+            id: number;
+            source: string;
+            publisher_name: string;
+            license_code: string;
+            license_url: string;
+            url: string;
+            title: string;
+            summary: string | null;
+            published_at: string;
+            source_updated_at: string | null;
+            topics: string[];
+            has_editor_note: boolean;
+            editor_note: string | null;
+            editor_note_by: string | null;
+            editor_note_at: string | null;
+            related_links: components["schemas"]["RelatedLink"][];
+        };
+        NewsListResponse: {
+            items: components["schemas"]["NewsItem"][];
+            next_cursor: string | null;
+        };
+        NewsPatch: {
+            status?: ("published" | "hidden" | "removed_on_request") | null;
+            editor_note?: string | null;
+            clear_editor_note: boolean;
+            related_links?: components["schemas"]["RelatedLink"][] | null;
+        };
+        NewsSource: {
+            slug: string;
+            publisher_name: string;
+            homepage_url: string;
+            fetch_method: string;
+            license_code: string;
+            license_url: string;
+            license_verified_at: string | null;
+            license_evidence_url: string | null;
+            active: boolean;
+        };
+        NewsSourceListResponse: {
+            items: components["schemas"]["NewsSource"][];
         };
         NewsletterPreference: {
             enabled: boolean;
@@ -1051,6 +1410,17 @@ export interface components {
             cluster_plants: components["schemas"]["PlantSummary"][];
             series: components["schemas"]["PlantCurtailment"][];
         };
+        PlantGenerationPoint: {
+            month: string;
+            energy_mwh: number;
+            avg_mw: number;
+            peak_mw: number;
+            capacity_factor: number | null;
+        };
+        PlantGenerationResponse: {
+            plant: components["schemas"]["PowerPlantInfo"];
+            points: components["schemas"]["PlantGenerationPoint"][];
+        };
         PlantListResponse: {
             items: components["schemas"]["PlantSummary"][];
             total: number;
@@ -1065,6 +1435,16 @@ export interface components {
             source: "wind" | "solar";
             state: string;
             subsystem: string;
+            capacity_mw: number | null;
+        };
+        PowerPlantInfo: {
+            id: string;
+            name: string;
+            slug: string;
+            source_type: string;
+            fuel_type: string | null;
+            state: string | null;
+            subsystem: string | null;
             capacity_mw: number | null;
         };
         PurgeResponse: {
@@ -1101,6 +1481,48 @@ export interface components {
             month: string | null;
             items: components["schemas"]["RankedPlant"][];
         };
+        RegulatoryAct: {
+            id: number;
+            organ: string;
+            act_type: string;
+            act_number: string | null;
+            act_date: string | null;
+            title: string;
+            summary: string | null;
+            dou_date: string;
+            dou_section: number | null;
+            dou_edition: string | null;
+            dou_page: string | null;
+            dou_url: string;
+            topics: string[];
+        };
+        RegulatoryActDetail: {
+            id: number;
+            organ: string;
+            act_type: string;
+            act_number: string | null;
+            act_date: string | null;
+            title: string;
+            summary: string | null;
+            dou_date: string;
+            dou_section: number | null;
+            dou_edition: string | null;
+            dou_page: string | null;
+            dou_url: string;
+            topics: string[];
+            body: string | null;
+        };
+        RegulatoryActListResponse: {
+            items: components["schemas"]["RegulatoryAct"][];
+            next_cursor: string | null;
+        };
+        RegulatoryActPatch: {
+            status: "published" | "hidden" | "removed_on_request";
+        };
+        RelatedLink: {
+            label: string;
+            href: string;
+        };
         Report: {
             month: string;
             title: string;
@@ -1128,10 +1550,10 @@ export interface components {
             published_at: string | null;
         };
         RevalidateInput: {
-            tags?: ("curtailment" | "plants" | "reports" | "forecast")[];
+            tags?: ("curtailment" | "plants" | "reports" | "forecast" | "news")[];
         };
         RevalidateResponse: {
-            tags: ("curtailment" | "plants" | "reports" | "forecast")[];
+            tags: ("curtailment" | "plants" | "reports" | "forecast" | "news")[];
             cache_cleared: boolean;
             entries_removed: number;
             web_revalidated: boolean;
@@ -1189,6 +1611,19 @@ export interface components {
         };
         SubsystemCurtailmentResponse: {
             items: components["schemas"]["SubsystemCurtailment"][];
+        };
+        ThermalDispatchPoint: {
+            month: string;
+            reason: string;
+            subsystem: string;
+            plant_code: string | null;
+            plant_name: string | null;
+            plants: number;
+            verified_mwh: number;
+            programmed_mwh: number | null;
+        };
+        ThermalDispatchResponse: {
+            points: components["schemas"]["ThermalDispatchPoint"][];
         };
         UnsubscribedResponse: {
             unsubscribed: boolean;
@@ -1819,6 +2254,343 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_sources_v1_news_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsSourceListResponse"];
+                };
+            };
+        };
+    };
+    list_news_v1_news_get: {
+        parameters: {
+            query?: {
+                topic?: string | null;
+                source?: string | null;
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_news_v1_news__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsItemDetail"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_acts_v1_regulatory_acts_get: {
+        parameters: {
+            query?: {
+                organ?: string | null;
+                type?: string | null;
+                topic?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegulatoryActListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_act_v1_regulatory_acts__act_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                act_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegulatoryActDetail"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_balance_v1_system_balance_get: {
+        parameters: {
+            query?: {
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BalanceResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    system_generation_v1_system_generation_get: {
+        parameters: {
+            query?: {
+                subsystem?: "N" | "NE" | "S" | "SE" | "SIN";
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyGenerationResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plant_generation_v1_plants__slug__generation_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlantGenerationResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_interchange_v1_system_interchange_get: {
+        parameters: {
+            query?: {
+                origin?: string | null;
+                destination?: string | null;
+                scope?: ("national" | "international") | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterchangeMonthlyResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_interchange_hourly_v1_system_interchange_hourly_get: {
+        parameters: {
+            query?: {
+                origin?: string | null;
+                destination?: string | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterchangeHourlyResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    system_thermal_dispatch_v1_system_thermal_dispatch_get: {
+        parameters: {
+            query?: {
+                subsystem?: ("N" | "NE" | "S" | "SE") | null;
+                reason?: string | null;
+                plant?: string | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThermalDispatchResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -2682,6 +3454,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    admin_list_news_v1_admin_news_get: {
+        parameters: {
+            query?: {
+                status?: ("published" | "hidden" | "removed_on_request") | null;
+                topic?: string | null;
+                source?: string | null;
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNewsList"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_patch_news_v1_admin_news__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNewsItem"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_patch_act_v1_admin_regulatory_acts__act_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                act_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegulatoryActPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegulatoryAct"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -212,7 +212,7 @@ export interface ApiErrorBody {
   detail: string | unknown;
 }
 
-export const CACHE_TAGS = ["curtailment", "plants", "reports", "forecast"] as const;
+export const CACHE_TAGS = ["curtailment", "plants", "reports", "forecast", "news"] as const;
 export type CacheTag = (typeof CACHE_TAGS)[number];
 
 export type MemberRole =
@@ -416,4 +416,88 @@ export interface ForecastModelMeta {
   model_card: { limitations?: string[]; protocol?: string };
   last_run_at: string | null;
   last_data_through: string | null;
+}
+
+export type NewsStatus = "published" | "hidden" | "removed_on_request";
+
+export interface RelatedLink {
+  label: string;
+  href: string;
+}
+
+export interface NewsSource {
+  slug: string;
+  publisher_name: string;
+  homepage_url: string;
+  fetch_method: string;
+  license_code: string;
+  license_url: string;
+  license_verified_at: string | null;
+  license_evidence_url: string | null;
+  active: boolean;
+}
+
+export interface NewsSourceListResponse {
+  items: NewsSource[];
+}
+
+export interface NewsItem {
+  id: number;
+  source: string;
+  publisher_name: string;
+  license_code: string;
+  license_url: string;
+  url: string;
+  title: string;
+  summary: string | null;
+  published_at: string;
+  source_updated_at: string | null;
+  topics: string[];
+  has_editor_note: boolean;
+}
+
+export interface NewsItemDetail extends NewsItem {
+  editor_note: string | null;
+  editor_note_by: string | null;
+  editor_note_at: string | null;
+  related_links: RelatedLink[];
+}
+
+export interface NewsListResponse {
+  items: NewsItem[];
+  next_cursor: string | null;
+}
+
+export interface AdminNewsItem extends NewsItemDetail {
+  status: NewsStatus;
+}
+
+export interface AdminNewsList {
+  items: AdminNewsItem[];
+  next_cursor: string | null;
+}
+
+export interface RegulatoryAct {
+  id: number;
+  organ: string;
+  act_type: string;
+  act_number: string | null;
+  act_date: string | null;
+  title: string;
+  summary: string | null;
+  dou_date: string;
+  dou_section: number | null;
+  dou_edition: string | null;
+  dou_page: string | null;
+  dou_url: string;
+  topics: string[];
+}
+
+export interface RegulatoryActDetail extends RegulatoryAct {
+  body: string | null;
+}
+
+export interface RegulatoryActListResponse {
+  items: RegulatoryAct[];
+  next_cursor: string | null;
 }
