@@ -1,3 +1,4 @@
+import { resolveTable, type ResolvedColumn } from "./data";
 import type { ChartConfig, PlotterState } from "./state";
 
 export interface PlotlyFigure {
@@ -6,17 +7,11 @@ export interface PlotlyFigure {
   config: Record<string, unknown>;
 }
 
-/** Placeholder number parsing; Etapa 1 replaces it with the Brazilian-format parser. */
-export function toNumber(cell: string | undefined): number | null {
-  if (cell === undefined || cell.trim() === "") return null;
-  const value = Number(cell.replace(",", "."));
-  return Number.isFinite(value) ? value : null;
-}
-
-function columnValues(state: PlotterState, id: string | null): (number | null)[] | null {
-  const index = state.columns.findIndex((column) => column.id === id);
-  if (index < 0) return null;
-  return state.rows.map((row) => toNumber(row[index]));
+function columnValues(
+  resolved: readonly ResolvedColumn[],
+  id: string | null,
+): (number | null)[] | null {
+  return resolved.find((item) => item.column.id === id)?.values ?? null;
 }
 
 function axis(title: string, log: boolean): Record<string, unknown> {
@@ -36,12 +31,13 @@ const MODE: Record<ChartConfig["kind"], string> = {
 
 export function buildFigure(state: PlotterState): PlotlyFigure {
   const { chart } = state;
-  const xs = columnValues(state, chart.xColumn);
-  const xError = columnValues(state, chart.xErrorColumn);
-  const yError = columnValues(state, chart.yErrorColumn);
+  const resolved = resolveTable(state);
+  const xs = columnValues(resolved, chart.xColumn);
+  const xError = columnValues(resolved, chart.xErrorColumn);
+  const yError = columnValues(resolved, chart.yErrorColumn);
 
   const data = chart.yColumns.flatMap((id, seriesIndex) => {
-    const ys = columnValues(state, id);
+    const ys = columnValues(resolved, id);
     if (!xs || !ys) return [];
     const keep = xs.map(
       (x, i) =>

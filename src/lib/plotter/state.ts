@@ -6,6 +6,17 @@ export interface Column {
   id: string;
   name: string;
   kind: "number" | "text";
+  /** Quantity id from units.ts; defaults to "custom" (no conversion). */
+  quantity?: string;
+  /** Unit the values were measured in. */
+  dataUnit?: string;
+  /** Unit shown in the chart; values are converted from dataUnit. */
+  displayUnit?: string;
+  decimal?: "auto" | "," | ".";
+  /** Variable name used by formulas, for example "V" or "I". */
+  symbol?: string;
+  /** Calculated column: formula over the other columns, in their display units. */
+  formula?: string;
 }
 
 export interface ChartConfig {
@@ -69,7 +80,8 @@ export type PlotterAction =
   | { type: "setCell"; row: number; column: number; value: string }
   | { type: "addRow" }
   | { type: "removeRow"; row: number }
-  | { type: "addColumn"; kind?: Column["kind"] }
+  | { type: "addColumn"; kind?: Column["kind"]; calculated?: boolean }
+  | { type: "updateColumn"; column: number; patch: Partial<Column> }
   | { type: "removeColumn"; column: number }
   | { type: "renameColumn"; column: number; name: string }
   | { type: "setChart"; patch: Partial<ChartConfig> }
@@ -128,6 +140,9 @@ function reduceState(state: PlotterState, action: PlotterAction): PlotterState {
         id: newColumnId(),
         name: `col${state.columns.length + 1}`,
         kind: action.kind ?? "number",
+        ...(action.calculated
+          ? { formula: "", quantity: "custom", dataUnit: "", displayUnit: "" }
+          : {}),
       };
       return {
         ...state,
@@ -152,6 +167,13 @@ function reduceState(state: PlotterState, action: PlotterAction): PlotterState {
         },
       };
     }
+    case "updateColumn":
+      return {
+        ...state,
+        columns: state.columns.map((column, index) =>
+          index === action.column ? { ...column, ...action.patch } : column,
+        ),
+      };
     case "renameColumn":
       return {
         ...state,
