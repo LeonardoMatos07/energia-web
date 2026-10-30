@@ -2,6 +2,11 @@ import "server-only";
 import { apiTry, withQuery } from "./client";
 import type {
   AggregateSource,
+  BalanceResponse,
+  InterchangeResponse,
+  ReservoirListResponse,
+  SpilledEnergyResponse,
+  ThermalDispatchResponse,
   CurtailmentSummary,
   ForecastModelMeta,
   ForecastResponse,
@@ -251,4 +256,36 @@ export function getMarketConsumption() {
     tags: ["market"],
     revalidate: MARKET_REVALIDATE_SECONDS,
   });
+}
+
+const SYSTEM_OPTIONS = { tags: ["curtailment" as const], revalidate: MARKET_REVALIDATE_SECONDS };
+
+/** Hourly balance (hydro, thermal, wind, solar, load, interchange) per subsystem; the API defaults to the last 7 days. */
+export function getBalance(range: { from?: string; to?: string } = {}) {
+  return apiTry<BalanceResponse>(withQuery("/v1/system/balance", range), SYSTEM_OPTIONS);
+}
+
+export function getInterchange(scope: "national" | "international" = "national") {
+  return apiTry<InterchangeResponse>(
+    withQuery("/v1/system/interchange", { scope }),
+    SYSTEM_OPTIONS,
+  );
+}
+
+export function getThermalDispatch(from?: string) {
+  return apiTry<ThermalDispatchResponse>(
+    withQuery("/v1/system/thermal-dispatch", { from }),
+    SYSTEM_OPTIONS,
+  );
+}
+
+export function getReservoirs() {
+  return apiTry<ReservoirListResponse>("/v1/hydro/reservoirs", SYSTEM_OPTIONS);
+}
+
+export function getSpilledEnergy(limit = 200) {
+  return apiTry<SpilledEnergyResponse>(
+    withQuery("/v1/hydro/spilled-energy", { limit }),
+    SYSTEM_OPTIONS,
+  );
 }

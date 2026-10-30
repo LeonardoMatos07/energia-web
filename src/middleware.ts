@@ -9,7 +9,7 @@ import {
   VISITOR_MAX_AGE_SECONDS,
   type TrackedEvent,
 } from "@/lib/track-core";
-import { isProtected, periodRewrite } from "@/lib/route-access";
+import { isProtected, legacyPanelRedirect, periodRewrite } from "@/lib/route-access";
 
 function isPrefetch(request: NextRequest) {
   const headers = request.headers;
@@ -29,8 +29,14 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
   const sessionToken = request.cookies.get(SESSION_COOKIE)?.value ?? null;
   const gated = isProtected(pathname) && !sessionToken;
 
+  const legacy = legacyPanelRedirect(pathname, searchParams);
+
   let response: NextResponse;
-  if (gated) {
+  if (legacy) {
+    const url = request.nextUrl.clone();
+    url.pathname = legacy;
+    response = NextResponse.redirect(url, 308);
+  } else if (gated) {
     const url = request.nextUrl.clone();
     url.pathname = "/entrar";
     url.search = `?proximo=${encodeURIComponent(`${pathname}${search}`)}`;

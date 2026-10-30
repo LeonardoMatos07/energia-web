@@ -2,14 +2,19 @@ import { DashboardView } from "@/components/views/dashboard-view";
 import { pageMetadata } from "@/lib/metadata";
 import { SITE_DESCRIPTION } from "@/lib/site";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Painel nacional de curtailment eólico e solar",
   description: SITE_DESCRIPTION,
-  path: "/painel",
+  path: "/curtailment",
+  noIndex: true,
 });
 
-export default function DashboardPage() {
-  return <DashboardView params={{}} />;
+export default async function DashboardPeriodPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return <DashboardView params={await searchParams} />;
 }

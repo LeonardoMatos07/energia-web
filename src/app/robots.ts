@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/newsletter/confirmar",
           "/newsletter/descadastrar",
-          "/painel",
+          "/curtailment",
           "/estados",
           "/usinas",
           "/relatorios",

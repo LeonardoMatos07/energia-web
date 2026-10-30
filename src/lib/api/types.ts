@@ -638,3 +638,88 @@ export interface MarketConsumptionResponse {
   consumption: MarketConsumptionPoint[];
   agents: MarketAgentsPoint[];
 }
+
+export interface BalancePoint {
+  hour: string;
+  hour_utc: string;
+  subsystem: Subsystem;
+  hydro_mw_avg: number | null;
+  thermal_mw_avg: number | null;
+  wind_mw_avg: number | null;
+  solar_mw_avg: number | null;
+  load_mw_avg: number | null;
+  net_interchange_mw_avg: number | null;
+}
+
+export interface BalanceResponse {
+  date_from: string;
+  date_to: string;
+  points: BalancePoint[];
+}
+
+export interface InterchangePoint {
+  month: string;
+  origin: string;
+  destination: string;
+  scope: "national" | "international";
+  energy_mwh: number;
+  scheduled_energy_mwh: number | null;
+  avg_mw: number;
+  peak_mw: number;
+  min_mw: number;
+}
+
+export interface InterchangeResponse {
+  points: InterchangePoint[];
+}
+
+export interface ThermalDispatchPoint {
+  month: string;
+  reason: string;
+  subsystem: string;
+  plant_code: string | null;
+  plant_name: string | null;
+  plants: number;
+  verified_mwh: number;
+  programmed_mwh: number | null;
+}
+
+export interface ThermalDispatchResponse {
+  points: ThermalDispatchPoint[];
+}
+
+export interface ReservoirSummary {
+  id: string;
+  name: string;
+  slug: string;
+  reservoir_type: string | null;
+  plant_name: string | null;
+  subsystem: string | null;
+  basin: string | null;
+  river: string | null;
+  useful_volume_hm3: number | null;
+  latest_day: string | null;
+  storage_pct: number | null;
+  ena_storable_pct_mlt: number | null;
+}
+
+export interface ReservoirListResponse {
+  latest_day: string | null;
+  items: ReservoirSummary[];
+}
+
+export interface SpilledEnergyPoint {
+  month: string;
+  plant_code: string;
+  plant_name: string;
+  subsystem: string | null;
+  basin: string | null;
+  river: string | null;
+  agent: string | null;
+  spilled_energy_mwh: number;
+  spilled_turbinable_energy_mwh: number;
+}
+
+export interface SpilledEnergyResponse {
+  points: SpilledEnergyPoint[];
+}
