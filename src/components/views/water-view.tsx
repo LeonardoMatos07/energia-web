@@ -3,13 +3,7 @@ import { AreaFilters } from "@/components/area-filters";
 import { BlockSkeleton } from "@/components/block-skeleton";
 import { ReservoirsBlock, SpilledBlock, StorageBlock } from "@/components/blocks/water-blocks";
 import { Container, PageHeader, Section } from "@/components/ui";
-import {
-  currentMonth,
-  FIRST_MONTH,
-  MAX_HYDRO_DAYS,
-  parseFilters,
-  type SearchParams,
-} from "@/lib/filters";
+import { currentMonth, FIRST_MONTH, parseFilters, type SearchParams } from "@/lib/filters";
 
 /**
  * The Água page for a set of search params (?de=&ate=&sub=). /agua renders it statically with
@@ -31,7 +25,7 @@ export function WaterView({ params }: { params: SearchParams }) {
         start={filters.start}
         end={filters.end}
         sub={filters.sub}
-        note={`O período vale para EAR e ENA (no máximo ${MAX_HYDRO_DAYS} dias, contados do fim do período) e o vertimento mostra o último mês dele. A lista de reservatórios é a posição mais recente.`}
+        note="O período vale para EAR e ENA (até cerca de seis anos, contados do fim do período) e o vertimento mostra o último mês dele. A lista de reservatórios é a posição mais recente."
       />
 
       <Section

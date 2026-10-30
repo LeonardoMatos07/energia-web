@@ -6,7 +6,7 @@ import { DataUnavailable, StatGrid, StatTile } from "@/components/ui";
 import { getHydroSubsystems, getReservoirs, getSpilledEnergy } from "@/lib/api/queries";
 import type { HydroSubsystemPoint, Subsystem } from "@/lib/api/types";
 import { formatDate, formatGWh, formatLongMonth, formatPercent } from "@/lib/format";
-import { type Filters, hydroRange, subsystemFilterLabel } from "@/lib/filters";
+import { type Filters, hydroChunks, subsystemFilterLabel } from "@/lib/filters";
 import { SUBSYSTEMS } from "@/lib/geo";
 import { normalizeMonth } from "@/lib/series";
 
@@ -16,21 +16,29 @@ const selected = (filters: Filters) =>
   filters.sub === "SIN" ? SUBSYSTEMS : SUBSYSTEMS.filter((item) => item.id === filters.sub);
 
 async function loadHydro(filters: Filters) {
-  const { from, to } = hydroRange(filters.start, filters.end);
+  const chunks = hydroChunks(filters.start, filters.end);
   const results = await Promise.all(
-    selected(filters).map((item) => getHydroSubsystems(item.id, from, to)),
+    selected(filters).flatMap((item) =>
+      chunks.map((chunk) => getHydroSubsystems(item.id, chunk.from, chunk.to)),
+    ),
   );
   const points: HydroSubsystemPoint[] = [];
   for (const result of results) if (result.ok) points.push(...result.data.points);
   return points;
 }
 
+const MAX_CHART_DAYS = 400;
+
 function chartRows(
   points: readonly HydroSubsystemPoint[],
   pick: "storage_pct" | "ena_storable_pct_mlt",
 ) {
+  const days = [...new Set(points.map((point) => point.day))].sort();
+  const step = Math.max(1, Math.ceil(days.length / MAX_CHART_DAYS));
+  const kept = new Set(days.filter((_, index) => index % step === 0 || index === days.length - 1));
   const byDay = new Map<string, SeriesRow>();
   for (const point of points) {
+    if (!kept.has(point.day)) continue;
     const row = byDay.get(point.day) ?? { label: dayLabel(point.day), day: point.day };
     row[point.subsystem] = point[pick];
     byDay.set(point.day, row);
@@ -53,8 +61,11 @@ export async function StorageBlock({ filters }: { filters: Filters }) {
     .map((point) => point.day)
     .sort()
     .at(-1)!;
-  const range = hydroRange(filters.start, filters.end);
-  const rangeText = `${formatDate(`${range.from}T12:00:00-03:00`)} a ${formatDate(`${range.to}T12:00:00-03:00`)}`;
+  const firstDay = points
+    .map((point) => point.day)
+    .sort()
+    .at(0)!;
+  const rangeText = `${formatDate(`${firstDay}T12:00:00-03:00`)} a ${formatDate(`${lastDay}T12:00:00-03:00`)}`;
   const latest = (id: string) =>
     points.find((point) => point.day === lastDay && point.subsystem === id);
   const average = (id: string) => {
