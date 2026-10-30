@@ -216,8 +216,8 @@ export function getPld(
   );
 }
 
-export function getGenerationMix() {
-  return apiTry<GenerationMixResponse>("/v1/system/generation", {
+export function getGenerationMix(filter: { subsystem?: string; from?: string; to?: string } = {}) {
+  return apiTry<GenerationMixResponse>(withQuery("/v1/system/generation", filter), {
     tags: ["curtailment"],
     revalidate: MARKET_REVALIDATE_SECONDS,
   });
@@ -261,31 +261,43 @@ export function getMarketConsumption() {
 const SYSTEM_OPTIONS = { tags: ["curtailment" as const], revalidate: MARKET_REVALIDATE_SECONDS };
 
 /** Hourly balance (hydro, thermal, wind, solar, load, interchange) per subsystem; the API defaults to the last 7 days. */
-export function getBalance(range: { from?: string; to?: string } = {}) {
-  return apiTry<BalanceResponse>(withQuery("/v1/system/balance", range), SYSTEM_OPTIONS);
+export function getBalance(filter: { from?: string; to?: string; subsystem?: string } = {}) {
+  return apiTry<BalanceResponse>(withQuery("/v1/system/balance", filter), SYSTEM_OPTIONS);
 }
 
-export function getInterchange(scope: "national" | "international" = "national") {
+/** Months (YYYY-MM) in from/to. */
+export function getInterchange(
+  scope: "national" | "international" = "national",
+  range: { from?: string; to?: string } = {},
+) {
   return apiTry<InterchangeResponse>(
-    withQuery("/v1/system/interchange", { scope }),
+    withQuery("/v1/system/interchange", { scope, ...range }),
     SYSTEM_OPTIONS,
   );
 }
 
-export function getThermalDispatch(from?: string) {
+/** Months (YYYY-MM) in from/to. */
+export function getThermalDispatch(
+  filter: { from?: string; to?: string; subsystem?: string } = {},
+) {
   return apiTry<ThermalDispatchResponse>(
-    withQuery("/v1/system/thermal-dispatch", { from }),
+    withQuery("/v1/system/thermal-dispatch", filter),
     SYSTEM_OPTIONS,
   );
 }
 
-export function getReservoirs() {
-  return apiTry<ReservoirListResponse>("/v1/hydro/reservoirs", SYSTEM_OPTIONS);
+export function getReservoirs(subsystem?: string) {
+  return apiTry<ReservoirListResponse>(
+    withQuery("/v1/hydro/reservoirs", { subsystem }),
+    SYSTEM_OPTIONS,
+  );
 }
 
-export function getSpilledEnergy(limit = 200) {
+export function getSpilledEnergy(
+  filter: { limit?: number; month?: string; subsystem?: string } = {},
+) {
   return apiTry<SpilledEnergyResponse>(
-    withQuery("/v1/hydro/spilled-energy", { limit }),
+    withQuery("/v1/hydro/spilled-energy", { limit: 200, ...filter }),
     SYSTEM_OPTIONS,
   );
 }

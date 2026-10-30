@@ -22,9 +22,15 @@ export function isProtected(pathname: string): boolean {
   );
 }
 
+/** Public pages whose period and subsystem filters (?de=&ate=&sub=) are rendered per request. */
+const FILTER_PATHS = [/^\/sistema$/, /^\/agua$/] as const;
+const FILTER_PARAMS = [...PERIOD_PARAMS, "sub"] as const;
+
 export function periodRewrite(pathname: string, searchParams: URLSearchParams): string | null {
-  if (!PERIOD_PARAMS.some((name) => searchParams.has(name))) return null;
-  if (!PERIOD_PATHS.some((pattern) => pattern.test(pathname))) return null;
+  const filtered = FILTER_PATHS.some((pattern) => pattern.test(pathname));
+  const params = filtered ? FILTER_PARAMS : PERIOD_PARAMS;
+  if (!params.some((name) => searchParams.has(name))) return null;
+  if (!filtered && !PERIOD_PATHS.some((pattern) => pattern.test(pathname))) return null;
   return `${pathname}/${PERIOD_SEGMENT}`;
 }
 

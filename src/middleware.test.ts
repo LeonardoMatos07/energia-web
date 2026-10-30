@@ -112,6 +112,13 @@ describe("middleware: custom periods", () => {
     expect(target.search).toBe("?de=2026-01&ate=2026-06");
   });
 
+  it("rewrites a subsystem filter on the public Sistema page for a visitor", () => {
+    const { response } = run("/sistema?sub=NE");
+    const target = new URL(response.headers.get("x-middleware-rewrite") ?? "");
+    expect(target.pathname).toBe("/sistema/periodo");
+    expect(target.search).toBe("?sub=NE");
+  });
+
   it("does not rewrite a page without a period", () => {
     const { response } = run("/estados/rn", { cookie: "spillway_session=token" });
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();

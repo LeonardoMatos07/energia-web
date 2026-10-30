@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { BalancePoint } from "@/lib/api/types";
-import { latestRenewableShare, mean, renewableShare, sinHourly, thermalByReason } from "./system";
+import {
+  dailyAverage,
+  interchangeByPair,
+  latestRenewableShare,
+  mean,
+  renewableShare,
+  sinHourly,
+  thermalByReason,
+} from "./system";
 
 const point = (subsystem: BalancePoint["subsystem"], hour: string, mw: number): BalancePoint => ({
   hour,
@@ -67,9 +75,9 @@ describe("latestRenewableShare", () => {
 });
 
 describe("thermalByReason", () => {
-  it("sums the last month per known reason, skipping the total", () => {
-    const row = (reason: string, month: string, verified_mwh: number) => ({
-      month,
+  it("sums every point given per known reason, skipping the total", () => {
+    const row = (reason: string, verified_mwh: number) => ({
+      month: "2026-09",
       reason,
       subsystem: "N",
       plant_code: null,
@@ -79,16 +87,67 @@ describe("thermalByReason", () => {
       programmed_mwh: null,
     });
     const result = thermalByReason([
-      row("export", "2026-08", 5),
-      row("export", "2026-09", 10),
-      row("export", "2026-09", 5),
-      row("merit_order", "2026-09", 40),
-      row("total", "2026-09", 999),
+      row("export", 10),
+      row("export", 5),
+      row("merit_order", 40),
+      row("total", 999),
     ]);
-    expect(result?.month).toBe("2026-09");
-    expect(result?.rows.map((r) => [r.reason, r.mwh])).toEqual([
+    expect(result.rows.map((r) => [r.reason, r.mwh])).toEqual([
       ["merit_order", 40],
       ["export", 15],
     ]);
+    expect(thermalByReason([]).rows).toEqual([]);
+  });
+});
+
+describe("dailyAverage", () => {
+  it("averages the hours of each day", () => {
+    const hour = (h: string, mw: number, load: number | null) => ({
+      hour: h,
+      hydro: mw,
+      thermal: 0,
+      wind: 0,
+      solar: 0,
+      generation: mw,
+      load,
+      net: null,
+    });
+    const rows = dailyAverage([
+      hour("2026-09-02T00:00:00", 10, 100),
+      hour("2026-09-01T00:00:00", 10, 100),
+      hour("2026-09-01T01:00:00", 30, null),
+    ]);
+    expect(rows.map((r) => r.hour)).toEqual(["2026-09-01", "2026-09-02"]);
+    expect(rows[0]).toMatchObject({ hydro: 20, generation: 20, load: 100 });
+  });
+});
+
+describe("interchangeByPair", () => {
+  const point = (origin: string, destination: string, avg_mw: number, month = "2026-08") => ({
+    month,
+    origin,
+    destination,
+    scope: "national" as const,
+    energy_mwh: 0,
+    scheduled_energy_mwh: null,
+    avg_mw,
+    peak_mw: Math.abs(avg_mw) * 2,
+    min_mw: -Math.abs(avg_mw),
+  });
+
+  it("averages the months, orients by sign and sorts by size", () => {
+    const rows = interchangeByPair(
+      [point("N", "NE", -100), point("N", "NE", -300, "2026-09"), point("S", "SE", 50)],
+      "SIN",
+    );
+    expect(rows.map((r) => [r.from, r.to, r.avgMw])).toEqual([
+      ["NE", "N", 200],
+      ["S", "SE", 50],
+    ]);
+  });
+
+  it("keeps only the pairs of the selected subsystem", () => {
+    const rows = interchangeByPair([point("N", "NE", 10), point("S", "SE", 50)], "SE");
+    expect(rows.map((r) => r.key)).toEqual(["S-SE"]);
   });
 });
