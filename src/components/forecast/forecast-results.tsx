@@ -10,7 +10,8 @@ import {
   topFeatures,
 } from "@/lib/forecast";
 import { formatDate, formatNumber } from "@/lib/format";
-import { RELIABILITY_COLORS, ReliabilityChart } from "./reliability-chart";
+import { RELIABILITY_COLORS } from "@/components/charts/palette";
+import { ReliabilityChart } from "./reliability-chart";
 
 const STALE_MODEL_DAYS = 45;
 
@@ -37,13 +38,16 @@ export function ForecastResults({
     {
       key: "hist_gbm",
       label: "Modelo",
+      description: "Nosso modelo. Quanto mais perto da linha tracejada fina, melhor.",
       color: RELIABILITY_COLORS.model,
       points: calibrationPoints(bins.hist_gbm),
     },
     {
       key: "climatology",
       label: "Média histórica",
+      description: "Regra simples de comparação: o que costuma acontecer naquele mês, dia e hora.",
       color: RELIABILITY_COLORS.baseline,
+      dashed: true,
       points: calibrationPoints(bins.climatology),
     },
   ].filter((item) => item.points.length > 0);
@@ -218,6 +222,40 @@ export function ForecastResults({
           </Card>
         </Section>
       ) : null}
+
+      <Section id="conclusao" title="Conclusão e cuidados">
+        <div className="text-ink-2 max-w-3xl space-y-3 text-base leading-7">
+          <p>
+            <strong>Em resumo:</strong>{" "}
+            {modelBeatsBaseline
+              ? "no período de teste o modelo errou menos e separou melhor as horas de risco do que as regras simples, e suas probabilidades são razoavelmente confiáveis, em especial nos extremos (risco muito baixo ou muito alto). Use-o como um guia de quando o corte tende a ser mais provável."
+              : "no período de teste o modelo não se mostrou claramente melhor do que as regras simples; trate a previsão com cautela."}
+          </p>
+          <p className="text-ink font-semibold">Cuidados ao usar:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong>Leia como probabilidade, não como certeza.</strong> 70% de risco quer dizer
+              que, em cerca de 7 de cada 10 horas assim, houve corte.
+            </li>
+            <li>
+              <strong>Não decida sozinho com este número.</strong> Para contratos, operação ou
+              investimento, confira com dados oficiais do ONS e com sua equipe técnica.
+            </li>
+            <li>
+              <strong>Desconfie dos dias fora do padrão:</strong> falhas, manutenções e decisões do
+              operador não entram, e o tempo (vento, sol) também não.
+            </li>
+            <li>
+              <strong>Veja a data dos dados.</strong> Quando o último dado do ONS é antigo, a
+              previsão fica menos confiável; o aviso no topo da página mostra isso.
+            </li>
+            <li>
+              <strong>O desempenho passado não garante o futuro.</strong> O resultado vale para o
+              período testado e pode mudar em outras épocas.
+            </li>
+          </ul>
+        </div>
+      </Section>
 
       <Section id="limites" title="O que o modelo não faz">
         <ul className="text-ink-2 max-w-3xl list-disc space-y-2 pl-5 text-base leading-7">
