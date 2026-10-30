@@ -57,6 +57,7 @@ describe("POST /api/revalidate", () => {
       "plants",
       "reports",
       "forecast",
+      "news",
     ]);
   });
 

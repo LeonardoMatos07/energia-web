@@ -24,11 +24,11 @@ describe("parseTags", () => {
   it("defaults to every tag", () => {
     expect(parseTags(null)).toEqual({
       ok: true,
-      tags: ["curtailment", "plants", "reports", "forecast"],
+      tags: ["curtailment", "plants", "reports", "forecast", "news"],
     });
     expect(parseTags({ tags: [] })).toEqual({
       ok: true,
-      tags: ["curtailment", "plants", "reports", "forecast"],
+      tags: ["curtailment", "plants", "reports", "forecast", "news"],
     });
   });
   it("deduplicates and validates", () => {

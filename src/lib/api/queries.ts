@@ -9,9 +9,14 @@ import type {
   GroupRankingResponse,
   HourlyProfileResponse,
   MonthsResponse,
+  NewsItemDetail,
+  NewsListResponse,
+  NewsSourceListResponse,
   PlantDetailResponse,
   PlantKind,
   PlantListResponse,
+  RegulatoryActDetail,
+  RegulatoryActListResponse,
   Report,
   ReportListResponse,
   Source,
@@ -130,5 +135,54 @@ export function getForecastModel() {
   return apiTry<ForecastModelMeta>("/v1/forecast/model", {
     tags: ["forecast"],
     revalidate: FORECAST_REVALIDATE_SECONDS,
+  });
+}
+
+// News: the pipeline collects hourly and moderation revalidates the "news" tag at once.
+const NEWS_REVALIDATE_SECONDS = 600;
+
+export function getNews(query: {
+  topic?: string;
+  source?: string;
+  q?: string;
+  cursor?: string;
+  limit?: number;
+}) {
+  return apiTry<NewsListResponse>(withQuery("/v1/news", query), {
+    tags: ["news"],
+    revalidate: NEWS_REVALIDATE_SECONDS,
+  });
+}
+
+export function getNewsItem(id: number) {
+  return apiTry<NewsItemDetail>(`/v1/news/${id}`, {
+    tags: ["news"],
+    revalidate: NEWS_REVALIDATE_SECONDS,
+  });
+}
+
+export function getNewsSources() {
+  return apiTry<NewsSourceListResponse>("/v1/news/sources", {
+    tags: ["news"],
+    revalidate: NEWS_REVALIDATE_SECONDS,
+  });
+}
+
+export function getRegulatoryActs(query: {
+  organ?: string;
+  topic?: string;
+  cursor?: string;
+  limit?: number;
+}) {
+  return apiTry<RegulatoryActListResponse>(withQuery("/v1/regulatory-acts", query), {
+    tags: ["news"],
+    revalidate: NEWS_REVALIDATE_SECONDS,
+  });
+}
+
+export function getRegulatoryAct(id: number) {
+  return apiTry<RegulatoryActDetail>(`/v1/regulatory-acts/${id}`, {
+    tags: ["news"],
+    revalidate: NEWS_REVALIDATE_SECONDS,
   });
 }
