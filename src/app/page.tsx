@@ -189,7 +189,8 @@ export default async function LandingPage() {
             ) : null}
             <p className="text-muted mt-2 text-xs leading-5">
               Participação de cada fonte na geração do Sistema Interligado Nacional no último mês
-              disponível. Fonte: ONS, dados abertos (geração por fonte).
+              disponível; a nuclear está dentro da termelétrica. Fonte: ONS, dados abertos (geração
+              por fonte).
             </p>
           </Card>
         </Section>
