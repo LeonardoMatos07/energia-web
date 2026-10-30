@@ -13,14 +13,32 @@ export interface NavItem {
 }
 
 /**
- * The main menu: the country at a glance (Painel), the two physical systems (Sistema, Água),
- * the market, curtailment (an area of its own, with Análises), the news and the tools the user
- * operates (Plotador, Comparar, Previsão). The method lives in the footer.
+ * The main menu has five groups: four to read (Painel, Mercado, Curtailment, Notícias) and one
+ * to use (Ferramentas: Plotador, Comparar, Previsão). Painel holds the overview and the two
+ * physical systems (Sistema, Água); a map group joins it when the maps exist. Each group has at
+ * most MAX_NAV_CHILDREN pages and no page is in two groups. The method lives in the footer.
  */
+export const MAX_NAV_CHILDREN = 5;
+
 export const NAV: readonly NavItem[] = [
-  { href: "/painel", label: "Painel", matches: ["/painel"] },
-  { href: "/sistema", label: "Sistema", matches: ["/sistema"] },
-  { href: "/agua", label: "Água", matches: ["/agua"] },
+  {
+    href: "/painel",
+    label: "Painel",
+    matches: ["/painel", "/sistema", "/agua"],
+    children: [
+      {
+        href: "/painel",
+        label: "Visão geral do setor",
+        description: "O setor elétrico em resumo.",
+      },
+      {
+        href: "/sistema",
+        label: "Sistema",
+        description: "Carga, geração, intercâmbio e térmicas.",
+      },
+      { href: "/agua", label: "Água", description: "Reservatórios, afluência e vertimento." },
+    ],
+  },
   {
     href: "/mercado/pld",
     label: "Mercado",
@@ -37,14 +55,31 @@ export const NAV: readonly NavItem[] = [
     label: "Curtailment",
     matches: ["/curtailment", "/estados", "/usinas", "/relatorios", "/analises"],
     children: [
-      { href: "/curtailment", label: "Visão geral", description: "Painel nacional do corte." },
+      {
+        href: "/curtailment",
+        label: "Visão geral do curtailment",
+        description: "Painel nacional do corte.",
+      },
       { href: "/estados", label: "Estados", description: "Corte por estado." },
       { href: "/usinas", label: "Usinas", description: "Usina por usina." },
       { href: "/analises", label: "Análises", description: "Compensação, empresas e horários." },
       { href: "/relatorios", label: "Relatórios", description: "Um por mês, desde 2021." },
     ],
   },
-  { href: "/noticias", label: "Notícias", matches: ["/noticias"] },
+  {
+    href: "/noticias",
+    label: "Notícias",
+    matches: ["/noticias"],
+    children: [
+      { href: "/noticias", label: "Notícias", description: "O que os órgãos do setor publicam." },
+      { href: "/noticias/atos", label: "Atos oficiais", description: "Atos regulatórios." },
+      {
+        href: "/noticias/assinar",
+        label: "Receber por e-mail",
+        description: "Resumo das notícias na sua caixa.",
+      },
+    ],
+  },
   {
     href: "/ferramentas",
     label: "Ferramentas",
