@@ -8,6 +8,7 @@ export const PROTECTED_PREFIXES = [
   "/previsao",
   "/mercado",
   "/qualidade",
+  "/tarifas",
   "/conta",
 ] as const;
 

@@ -607,4 +607,33 @@ export interface GenerationMixPoint {
 
 export interface GenerationMixResponse {
   points: GenerationMixPoint[];
+
+export interface TariffFlagPoint {
+  month: string;
+  flag: string;
+  additional_brl_per_mwh: number;
+}
+
+export interface TariffFlagsResponse {
+  source: DataSourceInfo;
+  items: TariffFlagPoint[];
+}
+
+export interface MarketConsumptionPoint {
+  month: string;
+  regulated_mw_avg: number;
+  free_mw_avg: number;
+  free_share_pct: number;
+}
+
+export interface MarketAgentsPoint {
+  month: string;
+  agent_class: string;
+  agents: number;
+}
+
+export interface MarketConsumptionResponse {
+  source: DataSourceInfo;
+  consumption: MarketConsumptionPoint[];
+  agents: MarketAgentsPoint[];
 }

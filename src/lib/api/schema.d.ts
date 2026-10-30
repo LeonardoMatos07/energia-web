@@ -623,6 +623,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tariffs/flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tariff_flags_v1_tariffs_flags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/market/consumption": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["market_consumption_v1_market_consumption_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/newsletter": {
         parameters: {
             query?: never;
@@ -1392,6 +1424,22 @@ export interface components {
             expires_at: string;
             member: components["schemas"]["MemberProfile"];
         };
+        MarketAgentsPoint: {
+            month: string;
+            agent_class: string;
+            agents: number;
+        };
+        MarketConsumptionPoint: {
+            month: string;
+            regulated_mw_avg: number;
+            free_mw_avg: number;
+            free_share_pct: number;
+        };
+        MarketConsumptionResponse: {
+            source: components["schemas"]["DataSourceInfo"];
+            consumption: components["schemas"]["MarketConsumptionPoint"][];
+            agents: components["schemas"]["MarketAgentsPoint"][];
+        };
         MemberLogin: {
             email: string;
             password: string;
@@ -1934,6 +1982,15 @@ export interface components {
             date_from: string;
             date_to: string;
             points: components["schemas"]["SubsystemStoragePoint"][];
+        };
+        TariffFlagPoint: {
+            month: string;
+            flag: string;
+            additional_brl_per_mwh: number;
+        };
+        TariffFlagsResponse: {
+            source: components["schemas"]["DataSourceInfo"];
+            items: components["schemas"]["TariffFlagPoint"][];
         };
         ThermalDispatchPoint: {
             month: string;
@@ -3241,6 +3298,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tariff_flags_v1_tariffs_flags_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TariffFlagsResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    market_consumption_v1_market_consumption_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketConsumptionResponse"];
                 };
             };
         };
