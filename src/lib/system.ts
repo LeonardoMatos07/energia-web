@@ -2,6 +2,7 @@ import type {
   BalancePoint,
   GenerationMixPoint,
   GenerationSource,
+  InterchangePoint,
   ThermalDispatchPoint,
 } from "@/lib/api/types";
 import { normalizeMonth } from "@/lib/series";
@@ -118,20 +119,77 @@ export const THERMAL_REASONS: Record<string, string> = {
   gsub: "GSUB",
 };
 
+/** Thermal energy verified in the points given (the API already cut them to the period), by reason. */
 export function thermalByReason(points: readonly ThermalDispatchPoint[]) {
-  const month = points
-    .map((point) => normalizeMonth(point.month))
-    .sort()
-    .at(-1);
-  if (!month) return null;
   const totals = new Map<string, number>();
   for (const point of points) {
-    if (normalizeMonth(point.month) !== month || !(point.reason in THERMAL_REASONS)) continue;
+    if (!(point.reason in THERMAL_REASONS)) continue;
     totals.set(point.reason, (totals.get(point.reason) ?? 0) + point.verified_mwh);
   }
   const rows = [...totals]
     .map(([reason, mwh]) => ({ reason, label: THERMAL_REASONS[reason]!, mwh }))
     .filter((row) => row.mwh > 0)
     .sort((a, b) => b.mwh - a.mwh);
-  return { month, rows };
+  return { rows };
+}
+
+/** Hourly rows to daily rows: the mean of each MW field over the hours of the day. */
+export function dailyAverage(rows: readonly SinHour[]): SinHour[] {
+  const byDay = new Map<string, SinHour[]>();
+  for (const row of rows) {
+    const day = row.hour.slice(0, 10);
+    byDay.set(day, [...(byDay.get(day) ?? []), row]);
+  }
+  const avg = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
+  return [...byDay]
+    .map(([day, hours]) => ({
+      hour: day,
+      hydro: avg(hours.map((r) => r.hydro)),
+      thermal: avg(hours.map((r) => r.thermal)),
+      wind: avg(hours.map((r) => r.wind)),
+      solar: avg(hours.map((r) => r.solar)),
+      generation: avg(hours.map((r) => r.generation)),
+      load: mean(hours.map((r) => r.load)),
+      net: mean(hours.map((r) => r.net)),
+    }))
+    .sort((a, b) => a.hour.localeCompare(b.hour));
+}
+
+/**
+ * Average flow per pair of subsystems over the period, oriented by its sign (positive: from
+ * origin to destination). With a subsystem selected, only the pairs that involve it.
+ */
+export function interchangeByPair(points: readonly InterchangePoint[], subsystem: string) {
+  const pairs = new Map<
+    string,
+    { origin: string; destination: string; avgs: number[]; peak: number }
+  >();
+  for (const point of points) {
+    if (subsystem !== "SIN" && point.origin !== subsystem && point.destination !== subsystem) {
+      continue;
+    }
+    const key = `${point.origin}-${point.destination}`;
+    const entry = pairs.get(key) ?? {
+      origin: point.origin,
+      destination: point.destination,
+      avgs: [],
+      peak: 0,
+    };
+    entry.avgs.push(point.avg_mw);
+    entry.peak = Math.max(entry.peak, Math.abs(point.peak_mw), Math.abs(point.min_mw));
+    pairs.set(key, entry);
+  }
+  return [...pairs]
+    .map(([key, entry]) => {
+      const avg = entry.avgs.reduce((sum, v) => sum + v, 0) / entry.avgs.length;
+      const forward = avg >= 0;
+      return {
+        key,
+        from: forward ? entry.origin : entry.destination,
+        to: forward ? entry.destination : entry.origin,
+        avgMw: Math.abs(avg),
+        peakMw: entry.peak,
+      };
+    })
+    .sort((a, b) => b.avgMw - a.avgMw);
 }

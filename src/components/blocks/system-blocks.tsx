@@ -10,16 +10,14 @@ import {
   getInterchange,
   getThermalDispatch,
 } from "@/lib/api/queries";
-import {
-  formatDate,
-  formatGWh,
-  formatLongMonth,
-  formatNumber,
-  formatPercent,
-  mwhToGwh,
-} from "@/lib/format";
+import type { BalancePoint } from "@/lib/api/types";
+import { balancePlan, type Filters, subsystemFilterLabel } from "@/lib/filters";
+import { formatGWh, formatNumber, formatPercent, formatShortMonth, mwhToGwh } from "@/lib/format";
+import { describePeriod } from "@/lib/period";
 import { normalizeMonth } from "@/lib/series";
 import {
+  dailyAverage,
+  interchangeByPair,
   mean,
   renewableShare,
   SOURCE_FILL,
@@ -30,11 +28,32 @@ import {
 } from "@/lib/system";
 
 const hourLabel = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)} ${iso.slice(11, 13)}h`;
+const dayLabel = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+const subsystemParam = (filters: Filters) => (filters.sub === "SIN" ? undefined : filters.sub);
+const periodText = (filters: Filters) =>
+  describePeriod(filters.start, filters.end, formatShortMonth);
 
-export async function BalanceBlock() {
-  const balance = await getBalance();
-  if (!balance.ok || balance.data.points.length === 0) return <DataUnavailable />;
-  const hours = sinHourly(balance.data.points);
+async function loadBalance(filters: Filters): Promise<BalancePoint[] | null> {
+  const plan = balancePlan(filters);
+  const subsystem = subsystemParam(filters);
+  const requests =
+    plan.kind === "recent"
+      ? [{ subsystem }]
+      : plan.kind === "hourly"
+        ? [{ from: plan.from, to: plan.to, subsystem }]
+        : plan.ranges.map((range) => ({ ...range, subsystem }));
+  const results = await Promise.all(requests.map((request) => getBalance(request)));
+  const ok = results.filter((result) => result.ok);
+  if (ok.length === 0) return null;
+  return ok.flatMap((result) => (result.ok ? result.data.points : []));
+}
+
+export async function BalanceBlock({ filters }: { filters: Filters }) {
+  const points = await loadBalance(filters);
+  if (!points || points.length === 0) return <DataUnavailable />;
+  const plan = balancePlan(filters);
+  const hours = sinHourly(points);
+  const rowsSource = plan.kind === "daily" ? dailyAverage(hours) : hours;
   const loadAvg = mean(hours.map((row) => row.load));
   const genAvg = mean(hours.map((row) => row.generation));
   const totals = hours.reduce(
@@ -48,16 +67,19 @@ export async function BalanceBlock() {
   );
   const share = renewableShare(totals);
   const peak = Math.max(...hours.map((row) => row.load ?? 0));
-  const rows: SeriesRow[] = hours.map((row) => ({
-    label: hourLabel(row.hour),
+  const label = plan.kind === "daily" ? dayLabel : hourLabel;
+  const rows: SeriesRow[] = rowsSource.map((row) => ({
+    label: label(row.hour),
     hydro: row.hydro,
     wind: row.wind,
     solar: row.solar,
     thermal: row.thermal,
     load: row.load,
   }));
-  const from = formatDate(`${balance.data.date_from}T12:00:00-03:00`);
-  const to = formatDate(`${balance.data.date_to}T12:00:00-03:00`);
+  const from = label(rowsSource[0]!.hour);
+  const to = label(rowsSource.at(-1)!.hour);
+  const where = subsystemFilterLabel(filters.sub);
+  const grain = plan.kind === "daily" ? "média diária" : "média horária";
   return (
     <>
       <StatGrid>
@@ -76,7 +98,7 @@ export async function BalanceBlock() {
       </StatGrid>
       <div className="mt-4">
         <SeriesChart
-          title="Geração por fonte e carga, hora a hora"
+          title={`Geração por fonte e carga (${where})`}
           unit="MW"
           rows={rows}
           series={[
@@ -94,8 +116,8 @@ export async function BalanceBlock() {
               dashed: true,
             },
           ]}
-          summary={`Média horária do SIN, de ${from} a ${to}. As áreas empilhadas somam a geração; a linha tracejada é a carga.`}
-          tickEvery={24}
+          summary={`${where}, ${grain}, de ${from} a ${to}. As áreas empilhadas somam a geração; a linha tracejada é a carga.`}
+          tickEvery={plan.kind === "hourly" ? 48 : plan.kind === "recent" ? 24 : undefined}
         />
       </div>
       <OnsAttribution dataset="Balanço de energia nos subsistemas" />
@@ -103,12 +125,15 @@ export async function BalanceBlock() {
   );
 }
 
-export async function MixBlock() {
-  const mix = await getGenerationMix();
+export async function MixBlock({ filters }: { filters: Filters }) {
+  const mix = await getGenerationMix({
+    subsystem: filters.sub,
+    from: filters.start,
+    to: filters.end,
+  });
   if (!mix.ok || mix.data.points.length === 0) return <DataUnavailable />;
   const rows = new Map<string, Record<string, string | number>>();
   for (const point of mix.data.points) {
-    if (point.subsystem !== "SIN") continue;
     const month = normalizeMonth(point.month);
     const row = rows.get(month) ?? { month };
     row[point.source] = mwhToGwh(point.energy_mwh);
@@ -117,11 +142,13 @@ export async function MixBlock() {
   const chartRows = [...rows.values()].sort((a, b) =>
     String(a.month).localeCompare(String(b.month)),
   );
+  // The pie reads the "SIN" rows: hand it the selected region's rows labelled as such.
+  const pieSource = mix.data.points.map((point) => ({ ...point, subsystem: "SIN" as const }));
   return (
     <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
       <MonthlyChart
-        title="Geração mensal por fonte"
-        description="Energia gerada no SIN em cada mês, em GWh."
+        title={`Geração mensal por fonte (${subsystemFilterLabel(filters.sub)})`}
+        description={`Energia gerada em cada mês, em GWh. Período: ${periodText(filters)}.`}
         rows={chartRows as never}
         series={SOURCE_ORDER.map((source) => ({
           key: source,
@@ -133,65 +160,72 @@ export async function MixBlock() {
         digits={0}
       />
       <Card className="p-5 sm:p-6">
-        <GenerationMixPie points={mix.data.points} />
+        <GenerationMixPie points={pieSource} />
       </Card>
       <div className="lg:col-span-2">
-        <OnsAttribution dataset="Geração por fonte (SIN)" />
+        <OnsAttribution dataset="Geração por fonte" />
       </div>
     </div>
   );
 }
 
-export async function InterchangeBlock() {
-  const interchange = await getInterchange("national");
+export async function InterchangeBlock({ filters }: { filters: Filters }) {
+  const interchange = await getInterchange("national", { from: filters.start, to: filters.end });
   if (!interchange.ok) return <DataUnavailable />;
-  const month = interchange.data.points
-    .map((point) => normalizeMonth(point.month))
-    .sort()
-    .at(-1);
-  if (!month) return <DataUnavailable />;
-  const items = interchange.data.points
-    .filter((point) => normalizeMonth(point.month) === month)
-    .map((point) => {
-      const forward = point.avg_mw >= 0;
-      const from = forward ? point.origin : point.destination;
-      const to = forward ? point.destination : point.origin;
-      return {
-        key: `${point.origin}-${point.destination}`,
-        label: `${from} → ${to}`,
-        value: Math.abs(point.avg_mw),
-        display: `${formatNumber(Math.abs(point.avg_mw), 0)} MW médios`,
-        note: `pico ${formatNumber(point.peak_mw, 0)} MW`,
-      };
-    })
-    .sort((a, b) => b.value - a.value);
+  const pairs = interchangeByPair(interchange.data.points, filters.sub);
+  if (pairs.length === 0) {
+    return (
+      <p className="text-ink-2 text-sm">
+        Sem dados de intercâmbio para {subsystemFilterLabel(filters.sub)} em {periodText(filters)}.
+      </p>
+    );
+  }
   return (
     <>
       <p className="text-ink-2 mb-4 text-sm">
-        Fluxo médio de energia entre os subsistemas em {formatLongMonth(month)}. A seta mostra o
-        sentido predominante: de onde a energia sai para onde vai.
+        Fluxo médio entre os subsistemas em {periodText(filters)}. A seta mostra o sentido
+        predominante: de onde a energia sai para onde vai.
       </p>
-      <BarList items={items} label="Intercâmbio médio entre subsistemas" />
+      <BarList
+        label="Intercâmbio médio entre subsistemas"
+        items={pairs.map((pair) => ({
+          key: pair.key,
+          label: `${pair.from} → ${pair.to}`,
+          value: pair.avgMw,
+          display: `${formatNumber(pair.avgMw, 0)} MW médios`,
+          note: `pico ${formatNumber(pair.peakMw, 0)} MW`,
+        }))}
+      />
       <OnsAttribution dataset="Intercâmbio de energia entre subsistemas" />
     </>
   );
 }
 
-export async function ThermalBlock() {
-  const thermal = await getThermalDispatch();
+export async function ThermalBlock({ filters }: { filters: Filters }) {
+  const thermal = await getThermalDispatch({
+    from: filters.start,
+    to: filters.end,
+    subsystem: subsystemParam(filters),
+  });
   if (!thermal.ok) return <DataUnavailable />;
-  const result = thermalByReason(thermal.data.points);
-  if (!result || result.rows.length === 0) return <DataUnavailable />;
-  const max = result.rows[0]!.mwh;
+  const { rows } = thermalByReason(thermal.data.points);
+  if (rows.length === 0) {
+    return (
+      <p className="text-ink-2 text-sm">
+        Sem despacho térmico para {subsystemFilterLabel(filters.sub)} em {periodText(filters)}.
+      </p>
+    );
+  }
   return (
     <>
       <p className="text-ink-2 mb-4 text-sm">
-        Energia térmica verificada em {formatLongMonth(result.month)}, por motivo do despacho.
+        Energia térmica verificada em {periodText(filters)} ({subsystemFilterLabel(filters.sub)}),
+        por motivo do despacho.
       </p>
       <BarList
         label="Despacho térmico por motivo"
-        max={max}
-        items={result.rows.map((row) => ({
+        max={rows[0]!.mwh}
+        items={rows.map((row) => ({
           key: row.reason,
           label: row.label,
           value: row.mwh,

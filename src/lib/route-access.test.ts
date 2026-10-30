@@ -52,6 +52,17 @@ describe("periodRewrite", () => {
     expect(periodRewrite("/usinas/cumaru", params("ate=2026-06"))).toBe("/usinas/cumaru/periodo");
   });
 
+  it("sends the Sistema and Água filters (period or subsystem) to the dynamic variant", () => {
+    expect(periodRewrite("/sistema", params("sub=NE"))).toBe("/sistema/periodo");
+    expect(periodRewrite("/agua", params("de=2026-01&ate=2026-06&sub=S"))).toBe("/agua/periodo");
+    expect(periodRewrite("/sistema", params("utm_source=x"))).toBeNull();
+    expect(periodRewrite("/sistema/periodo", params("sub=NE"))).toBeNull();
+  });
+
+  it("does not treat sub as a filter on pages that only have a period", () => {
+    expect(periodRewrite("/curtailment", params("sub=NE"))).toBeNull();
+  });
+
   it("leaves the static pages alone when there is no period", () => {
     expect(periodRewrite("/curtailment", params(""))).toBeNull();
     expect(periodRewrite("/estados/rn", params("utm_source=x"))).toBeNull();
