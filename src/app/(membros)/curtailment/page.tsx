@@ -7,7 +7,7 @@ export const revalidate = 3600;
 export const metadata = pageMetadata({
   title: "Painel nacional de curtailment eólico e solar",
   description: SITE_DESCRIPTION,
-  path: "/painel",
+  path: "/curtailment",
 });
 
 export default function DashboardPage() {

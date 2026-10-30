@@ -36,6 +36,9 @@ describe("sitemap", () => {
     expect(urls).toEqual(
       [
         "/",
+        "/painel",
+        "/sistema",
+        "/agua",
         "/metodologia",
         "/cadastro",
         "/ferramentas",

@@ -28,6 +28,15 @@ const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
 
 const NATIONAL_SCOPE = "SIN";
+
+const AREA_LINKS = [
+  { href: "/estados", label: "Estados" },
+  { href: "/usinas", label: "Usinas" },
+  { href: "/comparar", label: "Comparar" },
+  { href: "/relatorios", label: "Relatórios mensais" },
+  { href: "/previsao", label: "Previsão" },
+  { href: "/analises", label: "Análises" },
+] as const;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -99,16 +108,34 @@ export async function DashboardView({ params }: { params: SearchParams }) {
           name: "Curtailment mensal de usinas eólicas e solares no Brasil (SIN)",
           description:
             "Energia eólica e solar cortada por restrições de operação do ONS, por mês, fonte e subsistema, com perda estimada em R$.",
-          path: "/painel",
+          path: "/curtailment",
           temporalCoverage: temporalCoverage(months),
           spatialCoverage: "Brasil",
         })}
       />
       <header className="pt-8 pb-2 sm:pt-10">
         <p className="text-accent text-xs font-semibold tracking-[0.14em] uppercase">
-          Monitor de curtailment
+          Área Curtailment
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Painel nacional</h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+          Curtailment: painel nacional
+        </h1>
+        <p className="text-ink-2 mt-2 max-w-2xl text-sm">
+          Curtailment é a energia eólica e solar que o ONS manda cortar por restrições da rede. Aqui
+          estão os números do país e os caminhos para o detalhe.
+        </p>
+        <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium">
+          {AREA_LINKS.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="border-line bg-surface hover:border-accent hover:bg-accent-soft inline-block rounded-full border px-3.5 py-1.5"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </header>
 
       {monthReport ? (

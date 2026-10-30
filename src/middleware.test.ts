@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 describe("middleware: public pages", () => {
-  it.each(["/", "/metodologia", "/privacidade", "/cadastro"])(
+  it.each(["/", "/painel", "/sistema", "/agua", "/metodologia", "/privacidade", "/cadastro"])(
     "serves %s without a session",
     (path) => {
       const { response } = run(path);
@@ -52,7 +52,7 @@ describe("middleware: public pages", () => {
 });
 
 const GATED = [
-  "/painel",
+  "/curtailment",
   "/estados",
   "/estados/ba",
   "/usinas",
@@ -87,6 +87,22 @@ describe("middleware: pages that need an account", () => {
 });
 
 describe("middleware: custom periods", () => {
+  it("sends an old /painel period link to /curtailment", () => {
+    const { response } = run("/painel?de=2026-01&ate=2026-06");
+    expect(response.status).toBe(308);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.pathname).toBe("/curtailment");
+    expect(location.search).toBe("?de=2026-01&ate=2026-06");
+  });
+
+  it("sends an old /painel period link to /curtailment", () => {
+    const { response } = run("/painel?de=2026-01&ate=2026-06");
+    expect(response.status).toBe(308);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.pathname).toBe("/curtailment");
+    expect(location.search).toBe("?de=2026-01&ate=2026-06");
+  });
+
   it("rewrites a period for a member to the dynamic variant, keeping the URL", () => {
     const { response } = run("/estados/rn?de=2026-01&ate=2026-06", {
       cookie: "spillway_session=token",

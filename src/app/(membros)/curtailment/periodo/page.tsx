@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = pageMetadata({
   title: "Painel nacional de curtailment eólico e solar",
   description: SITE_DESCRIPTION,
-  path: "/painel",
+  path: "/curtailment",
   noIndex: true,
 });
 

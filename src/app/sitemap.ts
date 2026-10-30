@@ -13,6 +13,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const noted = news.ok ? news.data.items.filter((item) => item.has_editor_note) : [];
   return [
     { url: absoluteUrl("/"), changeFrequency: "weekly", priority: 1 },
+    { url: absoluteUrl("/painel"), changeFrequency: "daily", priority: 0.9 },
+    { url: absoluteUrl("/sistema"), changeFrequency: "daily", priority: 0.8 },
+    { url: absoluteUrl("/agua"), changeFrequency: "daily", priority: 0.8 },
     { url: absoluteUrl("/metodologia"), changeFrequency: "yearly", priority: 0.5 },
     { url: absoluteUrl("/cadastro"), changeFrequency: "yearly", priority: 0.6 },
     { url: absoluteUrl("/ferramentas"), changeFrequency: "monthly", priority: 0.6 },
