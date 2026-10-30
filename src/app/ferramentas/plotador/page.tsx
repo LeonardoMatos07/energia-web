@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { EXAMPLES } from "@/lib/plotter/examples";
 
 export const metadata = pageMetadata({
-  title: "Plotador de gráficos de laboratório",
+  title: "Plotador de gráficos",
   description:
     "Cole os dados do experimento e gere o gráfico para o relatório, com unidades, barras de erro e ajuste de curva. Grátis e no seu navegador.",
   path: "/ferramentas/plotador",
@@ -14,7 +14,25 @@ export const metadata = pageMetadata({
 export default function PlotterPage() {
   return (
     <Container>
-      <PageHeader eyebrow="Ferramentas" title="Plotador de gráficos de laboratório">
+      <Link
+        href="/ferramentas"
+        className="text-ink-2 hover:text-accent mt-6 inline-flex items-center gap-2 text-sm font-medium"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Voltar para Ferramentas
+      </Link>
+      <PageHeader eyebrow="Ferramentas" title="Plotador de gráficos">
         <p>Cole os dados, escolha o gráfico e exporte para o relatório.</p>
       </PageHeader>
       <PlotterApp />

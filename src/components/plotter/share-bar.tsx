@@ -28,6 +28,18 @@ function downloadBlob(name: string, content: BlobPart, type: string) {
   URL.revokeObjectURL(url);
 }
 
+/** File name from the title the user gave the chart (no characters filenames cannot hold). */
+export function fileBaseName(title: string, fallback = "grafico"): string {
+  const clean = title
+    .replace(/[\/:*?"<>|\u0000-\u001f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^\.+/, "")
+    .slice(0, 80)
+    .trim();
+  return clean || fallback;
+}
+
 /** Save, share and export. The data never leaves the browser: links carry it in the #hash. */
 export function ShareBar({
   state,
@@ -41,6 +53,7 @@ export function ShareBar({
   const [message, setMessage] = useState<string | null>(null);
   const [scale, setScale] = useState(2);
   const [transparent, setTransparent] = useState(false);
+  const baseName = fileBaseName(state.chart.title);
 
   async function copyLink() {
     const { hash, tooLong } = encodeHash(state);
@@ -61,9 +74,9 @@ export function ShareBar({
   async function exportImage(format: "png" | "svg") {
     try {
       if (format === "png") {
-        download("grafico.png", await renderPng(state, scale, fit, transparent));
+        download(`${baseName}.png`, await renderPng(state, scale, fit, transparent));
       } else {
-        downloadBlob("grafico.svg", await renderSvg(state, fit, transparent), "image/svg+xml");
+        downloadBlob(`${baseName}.svg`, await renderSvg(state, fit, transparent), "image/svg+xml");
       }
     } catch {
       setMessage("Não foi possível exportar a imagem neste navegador.");
@@ -89,7 +102,9 @@ export function ShareBar({
         <button
           type="button"
           className={BUTTON}
-          onClick={() => downloadBlob("grafico.plot.json", toPlotJson(state), "application/json")}
+          onClick={() =>
+            downloadBlob(`${baseName}.plot.json`, toPlotJson(state), "application/json")
+          }
         >
           Baixar .plot.json
         </button>
@@ -105,7 +120,9 @@ export function ShareBar({
         <button
           type="button"
           className={BUTTON}
-          onClick={() => downloadBlob("dados.csv", toCsv(state), "text/csv;charset=utf-8")}
+          onClick={() =>
+            downloadBlob(`${baseName}-dados.csv`, toCsv(state), "text/csv;charset=utf-8")
+          }
         >
           Baixar CSV
         </button>
