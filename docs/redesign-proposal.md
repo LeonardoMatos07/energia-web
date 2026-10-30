@@ -6,18 +6,19 @@ Princípio: o Spillway deixa de ser "um site de curtailment" e vira "o painel do
 
 Estado atual: menu = Painel, Explorar, Mercado, Relatórios, Notícias, Ferramentas (`src/lib/navigation.ts`). Tudo centrado em curtailment.
 
-**Regra:** *Área* = tema com várias páginas e dados contínuos (tem subnavegação). *Ferramenta* = algo que o usuário opera (entrada -> saída), sem tema próprio.
+**Regra:** _Área_ = tema com várias páginas e dados contínuos (tem subnavegação). _Ferramenta_ = algo que o usuário opera (entrada -> saída), sem tema próprio.
 
 ### Menu superior (7 itens + conta/tema)
-| Item | Tipo | Conteúdo | URLs (existentes marcadas com *) |
-|---|---|---|---|
-| Painel | página | Painel geral do SIN (novo conteúdo) | /painel* |
-| Sistema | área | Matriz, carga, intercâmbio, térmicas (/v1/system/*) | /sistema (novo) |
-| Água | área | Reservatórios, ENA, energia vertida (/v1/hydro/*) | /agua (novo) |
-| Mercado | área | PLD, mercado livre, tarifas, qualidade DEC/FEC | /mercado/pld*, /mercado/livre*, /tarifas*, /qualidade* |
-| Curtailment | área | Painel, estados, usinas, comparar, relatórios, previsão, análises | /curtailment (novo hub) + /estados* /usinas* /comparar* /relatorios* /previsao* /analises* |
-| Notícias | área | Notícias, atos regulatórios, fontes | /noticias* |
-| Ferramentas | hub | Plotador, Análises, Previsão (futuro: simuladores, Mapa) | /ferramentas* |
+
+| Item        | Tipo   | Conteúdo                                                          | URLs (existentes marcadas com *)                                                           |
+| ----------- | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Painel      | página | Painel geral do SIN (novo conteúdo)                               | /painel*                                                                                   |
+| Sistema     | área   | Matriz, carga, intercâmbio, térmicas (/v1/system/*)               | /sistema (novo)                                                                            |
+| Água        | área   | Reservatórios, ENA, energia vertida (/v1/hydro/*)                 | /agua (novo)                                                                               |
+| Mercado     | área   | PLD, mercado livre, tarifas, qualidade DEC/FEC                    | /mercado/pld*, /mercado/livre*, /tarifas*, /qualidade*                                     |
+| Curtailment | área   | Painel, estados, usinas, comparar, relatórios, previsão, análises | /curtailment (novo hub) + /estados* /usinas* /comparar* /relatorios* /previsao* /analises* |
+| Notícias    | área   | Notícias, atos regulatórios, fontes                               | /noticias*                                                                                 |
+| Ferramentas | hub    | Plotador, Análises, Previsão (futuro: simuladores, Mapa)          | /ferramentas*                                                                              |
 
 Mapa da rede (/v1/grid/*) entra em "Sistema" como /sistema/mapa quando existir; hoje não aparece (sem item morto no menu).
 
@@ -28,11 +29,12 @@ Mapa da rede (/v1/grid/*) entra em "Sistema" como /sistema/mapa quando existir; 
 - Decisão a validar: Painel geral **público** (SEO, topo de funil, amostras) com downloads/detalhes para membros. Hoje `/painel` é protegido no middleware; mudar é decisão de produto (etapa 5).
 
 ### Rodapé (4 colunas)
+
 Áreas (Painel, Sistema, Água, Mercado, Curtailment, Notícias) · Ferramentas (Plotador, Análises, Previsão) · Spillway (Metodologia, Relatórios, RSS, Newsletter) · Legal (Privacidade, Cancelar newsletter, fontes dos dados ONS/CCEE/ANEEL). Mantém o texto de atribuição.
 
 ## 2. Nova página inicial (`src/app/page.tsx`)
 
-1. **Hero** (mantém `HeroBackdrop`, `HeroChart`, `hero-rise/hero-float` e o gradiente). H1 "O setor elétrico brasileiro, *em movimento*" (palavra em gradiente, como "transborda" hoje); subtítulo "Geração, reservatórios, preços, notícias e curtailment, com dados oficiais, num só lugar."; CTAs: Explorar o Painel (primário), Criar conta (secundário; logado vê `MemberNewsletter`).
+1. **Hero** (mantém `HeroBackdrop`, `HeroChart`, `hero-rise/hero-float` e o gradiente). H1 "O setor elétrico brasileiro, _em movimento_" (palavra em gradiente, como "transborda" hoje); subtítulo "Geração, reservatórios, preços, notícias e curtailment, com dados oficiais, num só lugar."; CTAs: Explorar o Painel (primário), Criar conta (secundário; logado vê `MemberNewsletter`).
    - Dado do `HeroChart`: **geração total do SIN por mês, últimos 24 meses (GWh)**, de `/v1/system/generation` agregado (ou `getGenerationMix` se tiver série). Alternativas: carga das últimas 24h, ou matriz (% renovável) ao longo do tempo. Se faltar dado, cai para a série de curtailment atual; sem nenhum dado, `HeroChart` já devolve `null` (`points.length < 2`) e o hero fica só texto.
    - Mudança em `HeroChart`: apenas parametrizar casas decimais/unidade e cor de série; animação e layout intocados.
 2. **"Agora no setor"** (StatGrid, 4 tiles, cada um link para sua área): % renovável, carga média, armazenamento hídrico, PLD médio.
@@ -68,6 +70,7 @@ Mapa da rede (/v1/grid/*) entra em "Sistema" como /sistema/mapa quando existir; 
 +------------------------------------------------------------------+
 | Criar conta gratuita / Newsletter                                 |
 ```
+
 Mobile: 1 coluna; gráfico do hero abaixo do texto; tiles 2x2; áreas em 2 colunas compactas; notícias e mercado empilhados.
 
 ## 3. Painel geral (`/painel`)
@@ -89,6 +92,7 @@ Painel do setor elétrico            [Período: último mês ▾] [Baixar ▾]
 | Curtailment do mês (1 card -> área) | Notícias | Mercado          |
 +------------------------------------------------------------------+
 ```
+
 - Dados: `/v1/system/{balance,generation,interchange,thermal-dispatch}`, `/v1/hydro/{subsystems,spilled-energy}`, PLD, curtailment. Novas funções em `queries.ts`, tipos em `types.ts`.
 - Filtro de período/subsistema reaproveita `period-filter.tsx` e `month-picker.tsx`; mesma reescrita `/painel/periodo`.
 - Cada bloco é independente (Suspense + `DataUnavailable`): falha de uma rota não derruba a página.
@@ -118,7 +122,8 @@ Cada etapa: `npm run lint && npm test && npm run build` verdes antes de seguir.
 7. **Polimento**: metadados/OG por área (`lib/metadata.ts`), links cruzados em `tools.ts`, `FOOTER_LINKS`, revisão a11y/Lighthouse, reduced motion.
 
 ### O que NÃO pode quebrar
-- Todas as rotas atuais (/estados, /usinas, /comparar, /analises, /previsao, /relatorios, /mercado/*, /qualidade, /tarifas, /conta, /noticias/*, /ferramentas/*), `/painel/periodo` e o rewrite de período (`route-access.ts`, `middleware.ts`).
+
+- Todas as rotas atuais (/estados, /usinas, /comparar, /analises, /previsao, /relatorios, /mercado/_, /qualidade, /tarifas, /conta, /noticias/_, /ferramentas/*), `/painel/periodo` e o rewrite de período (`route-access.ts`, `middleware.ts`).
 - Gate de membros: `PROTECTED_PREFIXES`, `(membros)/layout.tsx` (`requireMember`), redirect `/entrar?proximo=`; `route-access.test.ts` e `navigation.test.ts` (alterar só conscientemente).
 - SEO: `sitemap.ts`/`sitemap.test.ts` (só páginas abertas), `noticias/rss.xml`, JSON-LD, `pageMetadata`, canonical; páginas da área Curtailment mantêm "curtailment" nos títulos.
 - Tracking (`data-track`, `tracker.tsx`, `/api/track`), `/api/revalidate`, `/api/search`, downloads (`/api/baixar/*`), atribuição de dados, `revalidate`/`force-dynamic` existentes.
