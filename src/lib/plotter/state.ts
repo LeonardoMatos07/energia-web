@@ -1,6 +1,6 @@
 export const SCHEMA_VERSION = 1;
 
-export type ChartKind = "scatter" | "line" | "bar";
+export type ChartKind = "scatter" | "line" | "bar" | "histogram" | "box" | "pie" | "polar";
 
 export interface Column {
   id: string;
@@ -30,6 +30,8 @@ export interface ChartConfig {
   yLog: boolean;
   xLabel: string;
   yLabel: string;
+  /** Number of bins of the histogram. */
+  bins: number;
 }
 
 export interface PlotterState {
@@ -118,6 +120,7 @@ export function emptyState(): PlotterState {
       yLog: false,
       xLabel: "x",
       yLabel: "y",
+      bins: 10,
     },
   };
 }

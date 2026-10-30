@@ -1,18 +1,21 @@
 "use client";
 
-import { useMemo, useState, type Dispatch } from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch } from "react";
 import { resolveTable } from "@/lib/plotter/data";
 import {
   columnStats,
   equationLatex,
   equationText,
   fitCurve,
+  type FitResult,
   FitError,
   linearization,
   MODELS,
   type ModelId,
 } from "@/lib/plotter/fit";
+import { buildResidualOption } from "@/lib/plotter/figure";
 import type { PlotterAction, PlotterState } from "@/lib/plotter/state";
+import { EChart } from "./echarts-chart";
 
 const FIELD = "border-grid bg-surface rounded-md border px-2 py-1 text-sm";
 const BUTTON = "border-grid hover:bg-surface-2 rounded-full border px-3 py-1.5 text-sm font-medium";
@@ -33,12 +36,17 @@ async function copy(text: string) {
 export function FitPanel({
   state,
   dispatch,
+  onFit,
 }: {
   state: PlotterState;
   dispatch: Dispatch<PlotterAction>;
+  /** Receives the fit to draw over the chart, or null when the curve is hidden or cannot be fitted. */
+  onFit: (fit: FitResult | null) => void;
 }) {
   const [model, setModel] = useState<ModelId>("linear");
   const [weighted, setWeighted] = useState(false);
+  const [showCurve, setShowCurve] = useState(true);
+  const [showResiduals, setShowResiduals] = useState(false);
   const resolved = useMemo(() => resolveTable(state), [state]);
   const { chart } = state;
   const xColumn = resolved.find((item) => item.column.id === chart.xColumn);
@@ -59,6 +67,15 @@ export function FitPanel({
       } as const;
     }
   }, [model, weighted, xColumn, yColumn, errorColumn]);
+
+  const fitted = ("result" in outcome ? outcome.result : null) ?? null;
+  useEffect(() => {
+    onFit(showCurve ? fitted : null);
+  }, [fitted, showCurve, onFit]);
+  const residualOption = useCallback(
+    (ink: string) => (fitted ? buildResidualOption(fitted, ink, state.chart.xLabel) : {}),
+    [fitted, state.chart.xLabel],
+  );
 
   const names = {
     x: xColumn?.column.symbol || xColumn?.column.name || "x",
@@ -95,6 +112,22 @@ export function FitPanel({
             onChange={(event) => setWeighted(event.target.checked)}
           />
           Ponderar pelas barras de erro em Y
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showCurve}
+            onChange={(event) => setShowCurve(event.target.checked)}
+          />
+          Mostrar a curva no gráfico
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showResiduals}
+            onChange={(event) => setShowResiduals(event.target.checked)}
+          />
+          Gráfico de resíduos
         </label>
       </div>
 
@@ -139,6 +172,9 @@ export function FitPanel({
               : "mínimos quadrados não lineares (Levenberg-Marquardt, com chute inicial por linearização)"}
             {outcome.result.weighted ? ", ponderado por 1/σ²" : ""}.
           </p>
+          {showResiduals ? (
+            <EChart build={residualOption} height={220} label="Resíduos do ajuste" />
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
