@@ -7,12 +7,10 @@ const active = (pathname: string) =>
   NAV.filter((i) => isNavActive(pathname, i.matches)).map((i) => i.label);
 
 describe("main menu", () => {
-  it("has the six sections and nothing else", () => {
+  it("has the main sections and nothing else", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Painel",
       "Explorar",
-      "Análises",
-      "Previsão",
       "Mercado",
       "Relatórios",
       "Notícias",
@@ -40,7 +38,8 @@ describe("main menu", () => {
 
   it("lights exactly one section elsewhere", () => {
     expect(active("/painel")).toEqual(["Painel"]);
-    expect(active("/analises")).toEqual(["Análises"]);
+    expect(active("/analises")).toEqual(["Ferramentas"]);
+    expect(active("/previsao")).toEqual(["Ferramentas"]);
     expect(active("/relatorios/curtailment-2026-09")).toEqual(["Relatórios"]);
     expect(active("/metodologia")).toEqual([]);
     expect(active("/comparar-usinas")).toEqual([]);

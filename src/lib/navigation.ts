@@ -1,17 +1,19 @@
 /**
  * The main menu is organised by the question a person comes with, not by the kind of page:
  * how is the country (Painel), where (Explorar: states, plants, comparison), how much and who
- * (Análises), and the monthly write-ups (Relatórios). The method lives in the footer.
+ * (Relatórios). Análises and Previsão live under Ferramentas. The method lives in the footer.
  */
 export const NAV = [
   { href: "/painel", label: "Painel", matches: ["/painel"] },
   { href: "/estados", label: "Explorar", matches: ["/estados", "/usinas", "/comparar"] },
-  { href: "/analises", label: "Análises", matches: ["/analises"] },
-  { href: "/previsao", label: "Previsão", matches: ["/previsao"] },
   { href: "/mercado/pld", label: "Mercado", matches: ["/mercado", "/qualidade", "/tarifas"] },
   { href: "/relatorios", label: "Relatórios", matches: ["/relatorios"] },
   { href: "/noticias", label: "Notícias", matches: ["/noticias"] },
-  { href: "/ferramentas", label: "Ferramentas", matches: ["/ferramentas"] },
+  {
+    href: "/ferramentas",
+    label: "Ferramentas",
+    matches: ["/ferramentas", "/analises", "/previsao"],
+  },
 ] as const;
 
 export const EXPLORE_TABS = [
