@@ -14,6 +14,9 @@ type Fits<A, B> = [A] extends [B]
 export type ResponseChecks = [
   Assert<Fits<S["SubsystemCurtailmentResponse"], T.SubsystemCurtailmentResponse>>,
   Assert<Fits<S["StateCurtailmentResponse"], T.StateCurtailmentResponse>>,
+  Assert<Fits<S["GeoStatesResponse"], T.GeoStatesResponse>>,
+  Assert<Fits<S["GeoStatesMeta"], T.GeoStatesMeta>>,
+  Assert<Fits<S["GeoStateCurtailment"], T.GeoStateCurtailment>>,
   Assert<Fits<S["PlantListResponse"], T.PlantListResponse>>,
   Assert<Fits<S["PlantDetailResponse"], T.PlantDetailResponse>>,
   Assert<Fits<S["RankingResponse"], T.RankingResponse>>,

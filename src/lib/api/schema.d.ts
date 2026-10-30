@@ -575,6 +575,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/geo/states/curtailment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["states_curtailment_v1_geo_states_curtailment_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/market/pld": {
         parameters: {
             query?: never;
@@ -1318,6 +1334,30 @@ export interface components {
         FunnelStep: {
             step: string;
             count: number;
+        };
+        GeoStateCurtailment: {
+            state: string;
+            curtailment_pct: number | null;
+            curtailed_mwh: number;
+            verified_generation_mwh: number;
+            estimated_loss_brl: number | null;
+            affected_plants: number;
+        };
+        GeoStatesMeta: {
+            source_name: string;
+            source_url: string;
+            license: string;
+            data_source: "wind" | "solar" | "total";
+            month: string | null;
+            months: string[];
+            updated_at: string | null;
+            warnings: string[];
+            omitted: number;
+            omitted_states: string[];
+        };
+        GeoStatesResponse: {
+            meta: components["schemas"]["GeoStatesMeta"];
+            items: components["schemas"]["GeoStateCurtailment"][];
         };
         GroupRankingResponse: {
             group: "operator" | "connection_point";
@@ -3197,6 +3237,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubstationListResponse"];
+                };
+            };
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    states_curtailment_v1_geo_states_curtailment_get: {
+        parameters: {
+            query?: {
+                source?: "wind" | "solar" | "total";
+                month?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoStatesResponse"];
                 };
             };
             422: {

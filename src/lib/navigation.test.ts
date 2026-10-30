@@ -38,6 +38,19 @@ describe("main menu", () => {
     }
   });
 
+  it("lists the maps in the Painel group and keeps Painel lit on every map layer", () => {
+    const painel = NAV.find((item) => item.label === "Painel");
+    expect(painel?.children?.map((c) => c.href)).toEqual([
+      "/painel",
+      "/mapas",
+      "/sistema",
+      "/agua",
+    ]);
+    for (const path of ["/mapas", "/mapas/estados"]) {
+      expect(active(path), path).toEqual(["Painel"]);
+    }
+  });
+
   it("lights Notícias on the list, the acts and a single item", () => {
     for (const path of ["/noticias", "/noticias/atos", "/noticias/12"]) {
       expect(active(path), path).toEqual(["Notícias"]);
@@ -122,7 +135,7 @@ describe("menu structure", () => {
   it("lists the pages of each group as agreed", () => {
     const pages = Object.fromEntries(NAV.map((i) => [i.label, i.children?.map((c) => c.href)]));
     expect(pages).toEqual({
-      Painel: ["/painel", "/sistema", "/agua"],
+      Painel: ["/painel", "/mapas", "/sistema", "/agua"],
       Mercado: ["/mercado/pld", "/mercado/livre", "/tarifas", "/qualidade"],
       Curtailment: ["/curtailment", "/estados", "/usinas", "/analises", "/relatorios"],
       Notícias: ["/noticias", "/noticias/atos", "/noticias/assinar"],

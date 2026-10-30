@@ -33,6 +33,7 @@ import type {
   Report,
   ReportListResponse,
   Source,
+  GeoStatesResponse,
   StateCurtailmentResponse,
   Subsystem,
   SubsystemCurtailmentResponse,
@@ -92,6 +93,12 @@ export function getStateCurtailment(
     withQuery(`/v1/curtailment/states/${encodeURIComponent(state)}`, { source, month }),
     { tags: ["curtailment", "plants"] },
   );
+}
+
+export function getGeoStatesCurtailment(source: AggregateSource = "total", month?: string) {
+  return apiTry<GeoStatesResponse>(withQuery("/v1/geo/states/curtailment", { source, month }), {
+    tags: ["curtailment"],
+  });
 }
 
 export interface PlantFilters {

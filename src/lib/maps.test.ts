@@ -1,0 +1,93 @@
+import { describe, expect, it } from "vitest";
+import type { GeoStateCurtailment } from "@/lib/api/types";
+import { isProtected } from "@/lib/route-access";
+import {
+  CLASS_COUNT,
+  classIndex,
+  classLimits,
+  MAP_LAYERS,
+  parseStatesMapParams,
+  rankStates,
+  stepMonth,
+  summarizeStates,
+} from "./maps";
+
+const item = (
+  state: string,
+  pct: number | null,
+  brl: number | null = 1000,
+): GeoStateCurtailment => ({
+  state,
+  curtailment_pct: pct,
+  curtailed_mwh: 10,
+  verified_generation_mwh: 100,
+  estimated_loss_brl: brl,
+  affected_plants: 2,
+});
+
+describe("parseStatesMapParams", () => {
+  it("accepts a valid month, source and indicator and ignores the rest", () => {
+    expect(parseStatesMapParams({ mes: "2026-09", fonte: "wind", metrica: "brl" })).toEqual({
+      mes: "2026-09",
+      fonte: "wind",
+      metrica: "brl",
+    });
+    expect(parseStatesMapParams({ mes: "2026-13", fonte: "coal", metrica: "x" })).toEqual({
+      mes: null,
+      fonte: "total",
+      metrica: "pct",
+    });
+    expect(parseStatesMapParams(new URLSearchParams("mes=2025-01&fonte=solar")).fonte).toBe(
+      "solar",
+    );
+  });
+});
+
+describe("color classes", () => {
+  it("has CLASS_COUNT - 1 limits that grow, and none without values", () => {
+    const limits = classLimits(50);
+    expect(limits).toHaveLength(CLASS_COUNT - 1);
+    expect([...limits].sort((a, b) => a - b)).toEqual(limits);
+    expect(limits.at(-1)).toBeLessThan(50);
+    expect(classLimits(0)).toEqual([]);
+  });
+
+  it("puts a value in the first class that holds it, the maximum in the last, no data in none", () => {
+    const limits = classLimits(50);
+    expect(classIndex(0, limits)).toBe(0);
+    expect(classIndex(50, limits)).toBe(CLASS_COUNT - 1);
+    expect(classIndex(null, limits)).toBeNull();
+  });
+});
+
+describe("ranking and summary", () => {
+  const items = [item("BA", 10), item("RN", 30), item("CE", null), item("PI", 30)];
+
+  it("sorts by value, then by name, with empty values last", () => {
+    expect(rankStates(items, "pct").map((r) => r.state)).toEqual(["PI", "RN", "BA", "CE"]);
+  });
+
+  it("describes the top states in words", () => {
+    const text = summarizeStates(rankStates(items, "pct"), "pct", "setembro de 2026", "Eólica");
+    expect(text).toContain("3 estados com dados");
+    expect(text).toContain("Piauí");
+    expect(summarizeStates([], "pct", "setembro de 2026", "Eólica")).toMatch(/Sem dados/);
+  });
+});
+
+describe("stepMonth", () => {
+  it("moves along the months whatever the order of the list", () => {
+    const months = ["2026-09", "2026-07", "2026-08"];
+    expect(stepMonth(months, "2026-08", 1)).toBe("2026-09");
+    expect(stepMonth(months, "2026-08", -1)).toBe("2026-07");
+    expect(stepMonth(months, "2026-09", 1)).toBeNull();
+    expect(stepMonth(months, null, 1)).toBeNull();
+  });
+});
+
+describe("access", () => {
+  it("keeps /mapas open and lets the states layer decide on its own (account invitation)", () => {
+    expect(isProtected("/mapas")).toBe(false);
+    expect(MAP_LAYERS.find((l) => l.key === "estados")?.account).toBe(true);
+  });
+});

@@ -5,3 +5,4 @@ pnpm-lock.yaml
 next-env.d.ts
 src/lib/api/schema.d.ts
 .next-*
+public/geo/*.topo.json

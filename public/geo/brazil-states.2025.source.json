@@ -1,0 +1,19 @@
+{
+  "file": "brazil-states.2025.topo.json",
+  "source": "IBGE, Malha Territorial 2025, unidades da federação (BR_UF_2025.zip)",
+  "sourceUrl": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2025/",
+  "attribution": "IBGE, Malha Territorial 2025",
+  "version": "2025",
+  "sourceCrs": "SIRGAS 2000 geographic (EPSG:4674); coordinates kept as longitude/latitude",
+  "format": "TopoJSON, object key = first layer, one geometry per state, id = UF code",
+  "properties": {
+    "uf": "SIGLA_UF",
+    "name": "NM_UF",
+    "region": "SIGLA_RG"
+  },
+  "simplification": "mapshaper@0.7.101: -simplify visvalingam 3% keep-shapes; quantization 10000",
+  "sourceBytes": 19753124,
+  "bytes": 193328,
+  "gzipBytes": 41113,
+  "note": "Simplified for a thematic map: not for measuring areas or borders."
+}
