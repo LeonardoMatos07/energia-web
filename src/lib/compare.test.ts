@@ -4,8 +4,14 @@ import {
   buildMetricRows,
   buildSeparateRows,
   groupMetrics,
+  attachShare,
+  defaultMetrics,
   groupUnit,
+  isCurtailmentSource,
   MAX_ENTITIES,
+  metricsFor,
+  mixSourceRows,
+  reconcileMetrics,
   metricUnit,
   parseEntities,
   parseView,
@@ -192,5 +198,94 @@ describe("view state in the URL", () => {
     expect(custom.get("metricas")).toBe("perda");
     expect(custom.get("modo")).toBe("itens");
     expect(custom.get("grafico")).toBe("barras");
+  });
+});
+
+const mixPoint = (
+  month: string,
+  source: "hydro" | "thermal" | "wind" | "solar",
+  mwh: number,
+  pct: number,
+) => ({
+  month,
+  subsystem: "SE" as const,
+  source,
+  energy_mwh: mwh,
+  avg_mw: 0,
+  peak_mw: 0,
+  share_pct: pct,
+});
+
+describe("sources beyond wind and solar", () => {
+  it("knows which sources have curtailment", () => {
+    for (const source of ["all", "wind", "solar"] as const) {
+      expect(isCurtailmentSource(source)).toBe(true);
+    }
+    for (const source of ["hydro", "thermal", "nuclear", "generation"] as const) {
+      expect(isCurtailmentSource(source)).toBe(false);
+    }
+  });
+
+  it("offers curtailment metrics only for wind and solar", () => {
+    expect(metricsFor("wind")).toContain("curtailed");
+    expect(metricsFor("hydro")).not.toContain("curtailed");
+    expect(metricsFor("hydro")).toEqual(["verified", "share", "cf"]);
+  });
+
+  it("falls back to the source defaults when the chosen metrics do not apply", () => {
+    expect(reconcileMetrics(["curtailed", "loss"], "hydro")).toEqual(defaultMetrics("hydro"));
+    expect(reconcileMetrics(["verified", "pct"], "thermal")).toEqual(["verified"]);
+    expect(reconcileMetrics(["share"], "wind")).toEqual(["share"]);
+  });
+
+  it("reads the source from the link and picks metrics that exist for it", () => {
+    expect(parseView({ fonte: "hidreletrica" })).toMatchObject({
+      source: "hydro",
+      metrics: ["verified", "share"],
+    });
+    expect(parseView({ fonte: "hidreletrica", metricas: "perda,fator" })).toMatchObject({
+      metrics: ["cf"],
+    });
+    expect(parseView({ fonte: "inexistente" })).toMatchObject({ source: "all" });
+  });
+
+  it("keeps the URL clean when the metrics are the source defaults", () => {
+    const next = applyViewParams(new URLSearchParams("itens=s:SE"), {
+      metrics: ["verified", "share"],
+      layout: null,
+      kind: "line",
+      source: "hydro",
+    });
+    expect(next.get("metricas")).toBeNull();
+    expect(next.get("fonte")).toBe("hidreletrica");
+  });
+
+  it("builds monthly generation and share for one source, and for all of them", () => {
+    const points = [
+      mixPoint("2026-08", "hydro", 100, 60),
+      mixPoint("2026-08", "wind", 50, 30),
+      mixPoint("2026-08", "thermal", 17, 10),
+      mixPoint("2026-07", "hydro", 90, 55),
+    ];
+    const hydro = mixSourceRows(points, "hydro");
+    expect(hydro.map((r) => [r.month, r.verified, r.share])).toEqual([
+      ["2026-07", 90, 55],
+      ["2026-08", 100, 60],
+    ]);
+    const all = mixSourceRows(points, "generation");
+    expect(all.at(-1)).toMatchObject({
+      month: "2026-08",
+      verified: 167,
+      curtailed: 0,
+      share: null,
+    });
+  });
+
+  it("adds the share of wind and solar to the curtailment rows", () => {
+    const rows = [{ month: "2026-08", verified: 1, curtailed: 1, pct: 50, loss: null }];
+    const points = [mixPoint("2026-08", "wind", 5, 20), mixPoint("2026-08", "solar", 5, 15)];
+    expect(attachShare(rows, points, ["wind", "solar"])[0]?.share).toBe(35);
+    expect(attachShare(rows, points, ["wind"])[0]?.share).toBe(20);
+    expect(attachShare(rows, [], ["wind"])[0]?.share).toBeUndefined();
   });
 });

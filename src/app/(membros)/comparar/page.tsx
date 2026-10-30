@@ -1,12 +1,19 @@
 import { ENTITY_COLORS } from "@/components/charts/palette";
 import { Comparator } from "@/components/compare/comparator";
 import { EntityPicker, type PickerItem } from "@/components/compare/entity-picker";
-import { ExploreTabs } from "@/components/explore-tabs";
 import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import type { ApiResult } from "@/lib/api/client";
 import type { StateCurtailmentResponse, SubsystemCurtailmentResponse } from "@/lib/api/types";
-import { getPlant, getStateCurtailment, getSubsystemCurtailment } from "@/lib/api/queries";
 import {
+  getGenerationMix,
+  getPlant,
+  getPlantGeneration,
+  getStateCurtailment,
+  getSubsystemCurtailment,
+} from "@/lib/api/queries";
+import {
+  attachShare,
+  mixSourceRows,
   parseEntities,
   parseView,
   type CompareEntity,
@@ -21,7 +28,7 @@ import { normalizeMonth } from "@/lib/series";
 export const metadata = pageMetadata({
   title: "Comparar usinas, estados e subsistemas",
   description:
-    "Compare quanta energia eólica e solar foi gerada e cortada em usinas, estados e subsistemas, mês a mês, em linhas, barras ou pizza.",
+    "Compare usinas, estados e subsistemas mês a mês: geração por fonte (eólica, solar, hidrelétrica, termelétrica), participação na matriz e o curtailment de eólica e solar.",
   path: "/comparar",
 });
 
@@ -43,6 +50,8 @@ function toRows(series: readonly MonthlyLike[]): MonthValues[] {
       curtailed: row.curtailed_mwh,
       pct: row.curtailment_pct,
       loss: row.estimated_loss_brl,
+      share: null,
+      cf: null,
     }))
     .sort((a, b) => a.month.localeCompare(b.month));
 }
@@ -52,11 +61,21 @@ interface Loaded {
   bySource: Record<SourceFilter, MonthValues[]>;
 }
 
-const SOURCE_ORDER: SourceFilter[] = ["all", "wind", "solar"];
+const SOURCE_ORDER = ["all", "wind", "solar"] as const;
+
+const EMPTY: Record<SourceFilter, MonthValues[]> = {
+  all: [],
+  wind: [],
+  solar: [],
+  hydro: [],
+  thermal: [],
+  nuclear: [],
+  generation: [],
+};
 
 const NO_ROWS: MonthValues[] = [];
 
-const API_SOURCE: Record<SourceFilter, "total" | "wind" | "solar"> = {
+const API_SOURCE: Record<(typeof SOURCE_ORDER)[number], "total" | "wind" | "solar"> = {
   all: "total",
   wind: "wind",
   solar: "solar",
@@ -65,12 +84,13 @@ const API_SOURCE: Record<SourceFilter, "total" | "wind" | "solar"> = {
 async function load(ref: EntityRef): Promise<Loaded | null> {
   if (ref.kind === "plant") {
     const result = await getPlant(ref.id);
-    if (!result.ok) return null;
+    if (!result.ok) return loadPowerPlant(ref.id);
     const { plant, series } = result.data;
     const rows = toRows(series);
     return {
       label: `${plant.name} (${plant.state})`,
       bySource: {
+        ...EMPTY,
         all: rows,
         wind: plant.source === "wind" ? rows : NO_ROWS,
         solar: plant.source === "solar" ? rows : NO_ROWS,
@@ -87,24 +107,58 @@ async function load(ref: EntityRef): Promise<Loaded | null> {
     return {
       label: findState(ref.id)?.name ?? ref.id,
       bySource: {
+        ...EMPTY,
         all: toRows(all.data.series),
         wind: toRows(series(wind)),
         solar: toRows(series(solar)),
       },
     };
   }
-  const [all, wind, solar] = await Promise.all(
-    SOURCE_ORDER.map((source) => getSubsystemCurtailment(API_SOURCE[source])),
-  );
+  const [[all, wind, solar], mix] = await Promise.all([
+    Promise.all(SOURCE_ORDER.map((source) => getSubsystemCurtailment(API_SOURCE[source]))),
+    getGenerationMix({ subsystem: ref.id }),
+  ]);
   if (!all?.ok) return null;
+  const mixPoints = mix?.ok ? mix.data.points : [];
   const subsystemSeries = (result: ApiResult<SubsystemCurtailmentResponse> | undefined) =>
     result?.ok ? result.data.items.filter((item) => item.subsystem === ref.id) : [];
   return {
     label: subsystemName(ref.id),
     bySource: {
-      all: toRows(subsystemSeries(all)),
-      wind: toRows(subsystemSeries(wind)),
-      solar: toRows(subsystemSeries(solar)),
+      ...EMPTY,
+      all: attachShare(toRows(subsystemSeries(all)), mixPoints, ["wind", "solar"]),
+      wind: attachShare(toRows(subsystemSeries(wind)), mixPoints, ["wind"]),
+      solar: attachShare(toRows(subsystemSeries(solar)), mixPoints, ["solar"]),
+      hydro: mixSourceRows(mixPoints, "hydro"),
+      thermal: mixSourceRows(mixPoints, "thermal"),
+      generation: mixSourceRows(mixPoints, "generation"),
+    },
+  };
+}
+
+/** Plants outside the curtailment list (hydro, thermal, nuclear): generation and capacity factor. */
+async function loadPowerPlant(slug: string): Promise<Loaded | null> {
+  const result = await getPlantGeneration(slug);
+  if (!result.ok) return null;
+  const { plant, points } = result.data;
+  const rows: MonthValues[] = points
+    .map((point) => ({
+      month: normalizeMonth(point.month),
+      verified: point.energy_mwh,
+      curtailed: 0,
+      pct: null,
+      loss: null,
+      share: null,
+      cf: point.capacity_factor === null ? null : point.capacity_factor * 100,
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+  const own = plant.source_type as SourceFilter;
+  return {
+    label: `${plant.name}${plant.state ? ` (${plant.state})` : ""}`,
+    bySource: {
+      ...EMPTY,
+      generation: rows,
+      ...(own in EMPTY && own !== "all" && own !== "generation" ? { [own]: rows } : {}),
     },
   };
 }
@@ -147,12 +201,12 @@ export default async function ComparePage({
 
   return (
     <Container>
-      <ExploreTabs active="comparar" />
       <PageHeader title="Compare usinas, estados e subsistemas">
         <p>
-          Em três passos: escolha os itens (estados, subsistemas ou usinas), escolha o que medir
-          (geração, energia cortada, perda em R$ ou % de corte) e veja o resultado em linhas, barras
-          ou pizza. O link da página guarda tudo: dá para compartilhar.
+          Em três passos: escolha os itens (estados, subsistemas ou usinas), escolha a fonte e o que
+          medir e veja o resultado em linhas, barras ou pizza. A geração vale para todas as fontes
+          (por subsistema); energia cortada, perda em R$ e % de corte existem só para eólica e
+          solar. O link da página guarda tudo: dá para compartilhar.
         </p>
       </PageHeader>
 

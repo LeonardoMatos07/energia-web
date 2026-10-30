@@ -723,3 +723,27 @@ export interface SpilledEnergyPoint {
 export interface SpilledEnergyResponse {
   points: SpilledEnergyPoint[];
 }
+
+export interface PowerPlantInfo {
+  id: string;
+  name: string;
+  slug: string;
+  source_type: string;
+  fuel_type: string | null;
+  state: string | null;
+  subsystem: string | null;
+  capacity_mw: number | null;
+}
+
+export interface PlantGenerationPoint {
+  month: string;
+  energy_mwh: number;
+  avg_mw: number;
+  peak_mw: number;
+  capacity_factor: number | null;
+}
+
+export interface PlantGenerationResponse {
+  plant: PowerPlantInfo;
+  points: PlantGenerationPoint[];
+}

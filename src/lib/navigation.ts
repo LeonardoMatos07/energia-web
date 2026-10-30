@@ -14,8 +14,8 @@ export interface NavItem {
 
 /**
  * The main menu: the country at a glance (Painel), the two physical systems (Sistema, Água),
- * the market, curtailment (an area of its own), the news and the free tools. Análises and
- * Previsão live under Ferramentas; the method lives in the footer.
+ * the market, curtailment (an area of its own, with Análises), the news and the tools the user
+ * operates (Plotador, Comparar, Previsão). The method lives in the footer.
  */
 export const NAV: readonly NavItem[] = [
   { href: "/painel", label: "Painel", matches: ["/painel"] },
@@ -35,12 +35,12 @@ export const NAV: readonly NavItem[] = [
   {
     href: "/curtailment",
     label: "Curtailment",
-    matches: ["/curtailment", "/estados", "/usinas", "/comparar", "/relatorios"],
+    matches: ["/curtailment", "/estados", "/usinas", "/relatorios", "/analises"],
     children: [
       { href: "/curtailment", label: "Visão geral", description: "Painel nacional do corte." },
       { href: "/estados", label: "Estados", description: "Corte por estado." },
       { href: "/usinas", label: "Usinas", description: "Usina por usina." },
-      { href: "/comparar", label: "Comparar", description: "Lado a lado." },
+      { href: "/analises", label: "Análises", description: "Compensação, empresas e horários." },
       { href: "/relatorios", label: "Relatórios", description: "Um por mês, desde 2021." },
     ],
   },
@@ -48,14 +48,18 @@ export const NAV: readonly NavItem[] = [
   {
     href: "/ferramentas",
     label: "Ferramentas",
-    matches: ["/ferramentas", "/analises", "/previsao"],
+    matches: ["/ferramentas", "/previsao", "/comparar"],
     children: [
       {
         href: "/ferramentas/plotador",
         label: "Plotador de gráficos",
         description: "Gráficos com ajuste de curva.",
       },
-      { href: "/analises", label: "Análises", description: "Compensação, empresas e horários." },
+      {
+        href: "/comparar",
+        label: "Comparar",
+        description: "Estados, usinas e subsistemas, por fonte.",
+      },
       { href: "/previsao", label: "Previsão", description: "Risco de corte nos próximos 7 dias." },
     ],
   },
@@ -64,7 +68,6 @@ export const NAV: readonly NavItem[] = [
 export const EXPLORE_TABS = [
   { key: "estados", href: "/estados", label: "Estados" },
   { key: "usinas", href: "/usinas", label: "Usinas" },
-  { key: "comparar", href: "/comparar", label: "Comparar" },
 ] as const;
 
 export type ExploreTab = (typeof EXPLORE_TABS)[number]["key"];
@@ -85,7 +88,7 @@ export const FOOTER_COLUMNS = [
     title: "Ferramentas",
     links: [
       { href: "/ferramentas/plotador", label: "Plotador de gráficos" },
-      { href: "/analises", label: "Análises" },
+      { href: "/comparar", label: "Comparar" },
       { href: "/previsao", label: "Previsão" },
       { href: "/ferramentas", label: "Todas as ferramentas" },
     ],
@@ -94,6 +97,7 @@ export const FOOTER_COLUMNS = [
     title: "Spillway",
     links: [
       { href: "/relatorios", label: "Relatórios mensais" },
+      { href: "/analises", label: "Análises de curtailment" },
       { href: "/metodologia", label: "Metodologia" },
       { href: "/noticias/rss.xml", label: "RSS" },
       { href: "/noticias/assinar", label: "Newsletter" },

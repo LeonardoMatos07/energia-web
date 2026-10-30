@@ -24,6 +24,7 @@ export function ToolCard({ tool }: { tool: Tool }) {
       </span>
       <span className="text-lg font-semibold group-hover:underline">{tool.title}</span>
       <span className="text-ink-2 text-sm leading-6">{tool.description}</span>
+      {tool.members ? <span className="text-muted text-xs">Com conta gratuita</span> : null}
       {tool.model ? (
         <span className="text-accent-strong mt-auto text-xs font-medium">Modelo: {tool.model}</span>
       ) : null}

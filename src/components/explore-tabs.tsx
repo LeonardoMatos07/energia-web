@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { EXPLORE_TABS, type ExploreTab } from "@/lib/navigation";
 
-/** Estados, Usinas and Comparar are three ways of looking at the same thing: where it happens. */
+/** Estados and Usinas are two ways of looking at the same thing: where it happens. */
 export function ExploreTabs({ active }: { active: ExploreTab }) {
   return (
     <nav aria-label="Explorar" className="pt-2">

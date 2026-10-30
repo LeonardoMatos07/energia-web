@@ -16,6 +16,7 @@ import type {
   GenerationMixResponse,
   HydroSubsystemsResponse,
   MarketConsumptionResponse,
+  PlantGenerationResponse,
   MonthsResponse,
   NewsItemDetail,
   NewsListResponse,
@@ -298,6 +299,14 @@ export function getSpilledEnergy(
 ) {
   return apiTry<SpilledEnergyResponse>(
     withQuery("/v1/hydro/spilled-energy", { limit: 200, ...filter }),
+    SYSTEM_OPTIONS,
+  );
+}
+
+/** Monthly generation and capacity factor of any power plant (hydro, thermal, nuclear, wind, solar). */
+export function getPlantGeneration(slug: string) {
+  return apiTry<PlantGenerationResponse>(
+    `/v1/plants/${encodeURIComponent(slug)}/generation`,
     SYSTEM_OPTIONS,
   );
 }
