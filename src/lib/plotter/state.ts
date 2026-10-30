@@ -82,6 +82,7 @@ export type PlotterAction =
   | { type: "removeRow"; row: number }
   | { type: "addColumn"; kind?: Column["kind"]; calculated?: boolean }
   | { type: "updateColumn"; column: number; patch: Partial<Column> }
+  | { type: "updateLastColumn"; patch: Partial<Column> }
   | { type: "removeColumn"; column: number }
   | { type: "renameColumn"; column: number; name: string }
   | { type: "setChart"; patch: Partial<ChartConfig> }
@@ -174,6 +175,12 @@ function reduceState(state: PlotterState, action: PlotterAction): PlotterState {
           index === action.column ? { ...column, ...action.patch } : column,
         ),
       };
+    case "updateLastColumn":
+      return reduceState(state, {
+        type: "updateColumn",
+        column: state.columns.length - 1,
+        patch: action.patch,
+      });
     case "renameColumn":
       return {
         ...state,

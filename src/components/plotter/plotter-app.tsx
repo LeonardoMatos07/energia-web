@@ -9,6 +9,7 @@ import {
   type PlotterState,
 } from "@/lib/plotter/state";
 import { DataPanel } from "./data-panel";
+import { FitPanel } from "./fit-panel";
 import { PlotlyChart } from "./plotly-chart";
 
 /** Illustrative Ohm's law data; the examples pages carry the full set. */
@@ -136,6 +137,7 @@ export function PlotterApp() {
         <PlotlyChart figure={figure} />
       </div>
       <p className="text-muted text-xs">Seus dados ficam no seu navegador.</p>
+      <FitPanel state={state} dispatch={dispatch} />
       <DataPanel state={state} dispatch={dispatch} />
     </div>
   );
