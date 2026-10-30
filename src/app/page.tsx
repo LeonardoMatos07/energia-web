@@ -3,7 +3,8 @@ import { HeroBackdrop, HeroChart } from "@/components/hero-visual";
 import { JsonLd } from "@/components/json-ld";
 import { MemberNewsletter } from "@/components/member-newsletter";
 import { Card, Container, Section, StatGrid, StatTile } from "@/components/ui";
-import { getSubsystemCurtailment } from "@/lib/api/queries";
+import { GenerationMixPie } from "@/components/generation-mix-pie";
+import { getGenerationMix, getSubsystemCurtailment } from "@/lib/api/queries";
 import {
   formatBRLCompact,
   formatGWh,
@@ -35,7 +36,11 @@ const INCLUDED = [
 ] as const;
 
 export default async function LandingPage() {
-  const [total, member] = await Promise.all([getSubsystemCurtailment("total"), getCurrentMember()]);
+  const [total, member, mix] = await Promise.all([
+    getSubsystemCurtailment("total"),
+    getCurrentMember(),
+    getGenerationMix(),
+  ]);
   const sinTotal = total.ok ? total.data.items.filter((row) => row.subsystem === "SIN") : [];
   const latestRow = latest(sinTotal);
   const month = latestRow ? normalizeMonth(latestRow.month) : null;
@@ -128,6 +133,18 @@ export default async function LandingPage() {
             />
             <StatTile label="Usinas afetadas" value={formatNumber(latestRow.affected_plants, 0)} />
           </StatGrid>
+        </Section>
+      ) : null}
+
+      {mix.ok && mix.data.points.length > 0 ? (
+        <Section id="matriz" title="A matriz elétrica brasileira">
+          <Card className="p-6 sm:p-8">
+            <GenerationMixPie points={mix.data.points} />
+            <p className="text-muted mt-6 text-xs leading-5">
+              Participação de cada fonte na geração do Sistema Interligado Nacional no último mês
+              disponível. Fonte: ONS, dados abertos (geração por fonte).
+            </p>
+          </Card>
         </Section>
       ) : null}
 

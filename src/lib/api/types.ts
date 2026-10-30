@@ -592,3 +592,19 @@ export interface HydroSubsystemsResponse {
   date_to: string;
   points: HydroSubsystemPoint[];
 }
+
+export type GenerationSource = "hydro" | "thermal" | "wind" | "solar";
+
+export interface GenerationMixPoint {
+  month: string;
+  subsystem: SubsystemOrSin;
+  source: GenerationSource;
+  energy_mwh: number;
+  avg_mw: number;
+  peak_mw: number;
+  share_pct: number | null;
+}
+
+export interface GenerationMixResponse {
+  points: GenerationMixPoint[];
+}
