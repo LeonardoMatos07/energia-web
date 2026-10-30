@@ -1,3 +1,5 @@
+import { availableForecasts } from "./forecasts";
+
 export interface NavChild {
   href: string;
   label: string;
@@ -13,8 +15,9 @@ export interface NavItem {
 }
 
 /**
- * The main menu has five groups: four to read (Painel, Mercado, Curtailment, Notícias) and one
- * to use (Ferramentas: Plotador, Comparar, Previsão). Painel holds the overview and the two
+ * The main menu has six groups: five to read (Painel, Mercado, Curtailment, Notícias,
+ * Previsões) and one to use (Ferramentas: Plotador, Comparar). All forecasts live in Previsões,
+ * built from src/lib/forecasts.ts. Painel holds the overview and the two
  * physical systems (Sistema, Água); a map group joins it when the maps exist. Each group has at
  * most MAX_NAV_CHILDREN pages and no page is in two groups. The method lives in the footer.
  */
@@ -81,9 +84,27 @@ export const NAV: readonly NavItem[] = [
     ],
   },
   {
+    href: "/previsoes",
+    label: "Previsões",
+    // Addresses of every forecast, including the ones not published yet.
+    matches: ["/previsoes", "/previsao", "/bandeira"],
+    children: [
+      {
+        href: "/previsoes",
+        label: "Visão geral das previsões",
+        description: "Todas as previsões e seus modelos.",
+      },
+      ...availableForecasts().map((forecast) => ({
+        href: forecast.href,
+        label: forecast.title,
+        description: forecast.predicts,
+      })),
+    ],
+  },
+  {
     href: "/ferramentas",
     label: "Ferramentas",
-    matches: ["/ferramentas", "/previsao", "/comparar"],
+    matches: ["/ferramentas", "/comparar"],
     children: [
       {
         href: "/ferramentas/plotador",
@@ -95,7 +116,6 @@ export const NAV: readonly NavItem[] = [
         label: "Comparar",
         description: "Estados, usinas e subsistemas, por fonte.",
       },
-      { href: "/previsao", label: "Previsão", description: "Risco de corte nos próximos 7 dias." },
     ],
   },
 ];
@@ -117,6 +137,7 @@ export const FOOTER_COLUMNS = [
       { href: "/mercado/pld", label: "Mercado" },
       { href: "/curtailment", label: "Curtailment" },
       { href: "/noticias", label: "Notícias" },
+      { href: "/previsoes", label: "Previsões" },
     ],
   },
   {
@@ -124,7 +145,6 @@ export const FOOTER_COLUMNS = [
     links: [
       { href: "/ferramentas/plotador", label: "Plotador de gráficos" },
       { href: "/comparar", label: "Comparar" },
-      { href: "/previsao", label: "Previsão" },
       { href: "/ferramentas", label: "Todas as ferramentas" },
     ],
   },
