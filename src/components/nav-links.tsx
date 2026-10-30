@@ -139,10 +139,14 @@ export function NavLinks() {
 export function MobileMenu() {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
+  // Groups are collapsed; the one for the current page starts open.
+  const activeLabel = NAV.find((item) => isNavActive(pathname, item.matches))?.label ?? null;
+  const [expanded, setExpanded] = useState<string | null>(activeLabel);
 
   useEffect(() => {
     setOpen(false);
-  }, [pathname]);
+    setExpanded(activeLabel);
+  }, [pathname, activeLabel]);
 
   useEffect(() => {
     if (!open) return;
@@ -179,25 +183,31 @@ export function MobileMenu() {
           aria-label="Principal"
           className="border-grid bg-surface absolute inset-x-0 top-full z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b px-4 py-4 shadow-lg"
         >
-          <ul className="space-y-4">
+          <ul className="divide-grid divide-y">
             {NAV.map((item) => {
               const active = isNavActive(pathname, item.matches);
+              const isOpen = expanded === item.label;
+              const panelId = `menu-mobile-${item.label.toLowerCase()}`;
               return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`block py-1 text-base font-bold ${active ? "text-accent-strong" : "text-ink"}`}
+                <li key={item.href} className="py-1">
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setExpanded(isOpen ? null : item.label)}
+                    className={`flex min-h-11 w-full items-center justify-between py-2 text-left text-base font-bold ${active ? "text-accent-strong" : "text-ink"}`}
                   >
                     {item.label}
-                  </Link>
-                  {item.children ? (
-                    <ul className="border-grid mt-1 ml-1 space-y-1 border-l pl-3">
+                    <Chevron open={isOpen} />
+                  </button>
+                  {isOpen && item.children ? (
+                    <ul id={panelId} className="border-grid mb-2 ml-1 space-y-1 border-l pl-3">
                       {item.children.map((child) => (
                         <li key={child.href}>
                           <Link
                             href={child.href}
-                            className="text-ink-2 hover:text-ink block min-h-11 py-2.5 text-sm"
+                            aria-current={pathname === child.href ? "page" : undefined}
+                            className={`hover:text-ink block min-h-11 py-2.5 text-sm ${pathname === child.href ? "text-accent-strong font-semibold" : "text-ink-2"}`}
                           >
                             {child.label}
                           </Link>

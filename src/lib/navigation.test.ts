@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compareHref, parseEntities } from "./compare";
-import { isNavActive, NAV } from "./navigation";
+import { isNavActive, MAX_NAV_CHILDREN, NAV } from "./navigation";
 import { isProtected } from "./route-access";
 import { TOOLS } from "./tools";
 
@@ -11,8 +11,6 @@ describe("main menu", () => {
   it("has the main sections and nothing else", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Painel",
-      "Sistema",
-      "Água",
       "Mercado",
       "Curtailment",
       "Notícias",
@@ -47,8 +45,8 @@ describe("main menu", () => {
 
   it("lights exactly one section elsewhere", () => {
     expect(active("/painel")).toEqual(["Painel"]);
-    expect(active("/sistema")).toEqual(["Sistema"]);
-    expect(active("/agua")).toEqual(["Água"]);
+    expect(active("/sistema")).toEqual(["Painel"]);
+    expect(active("/agua")).toEqual(["Painel"]);
     expect(active("/analises")).toEqual(["Curtailment"]);
     expect(active("/comparar")).toEqual(["Ferramentas"]);
     expect(active("/previsao")).toEqual(["Ferramentas"]);
@@ -58,7 +56,7 @@ describe("main menu", () => {
   });
 
   it("links members-area routes the middleware protects, except the open pages and the free tools", () => {
-    const open = ["/painel", "/sistema", "/agua", "/noticias", "/ferramentas"];
+    const open = ["/painel", "/noticias", "/ferramentas"];
     for (const item of NAV) {
       expect(isProtected(item.href), item.href).toBe(!open.includes(item.href));
     }
@@ -104,5 +102,67 @@ describe("areas and tools", () => {
     const members = TOOLS.filter((tool) => tool.members).map((tool) => tool.href);
     expect(members).toEqual(["/comparar", "/previsao"]);
     for (const href of members) expect(isProtected(href)).toBe(true);
+  });
+});
+
+describe("menu structure", () => {
+  it("has five groups, four to read and one to use", () => {
+    expect(NAV.map((item) => item.label)).toEqual([
+      "Painel",
+      "Mercado",
+      "Curtailment",
+      "Notícias",
+      "Ferramentas",
+    ]);
+  });
+
+  it("lists the pages of each group as agreed", () => {
+    const pages = Object.fromEntries(NAV.map((i) => [i.label, i.children?.map((c) => c.href)]));
+    expect(pages).toEqual({
+      Painel: ["/painel", "/sistema", "/agua"],
+      Mercado: ["/mercado/pld", "/mercado/livre", "/tarifas", "/qualidade"],
+      Curtailment: ["/curtailment", "/estados", "/usinas", "/analises", "/relatorios"],
+      Notícias: ["/noticias", "/noticias/atos", "/noticias/assinar"],
+      Ferramentas: ["/ferramentas/plotador", "/comparar", "/previsao"],
+    });
+  });
+
+  it("puts no page in two groups", () => {
+    const hrefs = NAV.flatMap((item) => (item.children ?? []).map((child) => child.href));
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+
+  it("keeps every group short", () => {
+    for (const item of NAV) {
+      expect(item.children?.length ?? 0, item.label).toBeLessThanOrEqual(MAX_NAV_CHILDREN);
+    }
+  });
+
+  it("gives every page a label of its own, so two overviews are never confused", () => {
+    const labels = NAV.flatMap((item) => (item.children ?? []).map((child) => child.label));
+    const duplicated = labels.filter((label, index) => labels.indexOf(label) !== index);
+    // The news list is called Notícias inside the Notícias group, as the group itself.
+    expect(duplicated).toEqual([]);
+  });
+
+  it("lights the group of every page listed in it, and only that group", () => {
+    for (const item of NAV) {
+      for (const child of item.children ?? []) {
+        expect(isNavActive(child.href, item.matches), child.href).toBe(true);
+        expect(active(child.href), child.href).toEqual([item.label]);
+      }
+    }
+  });
+
+  it("lights Notícias on the acts and on the e-mail sign-up", () => {
+    for (const path of ["/noticias/atos", "/noticias/assinar", "/noticias/12"]) {
+      expect(active(path), path).toEqual(["Notícias"]);
+    }
+  });
+
+  it("keeps the reports in Curtailment and its account rule unchanged", () => {
+    expect(active("/relatorios/curtailment-2026-09")).toEqual(["Curtailment"]);
+    expect(isProtected("/relatorios")).toBe(true);
+    expect(isProtected("/noticias")).toBe(false);
   });
 });
