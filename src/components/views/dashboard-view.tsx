@@ -3,7 +3,7 @@ import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { SOURCE_COLORS, SUBSYSTEM_COLORS } from "@/components/charts/palette";
 import { JsonLd } from "@/components/json-ld";
 import { MemberCallout } from "@/components/member-callout";
-import { MemberNewsletter } from "@/components/member-newsletter";
+import { CurtailmentHero } from "@/components/curtailment-hero";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import { Container, DataUnavailable, Notice, Section, StatGrid, StatTile } from "@/components/ui";
@@ -28,6 +28,8 @@ const KIND_OPTIONS = ["stacked-bar", "line"] as const;
 const STACK_ORDER = ["NE", "SE", "S", "N"] as const;
 
 const NATIONAL_SCOPE = "SIN";
+
+const HERO_MONTHS = 24;
 
 const AREA_LINKS = [
   { href: "/estados", label: "Estados" },
@@ -113,17 +115,14 @@ export async function DashboardView({ params }: { params: SearchParams }) {
           spatialCoverage: "Brasil",
         })}
       />
-      <header className="pt-8 pb-2 sm:pt-10">
-        <p className="text-accent text-xs font-semibold tracking-[0.14em] uppercase">
-          Área Curtailment
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-          Curtailment: painel nacional
-        </h1>
-        <p className="text-ink-2 mt-2 max-w-2xl text-sm">
-          Curtailment é a energia eólica e solar que o ONS manda cortar por restrições da rede. Aqui
-          estão os números do país e os caminhos para o detalhe.
-        </p>
+      <CurtailmentHero
+        points={sinTotal.slice(-HERO_MONTHS).map((row) => ({
+          label: formatShortMonth(row.month),
+          value: mwhToGwh(row.curtailed_mwh),
+        }))}
+        newsletterEnabled={member ? member.marketing_opt_in : undefined}
+      />
+      <header className="pb-2">
         <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium">
           {AREA_LINKS.map((link) => (
             <li key={link.href}>
@@ -301,12 +300,6 @@ export async function DashboardView({ params }: { params: SearchParams }) {
           ))}
         </div>
       </Section>
-
-      {member ? (
-        <div id="newsletter" className="py-6 sm:py-8">
-          <MemberNewsletter variant="card" enabled={member.marketing_opt_in} />
-        </div>
-      ) : null}
     </Container>
   );
 }
