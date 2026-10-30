@@ -14,6 +14,24 @@ export const metadata = pageMetadata({
 export default function PlotterPage() {
   return (
     <Container>
+      <Link
+        href="/ferramentas"
+        className="text-ink-2 hover:text-accent mt-6 inline-flex items-center gap-2 text-sm font-medium"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Voltar para Ferramentas
+      </Link>
       <PageHeader eyebrow="Ferramentas" title="Plotador de gráficos de laboratório">
         <p>Cole os dados, escolha o gráfico e exporte para o relatório.</p>
       </PageHeader>
