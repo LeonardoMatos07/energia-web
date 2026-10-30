@@ -121,3 +121,22 @@ export function hydroRange(start: string, end: string) {
   const { from, to } = monthsToDays(start, end);
   return clampToLastDays(from, to, MAX_HYDRO_DAYS);
 }
+
+/** Most windows of MAX_HYDRO_DAYS fetched for one period (about six years). */
+export const MAX_HYDRO_CHUNKS = 6;
+
+/**
+ * The whole period as consecutive windows the hydrology API accepts (each at most
+ * MAX_HYDRO_DAYS long), oldest first. Very long periods keep only their latest windows.
+ */
+export function hydroChunks(start: string, end: string, maxChunks = MAX_HYDRO_CHUNKS) {
+  const { from, to } = monthsToDays(start, end);
+  const chunks: { from: string; to: string }[] = [];
+  let chunkEnd = to;
+  while (chunks.length < maxChunks && chunkEnd >= from) {
+    const chunkStart = clampToLastDays(from, chunkEnd, MAX_HYDRO_DAYS).from;
+    chunks.unshift({ from: chunkStart, to: chunkEnd });
+    chunkEnd = isoDay(new Date(Date.parse(`${chunkStart}T00:00:00Z`) - DAY_MS));
+  }
+  return chunks;
+}

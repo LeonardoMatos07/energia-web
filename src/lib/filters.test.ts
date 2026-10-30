@@ -3,6 +3,7 @@ import {
   balancePlan,
   clampToLastDays,
   currentMonth,
+  hydroChunks,
   hydroRange,
   lastDayOfMonth,
   MAX_DAILY_MONTHS,
@@ -98,6 +99,27 @@ describe("dates", () => {
     const { from, to } = hydroRange("2021-01", "2026-09");
     expect(to).toBe("2026-09-30");
     expect((Date.parse(to) - Date.parse(from)) / 86_400_000 + 1).toBeLessThanOrEqual(365);
+  });
+});
+
+describe("hydroChunks", () => {
+  it("covers a long period in windows the API accepts", () => {
+    const chunks = hydroChunks("2021-10", "2026-09");
+    expect(chunks[0]!.from).toBe("2021-10-01");
+    expect(chunks.at(-1)!.to).toBe("2026-09-30");
+    for (const chunk of chunks) {
+      expect((Date.parse(chunk.to) - Date.parse(chunk.from)) / 86_400_000 + 1).toBeLessThanOrEqual(
+        365,
+      );
+    }
+    for (let i = 1; i < chunks.length; i++) {
+      expect((Date.parse(chunks[i]!.from) - Date.parse(chunks[i - 1]!.to)) / 86_400_000).toBe(1);
+    }
+  });
+
+  it("uses one window for a short period and keeps only the latest for very long ones", () => {
+    expect(hydroChunks("2026-09", "2026-09")).toEqual([{ from: "2026-09-01", to: "2026-09-30" }]);
+    expect(hydroChunks("2000-01", "2026-09")).toHaveLength(6);
   });
 });
 
