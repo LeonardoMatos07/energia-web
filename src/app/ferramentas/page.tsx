@@ -40,11 +40,8 @@ export default function ToolsPage() {
               <span className="text-lg font-semibold group-hover:underline">{tool.title}</span>
               <span className="text-ink-2 text-sm leading-6">{tool.description}</span>
               {tool.model ? (
-                <span className="border-accent bg-accent-soft text-accent-strong mt-auto rounded-xl border px-3 py-2 text-sm">
-                  <span className="block text-xs font-semibold tracking-wide uppercase">
-                    Modelo
-                  </span>
-                  <span className="font-semibold">{tool.model}</span>
+                <span className="text-accent-strong mt-auto text-xs font-medium">
+                  Modelo: {tool.model}
                 </span>
               ) : null}
             </Link>
