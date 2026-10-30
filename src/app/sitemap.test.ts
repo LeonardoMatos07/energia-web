@@ -41,6 +41,7 @@ describe("sitemap", () => {
         "/agua",
         "/metodologia",
         "/cadastro",
+        "/previsoes",
         "/ferramentas",
         "/ferramentas/plotador",
         ...EXAMPLES.map((example) => `/ferramentas/plotador/exemplos/${example.slug}`),

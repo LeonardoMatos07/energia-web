@@ -1,5 +1,3 @@
-import { FORECAST_MODEL_NAME } from "@/lib/forecast";
-
 export interface Tool {
   href: string;
   title: string;
@@ -9,7 +7,7 @@ export interface Tool {
   icon: string;
   /** True when the tool needs a free account (the route is in the members area). */
   members?: boolean;
-  /** For forecasting tools: which model powers it, shown highlighted (more models may come). */
+  /** For tools powered by a model: its name, shown discreetly on the card. */
   model?: string;
 }
 
@@ -29,14 +27,5 @@ export const TOOLS: readonly Tool[] = [
       "Compare estados, subsistemas e usinas lado a lado: geração por fonte (eólica, solar, hidrelétrica, termelétrica), participação na matriz e, para eólica e solar, o curtailment.",
     icon: "M4 6h7M4 12h16M4 18h10M15 4l3 2-3 2M13 16l3 2-3 2",
     members: true,
-  },
-  {
-    href: "/previsao",
-    title: "Previsão de curtailment",
-    description:
-      "Risco de corte de geração eólica e solar, hora a hora, para os próximos 7 dias, por região.",
-    icon: "M3 17l5-5 4 4 8-9M15 7h5v5",
-    members: true,
-    model: FORECAST_MODEL_NAME,
   },
 ];

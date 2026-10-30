@@ -14,6 +14,7 @@ describe("main menu", () => {
       "Mercado",
       "Curtailment",
       "Notícias",
+      "Previsões",
       "Ferramentas",
     ]);
   });
@@ -49,14 +50,15 @@ describe("main menu", () => {
     expect(active("/agua")).toEqual(["Painel"]);
     expect(active("/analises")).toEqual(["Curtailment"]);
     expect(active("/comparar")).toEqual(["Ferramentas"]);
-    expect(active("/previsao")).toEqual(["Ferramentas"]);
+    expect(active("/previsao")).toEqual(["Previsões"]);
+    expect(active("/previsoes")).toEqual(["Previsões"]);
     expect(active("/relatorios/curtailment-2026-09")).toEqual(["Curtailment"]);
     expect(active("/metodologia")).toEqual([]);
     expect(active("/comparar-usinas")).toEqual([]);
   });
 
   it("links members-area routes the middleware protects, except the open pages and the free tools", () => {
-    const open = ["/painel", "/noticias", "/ferramentas"];
+    const open = ["/painel", "/noticias", "/previsoes", "/ferramentas"];
     for (const item of NAV) {
       expect(isProtected(item.href), item.href).toBe(!open.includes(item.href));
     }
@@ -88,7 +90,7 @@ describe("compareHref", () => {
 describe("areas and tools", () => {
   it("lists the same tools in the Ferramentas menu and on the tools page", () => {
     const menu = NAV.find((item) => item.label === "Ferramentas")?.children?.map((c) => c.href);
-    expect(menu).toEqual(["/ferramentas/plotador", "/comparar", "/previsao"]);
+    expect(menu).toEqual(["/ferramentas/plotador", "/comparar"]);
     expect(TOOLS.map((tool) => tool.href)).toEqual(menu);
   });
 
@@ -100,18 +102,19 @@ describe("areas and tools", () => {
 
   it("marks the tools that need an account", () => {
     const members = TOOLS.filter((tool) => tool.members).map((tool) => tool.href);
-    expect(members).toEqual(["/comparar", "/previsao"]);
+    expect(members).toEqual(["/comparar"]);
     for (const href of members) expect(isProtected(href)).toBe(true);
   });
 });
 
 describe("menu structure", () => {
-  it("has five groups, four to read and one to use", () => {
+  it("has six groups, five to read and one to use", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Painel",
       "Mercado",
       "Curtailment",
       "Notícias",
+      "Previsões",
       "Ferramentas",
     ]);
   });
@@ -123,7 +126,8 @@ describe("menu structure", () => {
       Mercado: ["/mercado/pld", "/mercado/livre", "/tarifas", "/qualidade"],
       Curtailment: ["/curtailment", "/estados", "/usinas", "/analises", "/relatorios"],
       Notícias: ["/noticias", "/noticias/atos", "/noticias/assinar"],
-      Ferramentas: ["/ferramentas/plotador", "/comparar", "/previsao"],
+      Previsões: ["/previsoes", "/previsao"],
+      Ferramentas: ["/ferramentas/plotador", "/comparar"],
     });
   });
 
