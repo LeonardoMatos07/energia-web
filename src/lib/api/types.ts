@@ -607,6 +607,7 @@ export interface GenerationMixPoint {
 
 export interface GenerationMixResponse {
   points: GenerationMixPoint[];
+}
 
 export interface TariffFlagPoint {
   month: string;
