@@ -33,21 +33,29 @@ export function HeroChart({
   unit,
   caption,
   title,
+  digits = 1,
+  fit = false,
 }: {
   points: readonly HeroPoint[];
   unit: string;
   caption: string;
   title: string;
+  /** Decimal places of the big number. */
+  digits?: number;
+  /** Scale the line to the data range instead of starting at zero (for series that barely move). */
+  fit?: boolean;
 }) {
   if (points.length < 2) return null;
   const last = points[points.length - 1]!;
   const first = points[0]!;
-  const max = Math.max(...points.map((point) => point.value)) * 1.12;
+  const high = Math.max(...points.map((point) => point.value));
+  const low = fit ? Math.min(...points.map((point) => point.value)) * 0.9 : 0;
+  const max = fit ? high * 1.04 : high * 1.12;
   const innerWidth = WIDTH - PAD.left - PAD.right;
   const innerHeight = HEIGHT - PAD.top - PAD.bottom;
   const coordinates = points.map((point, index): [number, number] => [
     PAD.left + (index / (points.length - 1)) * innerWidth,
-    PAD.top + innerHeight - (point.value / max) * innerHeight,
+    PAD.top + innerHeight - ((point.value - low) / (max - low)) * innerHeight,
   ]);
   const line = smoothPath(coordinates);
   const end = coordinates[coordinates.length - 1]!;
@@ -59,7 +67,7 @@ export function HeroChart({
       <figcaption>
         <p className="text-ink-2 text-sm">{title}</p>
         <p className="font-display text-ink mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-          <AnimatedNumber value={last.value} suffix={` ${unit}`} />
+          <AnimatedNumber value={last.value} digits={digits} suffix={` ${unit}`} />
         </p>
       </figcaption>
       <svg
