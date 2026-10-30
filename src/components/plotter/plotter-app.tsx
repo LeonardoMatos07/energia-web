@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { buildFigure } from "@/lib/plotter/figure";
+import { decodeHash, loadLocal, saveLocal } from "@/lib/plotter/share";
 import {
   createHistory,
   plotterReducer,
@@ -9,7 +10,9 @@ import {
   type PlotterState,
 } from "@/lib/plotter/state";
 import { DataPanel } from "./data-panel";
-import { PlotlyChart } from "./plotly-chart";
+import { FitPanel } from "./fit-panel";
+import { PlotlyChart, type PlotlyApi } from "./plotly-chart";
+import { ShareBar, type ChartHandle } from "./share-bar";
 
 /** Illustrative Ohm's law data; the examples pages carry the full set. */
 export function demoState(): PlotterState {
@@ -73,6 +76,25 @@ export function PlotterApp() {
   const state = history.present;
   const figure = useMemo(() => buildFigure(state), [state]);
 
+  const chartRef = useRef<ChartHandle | null>(null);
+  const hydrated = useRef(false);
+  const onReady = useCallback((element: HTMLElement, plotly: PlotlyApi) => {
+    chartRef.current = { element, plotly };
+  }, []);
+
+  // A shared link wins over the saved work; both only apply after mount (no server mismatch).
+  useEffect(() => {
+    const restored = decodeHash(window.location.hash) ?? loadLocal();
+    if (restored) dispatch({ type: "load", state: restored });
+    hydrated.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    const timer = window.setTimeout(() => saveLocal(state), 500);
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "z") return;
@@ -133,9 +155,11 @@ export function PlotterApp() {
             </select>
           </label>
         </div>
-        <PlotlyChart figure={figure} />
+        <PlotlyChart figure={figure} onReady={onReady} />
       </div>
+      <ShareBar state={state} dispatch={dispatch} chartRef={chartRef} />
       <p className="text-muted text-xs">Seus dados ficam no seu navegador.</p>
+      <FitPanel state={state} dispatch={dispatch} />
       <DataPanel state={state} dispatch={dispatch} />
     </div>
   );
