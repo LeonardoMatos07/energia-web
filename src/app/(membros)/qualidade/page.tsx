@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { DataAttribution } from "@/components/data-attribution";
+import { Pagination } from "@/components/pagination";
 import { Card, Container, DataUnavailable, Notice, PageHeader, Section } from "@/components/ui";
 import { getReliability } from "@/lib/api/queries";
 import { formatNumber } from "@/lib/format";
 import { LIMIT_LABEL, limitStatus } from "@/lib/market";
 import { pageMetadata } from "@/lib/metadata";
+import { paginate, parsePage, RANKING_PAGE_SIZE } from "@/lib/pagination";
 
 export const metadata = pageMetadata({
   title: "Qualidade do fornecimento (DEC e FEC)",
@@ -22,8 +24,12 @@ export default async function QualityPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const requested = Number(first((await searchParams).ano));
+  const params = await searchParams;
+  const requested = Number(first(params.ano));
   const result = await getReliability(Number.isInteger(requested) ? requested : undefined);
+  const ranking = result.ok
+    ? paginate(result.data.items, parsePage(first(params.pagina)), RANKING_PAGE_SIZE)
+    : null;
 
   return (
     <Container>
@@ -95,13 +101,13 @@ export default async function QualityPage({
                 </tr>
               </thead>
               <tbody className="tabular">
-                {result.data.items.map((item, index) => {
+                {ranking?.items.map((item, index) => {
                   const dec = limitStatus(item, "dec");
                   const fec = limitStatus(item, "fec");
                   const worst = dec === "above" || fec === "above" ? "above" : dec;
                   return (
                     <tr key={item.cnpj} className="border-grid border-t">
-                      <td className="text-muted px-4 py-2.5">{index + 1}</td>
+                      <td className="text-muted px-4 py-2.5">{ranking.start + index + 1}</td>
                       <th scope="row" className="px-4 py-2.5 text-left font-medium">
                         <Link
                           className="underline-offset-2 hover:underline"
@@ -124,6 +130,14 @@ export default async function QualityPage({
               </tbody>
             </table>
           </Card>
+          {ranking ? (
+            <Pagination
+              page={ranking.page}
+              pages={ranking.pages}
+              hasNext={ranking.page < ranking.pages}
+              hrefFor={(n) => `/qualidade?ano=${result.data.year}${n === 1 ? "" : `&pagina=${n}`}`}
+            />
+          ) : null}
           <p className="text-muted mt-3 max-w-3xl text-xs leading-5">
             Não incluímos mapa: a ANEEL publica os conjuntos elétricos por código e nome, sem
             geometria. Compare distribuidoras de portes diferentes com cuidado: as maiores misturam
