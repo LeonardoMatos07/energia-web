@@ -1,3 +1,5 @@
+import { FORECAST_MODEL_NAME } from "@/lib/forecast";
+
 export interface Tool {
   href: string;
   title: string;
@@ -31,6 +33,6 @@ export const TOOLS: readonly Tool[] = [
     description:
       "Risco de corte de geração eólica e solar, hora a hora, para os próximos 7 dias, por região.",
     icon: "M3 17l5-5 4 4 8-9M15 7h5v5",
-    model: "Gradient boosting (HistGradientBoosting)",
+    model: FORECAST_MODEL_NAME,
   },
 ];

@@ -252,3 +252,6 @@ export function freshnessLabel(generatedAt: string, now: number = Date.now()): s
 export function windowLabel(validFrom: string, validTo: string): string {
   return `${formatDay(validFrom)} a ${formatDay(validTo)}`;
 }
+
+/** Family of the model behind the forecast, shown next to its version (more models may come). */
+export const FORECAST_MODEL_NAME = "Gradient boosting (HistGradientBoosting)";

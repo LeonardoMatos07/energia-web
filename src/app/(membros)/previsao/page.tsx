@@ -5,6 +5,7 @@ import { ProgressReveal } from "@/components/progress-reveal";
 import { Container, DataUnavailable, PageHeader, Section } from "@/components/ui";
 import { getForecast, getForecastModel, getForecastScopes } from "@/lib/api/queries";
 import {
+  FORECAST_MODEL_NAME,
   groupScopes,
   parseScope,
   parseSource,
@@ -56,6 +57,17 @@ export default async function ForecastPage({
           e testado, com os limites dele.
         </p>
       </PageHeader>
+
+      <p
+        className="border-accent bg-accent-soft text-accent-strong mb-6 inline-flex flex-wrap items-baseline gap-x-2 rounded-xl border px-4 py-2 text-sm"
+        data-testid="forecast-model"
+      >
+        <span className="font-semibold tracking-wide uppercase">Modelo</span>
+        <span className="font-semibold">{FORECAST_MODEL_NAME}</span>
+        {forecast.ok ? (
+          <span className="opacity-80">· versão {forecast.data.model_version}</span>
+        ) : null}
+      </p>
 
       <ProgressReveal>
         <Section
