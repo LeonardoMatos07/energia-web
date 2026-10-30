@@ -7,8 +7,7 @@ import { CurtailmentHero } from "@/components/curtailment-hero";
 import { DashboardFilters } from "@/components/kpi-filters";
 import { Tabs } from "@/components/tabs";
 import { Container, DataUnavailable, Notice, Section, StatGrid, StatTile } from "@/components/ui";
-import { getCurtailmentSummary, getReports, getSubsystemCurtailment } from "@/lib/api/queries";
-import { reportForMonth } from "@/lib/month-report";
+import { getCurtailmentSummary, getSubsystemCurtailment } from "@/lib/api/queries";
 import type { SubsystemMonthlyCurtailment } from "@/lib/api/types";
 import {
   formatBRLCompact,
@@ -31,14 +30,6 @@ const NATIONAL_SCOPE = "SIN";
 
 const HERO_MONTHS = 24;
 
-const AREA_LINKS = [
-  { href: "/estados", label: "Estados" },
-  { href: "/usinas", label: "Usinas" },
-  { href: "/comparar", label: "Comparar" },
-  { href: "/relatorios", label: "Relatórios mensais" },
-  { href: "/previsao", label: "Previsão" },
-  { href: "/analises", label: "Análises" },
-] as const;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -66,11 +57,10 @@ function parsePeriod(params: SearchParams, firstMonth: string, lastMonth: string
 }
 
 export async function DashboardView({ params }: { params: SearchParams }) {
-  const [total, wind, solar, reports, member] = await Promise.all([
+  const [total, wind, solar, member] = await Promise.all([
     getSubsystemCurtailment("total"),
     getSubsystemCurtailment("wind"),
     getSubsystemCurtailment("solar"),
-    getReports(),
     getCurrentMember(),
   ]);
 
@@ -97,7 +87,6 @@ export async function DashboardView({ params }: { params: SearchParams }) {
   const subsystemRows = filterByMonthRange(bySubsystem, start, end);
   const summary = hasData ? await getCurtailmentSummary(NATIONAL_SCOPE, start, end) : null;
   const kpi = summary?.ok ? summary.data : null;
-  const monthReport = reportForMonth(reports.ok ? reports.data.items : undefined, end);
   const periodLabel =
     start === end
       ? formatLongMonth(start)
@@ -122,39 +111,45 @@ export async function DashboardView({ params }: { params: SearchParams }) {
         }))}
         newsletterEnabled={member ? member.marketing_opt_in : undefined}
       />
-      <header className="pb-2">
-        <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium">
-          {AREA_LINKS.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="border-line bg-surface hover:border-accent hover:bg-accent-soft inline-block rounded-full border px-3.5 py-1.5"
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </header>
 
-      {monthReport ? (
-        <aside className="border-grid bg-surface mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm">
-          <p className="text-ink-2">
-            <span className="text-ink font-semibold">
-              Relatório de {formatLongMonth(monthReport.month)}:
-            </span>{" "}
-            {monthReport.title}
-          </p>
-          <span className="flex items-center gap-4 font-medium">
-            <Link href={`/relatorios/${monthReport.slug}`} className="text-accent underline">
-              Ler o relatório
+      <Section
+        id="states"
+        title="Veja por estado"
+        action={
+          <span className="text-accent flex flex-wrap gap-x-5 gap-y-1 font-medium">
+            <Link href="/estados" className="hover:underline">
+              Todos os estados →
             </Link>
-            <Link href="/relatorios" className="text-ink-2 hover:text-accent underline">
-              Todos os relatórios
+            <Link href="/usinas" className="hover:underline">
+              Usinas
+            </Link>
+            <Link href="/comparar" className="hover:underline">
+              Comparar
             </Link>
           </span>
-        </aside>
-      ) : null}
+        }
+      >
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+          {REGIONS.map((region) => (
+            <div key={region}>
+              <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">{region}</h3>
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {STATES.filter((e) => e.region === region).map((e) => (
+                  <li key={e.state}>
+                    <Link
+                      href={`/estados/${e.state.toLowerCase()}`}
+                      className="border-line bg-surface hover:border-accent hover:bg-accent-soft hover:text-accent-strong inline-flex min-w-11 justify-center rounded-lg border px-2.5 py-1.5 text-sm font-medium"
+                      title={e.name}
+                    >
+                      {e.state} <span className="sr-only">— {e.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {!hasData ? (
         <DataUnavailable />
@@ -269,37 +264,6 @@ export async function DashboardView({ params }: { params: SearchParams }) {
       <div className="py-2">
         <MemberCallout />
       </div>
-
-      <Section
-        id="states"
-        title="Veja por estado"
-        action={
-          <Link href="/estados" className="text-accent font-medium hover:underline">
-            Todos os estados →
-          </Link>
-        }
-      >
-        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          {REGIONS.map((region) => (
-            <div key={region}>
-              <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">{region}</h3>
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {STATES.filter((e) => e.region === region).map((e) => (
-                  <li key={e.state}>
-                    <Link
-                      href={`/estados/${e.state.toLowerCase()}`}
-                      className="border-line bg-surface hover:border-accent hover:bg-accent-soft hover:text-accent-strong inline-flex min-w-11 justify-center rounded-lg border px-2.5 py-1.5 text-sm font-medium"
-                      title={e.name}
-                    >
-                      {e.state} <span className="sr-only">— {e.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Section>
     </Container>
   );
 }
