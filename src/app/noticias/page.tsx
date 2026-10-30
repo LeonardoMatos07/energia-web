@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { NewsAttribution } from "@/components/news/news-attribution";
 import { NewsSubnav } from "@/components/news/news-subnav";
+import { Pagination } from "@/components/pagination";
 import { Card, Container, DataUnavailable, PageHeader } from "@/components/ui";
 import { getNews } from "@/lib/api/queries";
+import type { NewsItem } from "@/lib/api/types";
 import { pageMetadata } from "@/lib/metadata";
 import { formatPublished, topicLabel } from "@/lib/news";
+import { NEWS_PAGE_SIZE, parsePage } from "@/lib/pagination";
 
 export const metadata = pageMetadata({
   title: "Notícias do setor elétrico",
@@ -15,16 +18,28 @@ export const metadata = pageMetadata({
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-function one(value: string | string[] | undefined): string | undefined {
-  const text = Array.isArray(value) ? value[0] : value;
-  return text?.trim() || undefined;
+/** The API pages by cursor (50 at most), so a numbered page walks the cursors up to its own end. */
+async function loadNewsPage(page: number) {
+  const wanted = page * NEWS_PAGE_SIZE + 1; // one extra item tells whether there is a next page
+  const items: NewsItem[] = [];
+  let cursor: string | undefined;
+  while (items.length < wanted) {
+    const result = await getNews({ cursor, limit: Math.min(50, wanted - items.length) });
+    if (!result.ok) return items.length > 0 ? { ok: true as const, items } : result;
+    items.push(...result.data.items);
+    if (!result.data.next_cursor) break;
+    cursor = result.data.next_cursor;
+  }
+  return { ok: true as const, items };
 }
 
 export default async function NewsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const cursor = one(params.cursor);
-
-  const news = await getNews({ cursor });
+  const page = parsePage(params.pagina);
+  const news = await loadNewsPage(page);
+  const start = (page - 1) * NEWS_PAGE_SIZE;
+  const shown = news.ok ? news.items.slice(start, start + NEWS_PAGE_SIZE) : [];
+  const hasNext = news.ok && news.items.length > start + NEWS_PAGE_SIZE;
 
   return (
     <Container>
@@ -41,10 +56,10 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
           <DataUnavailable title="Não foi possível carregar as notícias">
             {news.error.detail}
           </DataUnavailable>
-        ) : news.data.items.length === 0 ? (
+        ) : shown.length === 0 ? (
           <p className="text-ink-2">Nenhuma notícia publicada ainda.</p>
         ) : (
-          news.data.items.map((item) => (
+          shown.map((item) => (
             <Card key={item.id} as="section" className="p-5">
               <time
                 dateTime={item.published_at}
@@ -89,16 +104,12 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
         )}
       </div>
 
-      {news.ok && news.data.next_cursor ? (
-        <p className="mt-8">
-          <Link
-            href={`/noticias?${new URLSearchParams({ cursor: news.data.next_cursor }).toString()}`}
-            className="text-accent font-semibold underline"
-          >
-            Ver mais antigas
-          </Link>
-        </p>
-      ) : null}
+      <Pagination
+        page={page}
+        pages={null}
+        hasNext={hasNext}
+        hrefFor={(n) => (n === 1 ? "/noticias" : `/noticias?pagina=${n}`)}
+      />
     </Container>
   );
 }
