@@ -1,8 +1,22 @@
 import Link from "next/link";
-import { getBalance, getHydroSubsystems, getNews, getPld, getTariffFlags } from "@/lib/api/queries";
-import { formatBRL, formatLongMonth, formatNumber, formatPercent } from "@/lib/format";
+import {
+  getBalance,
+  getHydroSubsystems,
+  getNews,
+  getPld,
+  getSubsystemCurtailment,
+  getTariffFlags,
+} from "@/lib/api/queries";
+import {
+  formatBRL,
+  formatBRLCompact,
+  formatGWh,
+  formatLongMonth,
+  formatNumber,
+  formatPercent,
+} from "@/lib/format";
 import { SUBSYSTEMS } from "@/lib/geo";
-import { normalizeMonth } from "@/lib/series";
+import { latest, normalizeMonth } from "@/lib/series";
 import { mean, renewableShare, sinHourly } from "@/lib/system";
 
 interface Tile {
@@ -17,6 +31,27 @@ interface Tile {
 const DAY_MS = 86_400_000;
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
 const shortDay = (day: string) => `${day.slice(8, 10)}/${day.slice(5, 7)}`;
+
+interface Curtailment {
+  month: string;
+  items: { label: string; value: string }[];
+}
+
+/** Curtailment of the latest month (wind + solar, whole country), shown next to the other numbers. */
+async function loadCurtailment(): Promise<Curtailment | null> {
+  const total = await getSubsystemCurtailment("total");
+  const row = total.ok ? latest(total.data.items.filter((item) => item.subsystem === "SIN")) : null;
+  if (!row) return null;
+  return {
+    month: normalizeMonth(row.month),
+    items: [
+      { label: "Energia cortada", value: formatGWh(row.curtailed_mwh) },
+      { label: "% de corte", value: formatPercent(row.curtailment_pct) },
+      { label: "Perda estimada", value: formatBRLCompact(row.estimated_loss_brl) },
+      { label: "Usinas afetadas", value: formatNumber(row.affected_plants, 0) },
+    ],
+  };
+}
 
 async function loadTiles(): Promise<Tile[]> {
   const now = Date.now();
@@ -128,42 +163,65 @@ async function loadTiles(): Promise<Tile[]> {
 
 /** "Hoje no setor": the numbers people check first, each one a way into its area. */
 export async function TodayStrip() {
-  const tiles = await loadTiles();
-  if (tiles.length === 0) return null;
+  const [tiles, curtailment] = await Promise.all([loadTiles(), loadCurtailment()]);
+  if (tiles.length === 0 && !curtailment) return null;
   return (
-    <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-      {tiles.map((tile) => {
-        const body = (
-          <>
-            <p className="text-ink-2 text-sm">{tile.label}</p>
-            <p
-              className={`font-display mt-1 font-bold tracking-tight ${
-                tile.key === "news"
-                  ? "line-clamp-3 text-base leading-snug"
-                  : "tabular text-xl whitespace-nowrap sm:text-2xl"
-              }`}
-            >
-              {tile.value}
-            </p>
-            {tile.note ? <p className="text-muted mt-1 text-xs">{tile.note}</p> : null}
-          </>
-        );
-        const className =
-          "border-grid bg-surface shadow-card hover:border-accent block h-full rounded-2xl border p-4 transition-colors sm:p-5";
-        return (
-          <li key={tile.key} className={tile.key === "news" ? "col-span-2 lg:col-span-1" : ""}>
-            {tile.external ? (
-              <a href={tile.href} target="_blank" rel="noopener noreferrer" className={className}>
-                {body}
-              </a>
-            ) : (
-              <Link href={tile.href} className={className}>
-                {body}
-              </Link>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <div className="space-y-3">
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        {tiles.map((tile) => {
+          const body = (
+            <>
+              <p className="text-ink-2 text-sm">{tile.label}</p>
+              <p
+                className={`font-display mt-1 font-bold tracking-tight ${
+                  tile.key === "news"
+                    ? "line-clamp-3 text-base leading-snug"
+                    : "tabular text-xl whitespace-nowrap sm:text-2xl"
+                }`}
+              >
+                {tile.value}
+              </p>
+              {tile.note ? <p className="text-muted mt-1 text-xs">{tile.note}</p> : null}
+            </>
+          );
+          const className =
+            "border-grid bg-surface shadow-card hover:border-accent block h-full rounded-2xl border p-4 transition-colors sm:p-5";
+          return (
+            <li key={tile.key} className={tile.key === "news" ? "col-span-2 lg:col-span-1" : ""}>
+              {tile.external ? (
+                <a href={tile.href} target="_blank" rel="noopener noreferrer" className={className}>
+                  {body}
+                </a>
+              ) : (
+                <Link href={tile.href} className={className}>
+                  {body}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {curtailment ? (
+        <Link
+          href="/curtailment"
+          className="border-grid bg-surface shadow-card hover:border-accent block rounded-2xl border p-4 transition-colors sm:p-5"
+        >
+          <p className="text-ink-2 text-sm">
+            Curtailment em {formatLongMonth(curtailment.month)}{" "}
+            <span className="text-muted">(eólica e solar, Brasil)</span>
+          </p>
+          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-3 lg:grid-cols-4">
+            {curtailment.items.map((item) => (
+              <div key={item.label}>
+                <dt className="text-muted text-xs">{item.label}</dt>
+                <dd className="font-display tabular text-xl font-bold tracking-tight sm:text-2xl">
+                  {item.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Link>
+      ) : null}
+    </div>
   );
 }

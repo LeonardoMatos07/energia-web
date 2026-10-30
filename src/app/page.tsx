@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { BlockSkeleton } from "@/components/block-skeleton";
-import { CurtailmentBlock } from "@/components/blocks/curtailment-block";
 import { NewsBlock } from "@/components/blocks/news-block";
 import { GenerationMixPie } from "@/components/generation-mix-pie";
 import { HeroBackdrop, HeroChart, type HeroPoint } from "@/components/hero-visual";
@@ -14,16 +13,16 @@ import { getGenerationMix, getSubsystemCurtailment } from "@/lib/api/queries";
 import { formatPercent, formatShortMonth, mwhToGwh } from "@/lib/format";
 import { pageMetadata } from "@/lib/metadata";
 import { getCurrentMember } from "@/lib/members";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { publisher } from "@/lib/structured-data";
 import { latestRenewableShare, sinMonthlyTotals } from "@/lib/system";
 import { TOOLS } from "@/lib/tools";
 
-export const metadata = pageMetadata({
-  title: `${SITE_NAME}: ${SITE_TAGLINE}`,
-  description: SITE_DESCRIPTION,
-  path: "/",
-});
+// The home tab shows only the site name (not "%s | name").
+export const metadata = {
+  ...pageMetadata({ title: SITE_NAME, description: SITE_DESCRIPTION, path: "/" }),
+  title: { absolute: SITE_NAME },
+};
 
 const HERO_MONTHS = 24;
 
@@ -163,7 +162,11 @@ export default async function LandingPage() {
         </div>
       </header>
 
-      <Section id="hoje" title="Hoje no setor" description="Os números que se acompanha todo dia.">
+      <Section
+        id="hoje"
+        title="Hoje no setor"
+        description="Os números que se acompanha todo dia, do preço da energia ao curtailment."
+      >
         <Suspense fallback={<BlockSkeleton height={220} />}>
           <TodayStrip />
         </Suspense>
@@ -244,21 +247,6 @@ export default async function LandingPage() {
       >
         <Suspense fallback={<BlockSkeleton height={300} />}>
           <NewsBlock limit={4} />
-        </Suspense>
-      </Section>
-
-      <Section
-        id="curtailment"
-        title="Curtailment: a energia que transborda"
-        description="Quanta energia eólica e solar o Brasil deixa de gerar, mês a mês, usina por usina."
-        action={
-          <Link href="/curtailment" className="text-accent underline">
-            Entrar na área
-          </Link>
-        }
-      >
-        <Suspense fallback={<BlockSkeleton height={120} />}>
-          <CurtailmentBlock />
         </Suspense>
       </Section>
 

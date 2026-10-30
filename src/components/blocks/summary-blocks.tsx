@@ -1,10 +1,25 @@
 import Link from "next/link";
+import { BarList } from "@/components/bar-list";
 import { DataUnavailable, StatGrid, StatTile } from "@/components/ui";
-import { getBalance, getGenerationMix, getHydroSubsystems } from "@/lib/api/queries";
+import {
+  getBalance,
+  getGenerationMix,
+  getHydroSubsystems,
+  getInterchange,
+} from "@/lib/api/queries";
 import { formatLongMonth, formatNumber, formatPercent } from "@/lib/format";
 import { SUBSYSTEMS } from "@/lib/geo";
 import { normalizeMonth } from "@/lib/series";
-import { renewableShare, SOURCE_LABELS, sinHourly } from "@/lib/system";
+import { currentMonth } from "@/lib/filters";
+import { shiftMonth } from "@/lib/series";
+import {
+  interchangeByPair,
+  renewableShare,
+  SOURCE_FILL,
+  SOURCE_LABELS,
+  SOURCE_ORDER,
+  sinHourly,
+} from "@/lib/system";
 
 const DAY_MS = 86_400_000;
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
@@ -118,6 +133,71 @@ export async function WaterSummary() {
         ))}
       </StatGrid>
       <MoreLink href="/agua">Ver detalhes na Água</MoreLink>
+    </>
+  );
+}
+
+/** Highest instant output of each source in the latest month of the mix (not shown on the home page). */
+export async function PeaksSummary() {
+  const mix = await getGenerationMix();
+  if (!mix.ok) return <DataUnavailable />;
+  const sin = mix.data.points.filter((point) => point.subsystem === "SIN");
+  const month = sin
+    .map((point) => normalizeMonth(point.month))
+    .sort()
+    .at(-1);
+  const rows = sin.filter((point) => normalizeMonth(point.month) === month);
+  if (!month || rows.length === 0) return <DataUnavailable />;
+  return (
+    <>
+      <StatGrid>
+        {SOURCE_ORDER.map((source) => {
+          const row = rows.find((item) => item.source === source);
+          return row ? (
+            <StatTile
+              key={source}
+              label={`Pico de ${SOURCE_LABELS[source].toLowerCase()}`}
+              value={`${formatNumber(row.peak_mw, 0)} MW`}
+              note={`média ${formatNumber(row.avg_mw, 0)} MW em ${formatLongMonth(month)}`}
+            />
+          ) : null;
+        })}
+      </StatGrid>
+      <MoreLink href="/sistema#matriz">Ver a geração por fonte mês a mês</MoreLink>
+    </>
+  );
+}
+
+/** The biggest energy flows between subsystems in the latest month with data. */
+export async function InterchangeSummary() {
+  const last = currentMonth();
+  const result = await getInterchange("national", { from: shiftMonth(last, -2), to: last });
+  if (!result.ok) return <DataUnavailable />;
+  const month = result.data.points
+    .map((point) => normalizeMonth(point.month))
+    .sort()
+    .at(-1);
+  const pairs = interchangeByPair(
+    result.data.points.filter((point) => normalizeMonth(point.month) === month),
+    "SIN",
+  ).slice(0, 4);
+  if (!month || pairs.length === 0) return <DataUnavailable />;
+  return (
+    <>
+      <p className="text-ink-2 mb-4 text-sm">
+        Maiores fluxos entre os subsistemas em {formatLongMonth(month)}, do que sai para onde vai.
+      </p>
+      <BarList
+        label="Maiores fluxos de intercâmbio"
+        items={pairs.map((pair) => ({
+          key: pair.key,
+          label: `${pair.from} → ${pair.to}`,
+          value: pair.avgMw,
+          display: `${formatNumber(pair.avgMw, 0)} MW médios`,
+          color: SOURCE_FILL.hydro,
+        }))}
+      />
+      <MoreLink href="/sistema#intercambio">Ver o intercâmbio no Sistema</MoreLink>
     </>
   );
 }
