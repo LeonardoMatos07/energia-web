@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { AuthNav } from "./auth-nav";
-import { FOOTER_LINKS } from "@/lib/navigation";
-import { NavLinks } from "./nav-links";
+import { FOOTER_COLUMNS } from "@/lib/navigation";
+import { MobileMenu, NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 import { Container } from "./ui";
 
@@ -33,7 +33,7 @@ export function SiteHeader() {
       >
         Pular para o conteúdo
       </a>
-      <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3">
+      <Container className="flex items-center gap-x-6 py-3">
         <Link
           href="/"
           className="text-ink font-display flex items-center gap-2.5 text-lg font-bold tracking-tight"
@@ -41,12 +41,13 @@ export function SiteHeader() {
           <BrandMark />
           <span>{SITE_NAME}</span>
         </Link>
-        <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+        <div className="flex-1">
           <NavLinks />
         </div>
-        <div className="ml-auto flex items-center gap-3 sm:ml-0">
+        <div className="ml-auto flex items-center gap-3 md:ml-0">
           <AuthNav />
           <ThemeToggle />
+          <MobileMenu />
         </div>
       </Container>
     </header>
@@ -56,7 +57,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-grid bg-surface text-ink-2 mt-20 border-t text-sm">
-      <Container className="grid gap-8 py-10 sm:grid-cols-[1.4fr_1fr]">
+      <Container className="grid gap-8 py-10 lg:grid-cols-[1.4fr_2fr]">
         <div className="space-y-3">
           <p className="text-ink font-display flex items-center gap-2 text-base font-bold">
             <BrandMark className="size-7" />
@@ -64,23 +65,35 @@ export function SiteFooter() {
           </p>
           <p className="text-ink-2">{SITE_TAGLINE}.</p>
           <p className="max-w-md leading-6">
-            Dados abertos do Operador Nacional do Sistema Elétrico (ONS), processados todo mês.
-            Valores em R$ são estimativas pelo PLD —{" "}
+            Dados abertos do Operador Nacional do Sistema Elétrico (ONS), da CCEE e da ANEEL,
+            processados continuamente. Valores em R$ são estimativas pelo PLD —{" "}
             <Link href="/metodologia" className="text-accent underline">
               veja a metodologia
             </Link>
             .
           </p>
         </div>
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-2 self-start">
-          {FOOTER_LINKS.map(({ href, label }) => (
-            <li key={href}>
-              <Link href={href} className="hover:text-accent hover:underline">
-                {label}
-              </Link>
-            </li>
+        <nav
+          aria-label="Rodapé"
+          className="grid grid-cols-2 gap-x-6 gap-y-6 self-start sm:grid-cols-4"
+        >
+          {FOOTER_COLUMNS.map((column) => (
+            <div key={column.title}>
+              <h2 className="text-ink mb-2 text-xs font-semibold tracking-wide uppercase">
+                {column.title}
+              </h2>
+              <ul className="space-y-2">
+                {column.links.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="hover:text-accent hover:underline">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </nav>
       </Container>
     </footer>
   );

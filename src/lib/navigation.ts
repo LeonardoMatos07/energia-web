@@ -1,20 +1,65 @@
+export interface NavChild {
+  href: string;
+  label: string;
+  description: string;
+}
+
+export interface NavItem {
+  href: string;
+  label: string;
+  matches: readonly string[];
+  /** Pages of an area, shown in a dropdown (desktop) or an expandable group (mobile). */
+  children?: readonly NavChild[];
+}
+
 /**
- * The main menu is organised by the question a person comes with, not by the kind of page:
- * how is the country (Painel), where (Explorar: states, plants, comparison), how much and who
- * (Relatórios). Análises and Previsão live under Ferramentas. The method lives in the footer.
+ * The main menu: the country at a glance (Painel), the two physical systems (Sistema, Água),
+ * the market, curtailment (an area of its own), the news and the free tools. Análises and
+ * Previsão live under Ferramentas; the method lives in the footer.
  */
-export const NAV = [
+export const NAV: readonly NavItem[] = [
   { href: "/painel", label: "Painel", matches: ["/painel"] },
-  { href: "/estados", label: "Explorar", matches: ["/estados", "/usinas", "/comparar"] },
-  { href: "/mercado/pld", label: "Mercado", matches: ["/mercado", "/qualidade", "/tarifas"] },
-  { href: "/relatorios", label: "Relatórios", matches: ["/relatorios"] },
+  { href: "/sistema", label: "Sistema", matches: ["/sistema"] },
+  { href: "/agua", label: "Água", matches: ["/agua"] },
+  {
+    href: "/mercado/pld",
+    label: "Mercado",
+    matches: ["/mercado", "/qualidade", "/tarifas"],
+    children: [
+      { href: "/mercado/pld", label: "PLD", description: "Preço da energia no curto prazo." },
+      { href: "/mercado/livre", label: "Mercado livre", description: "Consumo e migração." },
+      { href: "/tarifas", label: "Tarifas", description: "Bandeiras tarifárias." },
+      { href: "/qualidade", label: "Qualidade", description: "DEC e FEC das distribuidoras." },
+    ],
+  },
+  {
+    href: "/curtailment",
+    label: "Curtailment",
+    matches: ["/curtailment", "/estados", "/usinas", "/comparar", "/relatorios"],
+    children: [
+      { href: "/curtailment", label: "Visão geral", description: "Painel nacional do corte." },
+      { href: "/estados", label: "Estados", description: "Corte por estado." },
+      { href: "/usinas", label: "Usinas", description: "Usina por usina." },
+      { href: "/comparar", label: "Comparar", description: "Lado a lado." },
+      { href: "/relatorios", label: "Relatórios", description: "Um por mês, desde 2021." },
+    ],
+  },
   { href: "/noticias", label: "Notícias", matches: ["/noticias"] },
   {
     href: "/ferramentas",
     label: "Ferramentas",
     matches: ["/ferramentas", "/analises", "/previsao"],
+    children: [
+      {
+        href: "/ferramentas/plotador",
+        label: "Plotador de gráficos",
+        description: "Gráficos com ajuste de curva.",
+      },
+      { href: "/analises", label: "Análises", description: "Compensação, empresas e horários." },
+      { href: "/previsao", label: "Previsão", description: "Risco de corte nos próximos 7 dias." },
+    ],
   },
-] as const;
+];
 
 export const EXPLORE_TABS = [
   { key: "estados", href: "/estados", label: "Estados" },
@@ -24,20 +69,43 @@ export const EXPLORE_TABS = [
 
 export type ExploreTab = (typeof EXPLORE_TABS)[number]["key"];
 
-export const FOOTER_LINKS = [
-  { href: "/painel", label: "Painel" },
-  { href: "/estados", label: "Explorar" },
-  { href: "/analises", label: "Análises" },
-  { href: "/previsao", label: "Previsão" },
-  { href: "/mercado/pld", label: "Mercado" },
-  { href: "/qualidade", label: "Qualidade" },
-  { href: "/tarifas", label: "Tarifas" },
-  { href: "/relatorios", label: "Relatórios" },
-  { href: "/noticias", label: "Notícias" },
-  { href: "/ferramentas", label: "Ferramentas" },
-  { href: "/metodologia", label: "Metodologia" },
-  { href: "/privacidade", label: "Privacidade" },
-  { href: "/newsletter/descadastrar", label: "Cancelar newsletter" },
+export const FOOTER_COLUMNS = [
+  {
+    title: "Áreas",
+    links: [
+      { href: "/painel", label: "Painel" },
+      { href: "/sistema", label: "Sistema" },
+      { href: "/agua", label: "Água" },
+      { href: "/mercado/pld", label: "Mercado" },
+      { href: "/curtailment", label: "Curtailment" },
+      { href: "/noticias", label: "Notícias" },
+    ],
+  },
+  {
+    title: "Ferramentas",
+    links: [
+      { href: "/ferramentas/plotador", label: "Plotador de gráficos" },
+      { href: "/analises", label: "Análises" },
+      { href: "/previsao", label: "Previsão" },
+      { href: "/ferramentas", label: "Todas as ferramentas" },
+    ],
+  },
+  {
+    title: "Spillway",
+    links: [
+      { href: "/relatorios", label: "Relatórios mensais" },
+      { href: "/metodologia", label: "Metodologia" },
+      { href: "/noticias/rss.xml", label: "RSS" },
+      { href: "/noticias/assinar", label: "Newsletter" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/privacidade", label: "Privacidade" },
+      { href: "/newsletter/descadastrar", label: "Cancelar newsletter" },
+    ],
+  },
 ] as const;
 
 export function isUnder(pathname: string, prefix: string): boolean {

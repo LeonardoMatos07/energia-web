@@ -10,9 +10,10 @@ describe("main menu", () => {
   it("has the main sections and nothing else", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Painel",
-      "Explorar",
+      "Sistema",
+      "Água",
       "Mercado",
-      "Relatórios",
+      "Curtailment",
       "Notícias",
       "Ferramentas",
     ]);
@@ -24,9 +25,17 @@ describe("main menu", () => {
     }
   });
 
-  it("keeps Explorar lit on states, plants and the comparison", () => {
-    for (const path of ["/estados", "/estados/ba", "/usinas", "/usinas/cumaru-i", "/comparar"]) {
-      expect(active(path), path).toEqual(["Explorar"]);
+  it("keeps Curtailment lit on its hub, states, plants, the comparison and the reports", () => {
+    for (const path of [
+      "/curtailment",
+      "/estados",
+      "/estados/ba",
+      "/usinas",
+      "/usinas/cumaru-i",
+      "/comparar",
+      "/relatorios/x",
+    ]) {
+      expect(active(path), path).toEqual(["Curtailment"]);
     }
   });
 
@@ -38,18 +47,27 @@ describe("main menu", () => {
 
   it("lights exactly one section elsewhere", () => {
     expect(active("/painel")).toEqual(["Painel"]);
+    expect(active("/sistema")).toEqual(["Sistema"]);
+    expect(active("/agua")).toEqual(["Água"]);
     expect(active("/analises")).toEqual(["Ferramentas"]);
     expect(active("/previsao")).toEqual(["Ferramentas"]);
-    expect(active("/relatorios/curtailment-2026-09")).toEqual(["Relatórios"]);
+    expect(active("/relatorios/curtailment-2026-09")).toEqual(["Curtailment"]);
     expect(active("/metodologia")).toEqual([]);
     expect(active("/comparar-usinas")).toEqual([]);
   });
 
-  it("links members-area routes the middleware protects, except the open news section and the free tools", () => {
+  it("links members-area routes the middleware protects, except the open pages and the free tools", () => {
+    const open = ["/painel", "/sistema", "/agua", "/noticias", "/ferramentas"];
     for (const item of NAV) {
-      expect(isProtected(item.href), item.href).toBe(
-        item.href !== "/noticias" && item.href !== "/ferramentas",
-      );
+      expect(isProtected(item.href), item.href).toBe(!open.includes(item.href));
+    }
+  });
+
+  it("lights the area of every page listed in its dropdown", () => {
+    for (const item of NAV) {
+      for (const child of item.children ?? []) {
+        expect(isNavActive(child.href, item.matches), child.href).toBe(true);
+      }
     }
   });
 });
