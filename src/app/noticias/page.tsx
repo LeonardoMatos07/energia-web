@@ -4,7 +4,7 @@ import { NewsSubnav } from "@/components/news/news-subnav";
 import { Card, Container, DataUnavailable, PageHeader } from "@/components/ui";
 import { getNews } from "@/lib/api/queries";
 import { pageMetadata } from "@/lib/metadata";
-import { topicLabel } from "@/lib/news";
+import { formatPublished, topicLabel } from "@/lib/news";
 
 export const metadata = pageMetadata({
   title: "Notícias do setor elétrico",
@@ -46,7 +46,13 @@ export default async function NewsPage({ searchParams }: { searchParams: SearchP
         ) : (
           news.data.items.map((item) => (
             <Card key={item.id} as="section" className="p-5">
-              <h2 className="text-lg leading-snug font-semibold">
+              <time
+                dateTime={item.published_at}
+                className="bg-accent-soft text-accent-strong inline-block rounded-full px-3 py-1 text-sm font-semibold"
+              >
+                {formatPublished(item.published_at)}
+              </time>
+              <h2 className="mt-3 text-lg leading-snug font-semibold">
                 <a
                   href={item.url}
                   target="_blank"

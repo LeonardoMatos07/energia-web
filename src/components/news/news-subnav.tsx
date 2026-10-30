@@ -23,9 +23,12 @@ export function NewsSubnav({ active }: { active: NewsTab }) {
           {tab.label}
         </Link>
       ))}
-      <a href="/noticias/rss.xml" className="text-ink-2 hover:text-accent rounded-full px-4 py-1.5">
+      <Link
+        href="/noticias/assinar"
+        className="text-ink-2 hover:text-accent rounded-full px-4 py-1.5"
+      >
         RSS
-      </a>
+      </Link>
     </nav>
   );
 }
