@@ -48,7 +48,9 @@ describe("main menu", () => {
 
   it("links members-area routes the middleware protects, except the open news section and the free tools", () => {
     for (const item of NAV) {
-      expect(isProtected(item.href), item.href).toBe(item.href !== "/noticias" && item.href !== "/ferramentas");
+      expect(isProtected(item.href), item.href).toBe(
+        item.href !== "/noticias" && item.href !== "/ferramentas",
+      );
     }
   });
 });
