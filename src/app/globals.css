@@ -295,7 +295,21 @@ button {
   animation: pulse-ring 2.4s ease-out 2.8s infinite;
 }
 
+/* Donut of the electricity mix: each arc grows from nothing to its own length. */
+@keyframes donut-in {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+.donut-arc {
+  animation: donut-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .donut-arc {
+    animation: none !important;
+  }
   .hero-rise,
   .chart-area,
   .chart-dot {
